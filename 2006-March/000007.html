@@ -1,0 +1,375 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r9 - in trunk/fellowiki: tests/wiki/tests/simple_markup wiki
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-March/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r9%20-%20in%20trunk/fellowiki%3A%20tests/wiki/tests/simple_markup%20wiki&In-Reply-To=%3C200603220106.k2M16U56004733%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000006.html">
+   <LINK REL="Next"  HREF="000008.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r9 - in trunk/fellowiki: tests/wiki/tests/simple_markup wiki</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r9%20-%20in%20trunk/fellowiki%3A%20tests/wiki/tests/simple_markup%20wiki&In-Reply-To=%3C200603220106.k2M16U56004733%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r9 - in trunk/fellowiki: tests/wiki/tests/simple_markup wiki">fingerle at berlios.de
+       </A><BR>
+    <I>Wed Mar 22 02:06:30 CET 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000006.html">[fellowiki-svncheckins] r8 - in trunk/fellowiki: tests/wiki/tests/simple_markup wiki
+</A></li>
+        <LI>Next message: <A HREF="000008.html">[fellowiki-svncheckins] r10 - in trunk/fellowiki: tests/wiki tests/wiki/tests tests/wiki/tests/mixed_markup tests/wiki/tests/simple_markup util wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7">[ date ]</a>
+              <a href="thread.html#7">[ thread ]</a>
+              <a href="subject.html#7">[ subject ]</a>
+              <a href="author.html#7">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-03-22 02:06:18 +0100 (Wed, 22 Mar 2006)
+New Revision: 9
+
+Modified:
+   trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.wiki
+   trunk/fellowiki/wiki/parser.py
+Log:
+- fixed headline token, hopefully. Working test case can't be added before
+  =typewriter= style markup is fixed, since it affects the non-headline 
+  tests in the test case.
+
+
+Modified: trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.wiki	2006-03-19 23:19:08 UTC (rev 8)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.wiki	2006-03-22 01:06:18 UTC (rev 9)
+@@ -5,13 +5,28 @@
+ ======no headline
+ =======no headline
+ ========no headline
++
+ = Headline 1
++= Headline 1
++
+ == Headline 2
++== Headline 2
++
+ === Headline 3
++=== Headline 3
++
+ ==== Headline 4
++==== Headline 4
++
+ ===== Headline 5
++===== Headline 5
++
+ ====== Headline 6
++====== Headline 6
++
+ ======= no Headline
++======= no Headline
++
+ = we don't &quot;close&quot; headlines =
+ == we don't &quot;close&quot; headlines ==
+ === we don't &quot;close&quot; headlines ===
+
+Modified: trunk/fellowiki/wiki/parser.py
+===================================================================
+--- trunk/fellowiki/wiki/parser.py	2006-03-19 23:19:08 UTC (rev 8)
++++ trunk/fellowiki/wiki/parser.py	2006-03-22 01:06:18 UTC (rev 9)
+@@ -55,7 +55,7 @@
+         except TypeError: 
+             pass
+         self.text = token[cut_left:cut_right]
+-
++            
+         if decode_backslash:
+             self.text = remove_escaping_backslashes(self.text)
+             
+@@ -70,7 +70,11 @@
+     def close_matching(self, match):
+         return False
+     
+-    def evaluate(self, result, tokens):
++    def evaluate(self, result, tokens, state):
++        self.result = result
++        self.tokens = tokens
++        self.state = state
++        
+         new_token = ResultToken()
+         
+         # fold result set where appropriate (e.g. higher priority) and
+@@ -91,7 +95,7 @@
+             if self.close_matching(res):
+                 # matching braces generate a new token that will be evaluated
+                 # as a new token
+-                tokens.insert(0, self.close(res, new_token))
++                self.close(res, new_token)
+                 return
+             else:
+                 res.render(new_token)
+@@ -129,19 +133,6 @@
+         xhtml = Element('div')
+         xhtml.text = re.sub('[ \n\t]+', ' ', self.text)
+         new_token.prepend_element_contents(xhtml)
+-        
+-class LineBreakToken(Token):
+-    def render(self, new_token):
+-        
+-        xhtml = Element('div')
+-        xhtml.text = ' '
+-        new_token.prepend_element_contents(xhtml)
+-    def evaluate(self, result, tokens):
+-        if type(tokens[0]) == LineBreakToken:
+-            next_token = tokens.pop(0)
+-            tokens.insert(0, ParagraphToken(self.token + next_token.token))
+-        else:
+-            Token.evaluate(self, result, tokens)
+ 
+ class SingleToken(Token):
+     def render(self, new_token):
+@@ -152,7 +143,7 @@
+ class EncapsulateToken(Token):
+     open_wiki_markup = {}
+     open_html_markup = {}
+-    def evaluate(self, result, tokens):
++    def evaluate(self, result, tokens, state):
+         if self.type == '(':
+             self.is_nested_wiki = bool(self.open_wiki_markup.get(self.text, 
+                                                                  False))
+@@ -168,7 +159,7 @@
+ #                markers[self.input_marker+'~_'] = True
+         if self.type == ')':
+             self.second_content = None
+-        Token.evaluate(self, result, tokens)
++        Token.evaluate(self, result, tokens, state)
+         
+     def match_is_open(self):
+         if self.type == ')':
+@@ -204,7 +195,7 @@
+         #    self.second_content = new_token
+         else:
+             raise WikiTokenError(&quot;'close' where not allowed&quot;)
+-        return self
++        self.tokens.insert(0, self)
+     
+     def gets_eaten(self):
+         if self.type == '(':
+@@ -228,26 +219,26 @@
+     def __init__(self, token, *args, **kwargs):
+         EncapsulateToken.__init__(self, token, *args, **kwargs)
+         self.html_tag = self.special_markup[self.text][0]
++        self.xhtml = Element('div')
+ 
+     def render(self, new_token):
+-        xhtml = Element('div')
+-        if self.type == '*':
+-            self.content.tag = self.special_markup[self.text][0]
+-            xhtml[:] = [self.content]
+-                
+-        else:
++        if not self.type == '*':
+             self.gets_eaten()
+-            xhtml.text = self.token
+-        new_token.prepend_element_contents(xhtml)
++            self.xhtml.text = self.token
++        new_token.prepend_element_contents(self.xhtml)
+         
+     def do_close(self, match, new_token, second_content):
+         assert(second_content is not None)
+         
+-        self.content = new_token.xhtml
++        if new_token.xhtml.text is not None or len(new_token.xhtml) &gt; 0:
++            new_token.xhtml.tag = self.special_markup[self.text][0]
++            self.xhtml[:] = [new_token]
++        else:
++            self.xhtml.text = match.token + self.token
+             
+ class SwitchMarkupToken(EncapsulateMarkupToken):
+     open_wiki_markup = {}
+-    def evaluate(self, result, tokens):
++    def evaluate(self, result, tokens, state):
+         if not hasattr(self, 'type'):
+             if (bool(self.open_wiki_markup.get(self.text, False)) or
+                  bool(self.open_html_markup.get(self.html_tag, False))):
+@@ -255,13 +246,38 @@
+             else:
+                 self.type = '('
+             
+-        EncapsulateMarkupToken.evaluate(self, result, tokens)
++        EncapsulateMarkupToken.evaluate(self, result, tokens, state)
+     def do_close(self,match, new_token, second_content): 
+         self.content = new_token.xhtml # TODO: this is only a DEBUG fix
+ 
+-class ParagraphToken(Token):
++        
++class LineBreakToken(Token):
++    def render(self, new_token):
++        xhtml = Element('div')
++        xhtml.text = ' '
++        new_token.prepend_element_contents(xhtml)
++        
++    def evaluate(self, result, tokens, state):
++        if type(self) == type(tokens[0]) == LineBreakToken:
++            next_token = tokens.pop(0)
++            tokens.insert(0, ParagraphToken(self.token + next_token.token))
++        else:
++            Token.evaluate(self, result, tokens, state)
++    
++    def match_is_open(self):
++        return self.state.get(&quot;prefix_count&quot;, 0) &gt; 0
++    
++    def close_matching(self, match):
++        return isinstance(match, PrefixToken)
++        
++    def close(self, match, new_token):
++        self.state[&quot;prefix_count&quot;] = self.state.get(&quot;prefix_count&quot;, 0) - 1
++        match.prefix(new_token)
++        self.tokens.insert(0, self)
++            
++class ParagraphToken(LineBreakToken):
+     def __init__(self, token, *args, **kwargs):
+-        Token.__init__(self, token, *args, **kwargs)
++        LineBreakToken.__init__(self, token, *args, **kwargs)
+         self.preference = 0
+         self.xhtml = Element('div')
+         
+@@ -269,35 +285,48 @@
+         return True
+     
+     def close_matching(self, match):
+-        return isinstance(match, ParagraphToken)
++        return isinstance(match, ParagraphToken) \
++               or LineBreakToken.close_matching(self, match)
+             
+     def close(self, match, new_token):
+-        if len(new_token.xhtml) != 0 or new_token.xhtml.text is not None \
+-                                     or new_token.xhtml.tail is not None:
+-           new_token.xhtml.tag = 'p'
+-           match.xhtml.append(new_token.xhtml)
+-        return match
++        if LineBreakToken.close_matching(self, match):
++            LineBreakToken.close(self, match, new_token)
++        else:
++            if len(new_token.xhtml) != 0 or new_token.xhtml.text is not None \
++                                         or new_token.xhtml.tail is not None:
++               new_token.xhtml.tag = 'p'
++               match.xhtml.append(new_token.xhtml)
++            self.tokens.insert(0, match)
++            self.do_extended_close(match)
++            
++    def do_extended_close(self, inserted_token):
++        pass
+         
+     def render(self, new_token):
+         new_token.prepend_element_contents(self.xhtml)
+         
+-    def evaluate(self, result, tokens):
++    def evaluate(self, result, tokens, state):
+         while type(tokens[0]) == LineBreakToken:
+             next_token = tokens.pop(0)
+             self.token += next_token.token
+-        while len (result) &gt;0 and type(result[-1]) == LineBreakToken:
++        while len(result) &gt;0 and type(result[-1]) == LineBreakToken:
+             previous_result = result.pop()
+-            self.token = next_token.token + self.token
+-        Token.evaluate(self, result, tokens)
++            self.token = previous_result.token + self.token
++        LineBreakToken.evaluate(self, result, tokens, state)
+             
+-
+ class BetweenParagraphsToken(ParagraphToken):
+-    def close(self, match, new_token):
+-        match_ = ParagraphToken.close(self, match, new_token)
+-        embed = SubElement(match_.xhtml, self.html_tag)
++    def do_extended_close(self, inserted_token):
++        embed = SubElement(inserted_token.xhtml, self.html_tag)
+         embed.text = self.text
+-        return match_
+ 
++class BeetweenParagraphsXHTML(ParagraphToken):
++    def __init__(self, xhtml, token):
++        ParagraphToken.__init__(self, token)
++        self.xhtml = xhtml
++    
++    def do_extended_close(self, inserted_token):
++        inserted_token.xhtml.append(self.xhtml)
++
+ class StructureModifyToken(Token): 
+ #modifiziert letzte geoeffnete struktur, wird dann wegfallen lassen =&gt; keine
+ # preference
+@@ -307,12 +336,23 @@
+                                   '^': ('valign', 'up'),
+                                   ',': ('valign', 'down')}
+ 
+-class HeadlineToken(Token): 
++class PrefixToken(Token):
++    def evaluate(self, result, tokens, state):
++        state[&quot;prefix_count&quot;] = state.get(&quot;prefix_count&quot;, 0) + 1
++        Token.evaluate(self, result, tokens, state)
++        
+     def render(self, new_token):
++        self.state[&quot;prefix_count&quot;] = self.state.get(&quot;prefix_count&quot;, 0) - 1
++        Token.render(self, new_token)
++    
++    def prefix(self, new_token):
++        self.tokens.insert(0, new_token)
++
++class HeadlineToken(PrefixToken): 
++    def prefix(self, new_token):
+         new_token.xhtml.tag = 'h%i' % (len(self.token) - 1)
+-        xhtml = Element('div')
+-        xhtml.append(new_token.xhtml)
+-        new_token.xhtml = xhtml
++        PrefixToken.prefix(self, BeetweenParagraphsXHTML(new_token.xhtml, 
++                                                         self.token))
+     
+ class ListToken(Token): 
+     pass
+@@ -410,10 +450,11 @@
+         tokens = tokens[0]
+         tokens.append(EndToken())
+         result = []
++        state = {}
+         
+         while len(tokens) &gt; 0:
+             token = tokens.pop(0)
+-            token.evaluate(result, tokens)
++            token.evaluate(result, tokens, state)
+         
+         if len(tokens) != 0:
+             raise WikiParserError('WikiParser error in &quot;%s&quot;' % text)
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000006.html">[fellowiki-svncheckins] r8 - in trunk/fellowiki: tests/wiki/tests/simple_markup wiki
+</A></li>
+	<LI>Next message: <A HREF="000008.html">[fellowiki-svncheckins] r10 - in trunk/fellowiki: tests/wiki tests/wiki/tests tests/wiki/tests/mixed_markup tests/wiki/tests/simple_markup util wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#7">[ date ]</a>
+              <a href="thread.html#7">[ thread ]</a>
+              <a href="subject.html#7">[ subject ]</a>
+              <a href="author.html#7">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

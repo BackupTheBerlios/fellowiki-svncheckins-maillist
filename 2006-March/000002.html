@@ -1,0 +1,490 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r4 - in trunk/fellowiki: tests wiki
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-March/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r4%20-%20in%20trunk/fellowiki%3A%20tests%20wiki&In-Reply-To=%3C200603110034.k2B0YSox032117%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000000.html">
+   <LINK REL="Next"  HREF="000003.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r4 - in trunk/fellowiki: tests wiki</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r4%20-%20in%20trunk/fellowiki%3A%20tests%20wiki&In-Reply-To=%3C200603110034.k2B0YSox032117%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r4 - in trunk/fellowiki: tests wiki">fingerle at berlios.de
+       </A><BR>
+    <I>Sat Mar 11 01:34:28 CET 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000000.html">[fellowiki-svncheckins] r3 - in trunk/fellowiki: . tests tests/wiki
+</A></li>
+        <LI>Next message: <A HREF="000003.html">[fellowiki-svncheckins] r5 - trunk/fellowiki/tests/wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2">[ date ]</a>
+              <a href="thread.html#2">[ thread ]</a>
+              <a href="subject.html#2">[ subject ]</a>
+              <a href="author.html#2">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-03-11 01:34:25 +0100 (Sat, 11 Mar 2006)
+New Revision: 4
+
+Modified:
+   trunk/fellowiki/tests/pylintrc
+   trunk/fellowiki/wiki/parser.py
+Log:
+- fixed pylint messages in wiki.parser
+- de-super()-ed wiki.parser (design decision to only use it if really
+  nessecary, i.e. with diamond shaped inheritance (not counting object))
+
+
+Modified: trunk/fellowiki/tests/pylintrc
+===================================================================
+--- trunk/fellowiki/tests/pylintrc	2006-03-05 17:10:03 UTC (rev 3)
++++ trunk/fellowiki/tests/pylintrc	2006-03-11 00:34:25 UTC (rev 4)
+@@ -2,7 +2,7 @@
+ # Include message's id in output
+ include-ids=yes
+ 
+-disable-msg=I0011, W0142
++disable-msg=I0011, W0142, W0704, W0231, W0201
+ 
+ [VARIABLES]
+ # List of variable names used for dummy variables (i.e. not used).
+
+Modified: trunk/fellowiki/wiki/parser.py
+===================================================================
+--- trunk/fellowiki/wiki/parser.py	2006-03-05 17:10:03 UTC (rev 3)
++++ trunk/fellowiki/wiki/parser.py	2006-03-11 00:34:25 UTC (rev 4)
+@@ -1,3 +1,6 @@
++# pylint: disable-msg=W0613,E0201
++# W0702, W0706: allow argument magic (i.e. attributes_from_dict())
++
+ # Copyright (c) 2006 Jan Niklas Fingerle
+ # 
+ # Permission is hereby granted, free of charge, to any person obtaining a
+@@ -34,9 +37,17 @@
+       
+ import sre, re
+ 
++class WikiError(StandardError):
++    pass
+ 
++class WikiParserError(WikiError):
++    pass
++
++class WikiTokenError(WikiError):
++    pass
++    
+ class Token(object):
+-    def __init__(self, scanner, token, cut_right = None, cut_left = None,
++    def __init__(self, token, cut_right = None, cut_left = None,
+                      decode_backslash = False, preference = None, **attr_dict):
+         attributes_from_dict(dict(locals().items()+attr_dict.items()))
+         try:
+@@ -62,7 +73,7 @@
+     
+     def fold_results(self, result, tokens):
+         new_token = ResultToken()
+-        while len(result) &gt; 0 and (self.preference &lt;&gt; None and 
++        while len(result) &gt; 0 and (self.preference != None and 
+                 (result[-1].preference &gt; self.preference
+                 or self.preference &lt; 0
+                 or len(result) &gt; 1 and result[-1].preference == None
+@@ -74,20 +85,20 @@
+         return new_token
+     
+     def evaluate(self, result, tokens, new_token):
+-        while len(result) &gt; 0 and self.preference &lt;&gt; None and \
++        while len(result) &gt; 0 and self.preference is not None and \
+                 (result[-1].preference &gt; self.preference
+                 or self.preference &lt; 0
+-                or self.match_is_open() and (result[-1].preference == None or
++                or self.match_is_open() and (result[-1].preference is None or
+                 result[-1].preference &gt;= self.preference)):
+             res = result.pop()
+             if self.close_matching(res):
+-                tokens.insert(0,self.close(res, new_token))
++                tokens.insert(0, self.close(res, new_token))
+                 return
+             else:
+                 new_token.prepend_element_contents(res.render())
+                 
+         result.append(new_token)
+-        if self.preference &gt;= 0 or self.preference == None:
++        if self.preference &gt;= 0 or self.preference is None:
+             result.append(self)
+ 
+ class ResultToken(Token):
+@@ -117,7 +128,7 @@
+ class TextToken(Token):
+     def render(self):
+         xhtml = Element('div')
+-        xhtml.text = re.sub('[ \n\t]+',' ',self.text)
++        xhtml.text = re.sub('[ \n\t]+', ' ', self.text)
+         return xhtml
+ 
+ class EmbeddedTextToken(Token):
+@@ -139,21 +150,20 @@
+     def evaluate(self, result, tokens, new_token):
+         if self.type == '(':
+             self.is_nested_wiki = bool(self.open_wiki_markup.get(self.text, 
+-                                                                                  False))
++                                                                 False))
+             self.is_nested_html = bool(self.open_html_markup.get(self.html_tag,
+-                                                                            False))
++                                                                 False))
+             self.open_wiki_markup[self.text] = \
+-                                            self.open_wiki_markup.get(self.text, 0) + 1
++                                self.open_wiki_markup.get(self.text, 0) + 1
+             self.open_html_markup[self.html_tag] = \
+-                                      self.open_html_markup.get(self.html_tag, 0) + 1
++                                self.open_html_markup.get(self.html_tag, 0) + 1
+ #          if self.type == '_' and self.open_wiki_markup.get(self.text, False):
+-#              self.is_valid_middle_element = markers.get(self.input_marker+'~_',
+-#                                                                        False)
++#              self.is_valid_middle_element = \ 
++#                            markers.get(self.input_marker+'~_',False)
+ #                markers[self.input_marker+'~_'] = True
+         if self.type == ')':
+             self.second_content = None
+-        super(EncapsulateToken, self).evaluate(result, tokens, 
+-                                                                          new_token)
++        Token.evaluate(result, tokens, new_token)
+         
+     def match_is_open(self):
+         if self.type == ')':
+@@ -179,24 +189,24 @@
+     def close(self, match, new_token):
+         if match.type == '(':
+             match.open_wiki_markup[match.text] = \
+-                                         match.open_wiki_markup.get(match.text, 0) - 1
++                            match.open_wiki_markup.get(match.text, 0) - 1
+             match.open_html_markup[match.html_tag] = \
+-                                    match.open_html_markup.get(match.html_tag, 0) - 1
++                            match.open_html_markup.get(match.html_tag, 0) - 1
+             self.type = '*'
+             self.do_close(match, new_token, self.second_content)
+         #elif self.type == '_' and markers[self.input_marker]:
+         #    markers[match.input_marker+'~_'] = False
+         #    self.second_content = new_token
+         else:
+-            raise &quot;CloseWhereNotAllowedException&quot; ### TODO
++            raise WikiTokenError(&quot;'close' where not allowed&quot;)
+         return self
+     
+     def gets_eaten(self):
+         if self.type == '(':
+             self.open_wiki_markup[self.text] = \
+-                                         self.open_wiki_markup.get(self.text, 0) - 1
++                                self.open_wiki_markup.get(self.text, 0) - 1
+             self.open_html_markup[self.html_tag] = \
+-                                    self.open_html_markup.get(self.html_tag, 0) - 1
++                                self.open_html_markup.get(self.html_tag, 0) - 1
+ 
+ class EncapsulateMarkupToken(EncapsulateToken):
+     special_markup = {'/': ('em', 'italic'),
+@@ -208,11 +218,10 @@
+                             '^': ('div', 'superscript'),
+                             ',': ('div', 'subscript'),
+                             '#': ('div', 'large'),
+-                            '~': ('div', 'small')}; # TODO: check for correct markup
++                            '~': ('div', 'small')}; # TODO: check markup
+     
+-    def __init__(self, scanner, token, *p, **k):
+-        super(EncapsulateMarkupToken,self).__init__(scanner, 
+-                                                                                 token, *p, **k)
++    def __init__(self, token, *args, **kwargs):
++        EncapsulateToken.__init__(self, token, *args, **kwargs)
+         self.html_tag = self.special_markup[self.text][0]
+ 
+     def render(self):
+@@ -227,8 +236,7 @@
+         return xhtml
+         
+     def do_close(self, match, new_token, second_content):
+-        if second_content &lt;&gt; None:
+-            raise &quot;EncapsulateMarkupException&quot; ## TODO
++        assert(second_content is not None)
+         
+         self.content = new_token.xhtml
+             
+@@ -242,19 +250,17 @@
+             else:
+                 self.type = '('
+             
+-        super(SwitchMarkupToken, self).evaluate(result, tokens, 
+-                                                                            new_token)
++        EncapsulateMarkupToken.evaluate(result, tokens, new_token)
+ 
+ class StructureToken(Token):
+     ## all Structure is equal and should be of preference 0
+     open_structure_list = []
+-    def __init__(self, scanner, token, *p, **k):
+-        super(StructureToken,self).__init__(scanner, token, *p, **k)
++    def __init__(self, token, *args, **kwargs):
++        Token.__init__(self, token, *args, **kwargs)
+         self.xhtml = Element('div')
+ 
+     def evaluate(self, result, tokens, new_token):
+-        super(StructureToken, self).evaluate(result, tokens, 
+-                                                                          new_token)
++        Token.evaluate(self, result, tokens, new_token)
+         if not self.match_is_open:
+             self.open_structure_list.append(self.html_tag)
+         
+@@ -273,7 +279,8 @@
+         new_token.xhtml.tag = self.html_tag
+         match.xhtml.append(new_token.xhtml)
+         while len(self.open_structure_list) &gt; 0:
+-          if self.open_structure_list.pop() == self.html_tag: break
++            if self.open_structure_list.pop() == self.html_tag: 
++                break
+         return match
+         
+     def render(self):
+@@ -291,115 +298,118 @@
+                                   ',': ('valign', 'down')}
+ 
+ 
+-class PrefixToken(Token): pass
+-class HeadlineToken(PrefixToken): pass
+-class ListToken(EncapsulateToken): pass
++class PrefixToken(Token): 
++    pass
++class HeadlineToken(PrefixToken): 
++    pass
++class ListToken(EncapsulateToken): 
++    pass
++class LinkToken(EncapsulateToken): 
++    pass
++class EmbeddedLinkToken(LinkToken): 
++    pass
++class MacroToken(LinkToken): 
++    pass
++class TableToken(EncapsulateToken): 
++    pass
+ 
+-class LinkToken(EncapsulateToken): pass
+-class EmbeddedLinkToken(LinkToken): pass
+-class MacroToken(LinkToken): pass
+-    
+-    
+-class TableToken(EncapsulateToken): pass
+-
+-
+-
+-
++def token_factory(token_cls, *args, **kw_args):
++    def new_token(_, token):
++        return token_cls(*((token,)+args), **kw_args)
++    return new_token    
++        
+ class WikiParser(object):
+-    def token(Token, *args, **kw_args):
+-        def new_token(scanner, token):
+-            return Token(*((scanner, token)+args), **kw_args)
+-        return new_token    
++    regexes = [# escaped text, no wiki tags:
++              (10, r'\[%([^\\%\[]|\\.|%[^\\\]])*%\]', token_factory(TextToken, 
++                     cut_left=2, 
++                     cut_right=2, decode_backslash = True)),
++              # escaped text, preformatted:
++              (10, r'\[@([^\\@\[]|\\.|@[^\\\]])*@\]', 
++                     token_factory(EmbeddedTextToken,
++                     preference = 0, html_tag='pre',
++                     cut_left=2, cut_right=2, 
++                     decode_backslash = True)),
++              # escaped single character:
++              (10, r'\\.', token_factory(TextToken, cut_left=1)),
++              # line break in output
++              (20, r'([ \n\t]*\n%%%%%*[ \n\t]*)+\n',
++                     token_factory(SingleToken, preference=10, html_tag='br')),
++              # paragraph break
++              (30, r'\n[ \n\t]*\n', token_factory(StructureToken,
++                     preference = 0, html_tag='p')),
++              # line break in input (non-printable)
++              (40, r'\n', token_factory(TextToken, preference=20)),
++              # include link start
++              (10, r'\[\[\[', token_factory(EmbeddedLinkToken, type='(', 
++                     preference=20)),
++              # include link stop
++              (10, r'\]\]\]', token_factory(EmbeddedLinkToken, type=')', 
++                     preference=20)),
++              # link start
++              (20, r'\[\[', token_factory(LinkToken, type='(', preference=20)),
++              # link stop
++              (20, r'\]\]', token_factory(LinkToken, type=')', preference=20)),
++              # link rename
++              (20, r'[ \t]&gt;&gt;[ \t]', token_factory(LinkToken, type='_', 
++                     preference=20)),
++              # special enclosing markup
++              (90, r'[/\*_=]', token_factory(SwitchMarkupToken, preference=40)),
++              (10, r'\[[/\*_=\'&quot;^,#~]', token_factory(EncapsulateMarkupToken, 
++                    type='(', preference=20, cut_left=1)),
++              (10, r'[/\*_=\'&quot;^,#~]\]', token_factory(EncapsulateMarkupToken, 
++                    type=')', preference=20, cut_right=1)),
+ 
++              # modifiers
++              (10, r'&lt;[:()^,]&gt;', token_factory(StructureModifyToken, 
++                    cut_left=1, cut_right=1)),
++              # headlines
++              (10, r'\n={1,6}[ \t]', token_factory(HeadlineToken, 
++                    preference=10)),
++              # lists
++              (10, r'\n[#*-]+[ \t]', token_factory(ListToken, preference=10)),
++              # tables
++              (10, r'\n\|', token_factory(TableToken, type='(', preference=0)),
++              (10, r'\|(?=\n)', token_factory(TableToken, type=')', 
++                    preference=0)),
++              (90, r'\|', token_factory(TableToken, type='_', preference=0)),
++              # macros
++              (10, r'\{\{', token_factory(MacroToken, type='(', preference=20)),
++              (10, r'\}\}', token_factory(MacroToken, type=')', preference=20)),
++              # n-dash and m-dash
++              (20, r'--', token_factory(TextToken, new_text=u'\u2013')),
++              (20, r'---', token_factory(TextToken, new_text=u'\u2014')),
++              # horizontal rule
++              (10, r'\n----(?=\n)', token_factory(SingleToken, preference=0, 
++                     html_tag='hr')),
++              # what's left 
++              (90, r'[ \t]', token_factory(TextToken, preference=30)),
++              (99, r'.', token_factory(TextToken))
++              ]
+ 
+-    regexes = [### escaped text, no wiki tags:
+-                  (10, r'\[%([^\\%\[]|\\.|%[^\\\]])*%\]', token(TextToken, 
+-                         cut_left=2, 
+-                         cut_right=2, decode_backslash = True)),
+-                  ### escaped text, preformatted:
+-                  (10, r'\[@([^\\@\[]|\\.|@[^\\\]])*@\]', token(EmbeddedTextToken,
+-                         preference = 0, html_tag='pre',
+-                         cut_left=2, cut_right=2, 
+-                         decode_backslash = True)),
+-                  ### escaped single character:
+-                  (10, r'\\.', token(TextToken, cut_left=1)),
+-                  ### line break in output
+-                  (20, r'([ \n\t]*\n%%%%%*[ \n\t]*)+\n',
+-                         token(SingleToken, preference=10, html_tag='br')),
+-                  ### paragraph break
+-                  (30, r'\n[ \n\t]*\n', token(StructureToken,
+-                         preference = 0, html_tag='p')),
+-                  ### line break in input (non-printable)
+-                  (40, r'\n', token(TextToken, preference=20)),
+-                  ### include link start
+-                  (10, r'\[\[\[', token(EmbeddedLinkToken, type='(', 
+-                         preference=20)),
+-                  ### include link stop
+-                  (10, r'\]\]\]', token(EmbeddedLinkToken, type=')', 
+-                         preference=20)),
+-                  ### link start
+-                  (20, r'\[\[', token(LinkToken, type='(', preference=20)),
+-                  ### link stop
+-                  (20, r'\]\]', token(LinkToken, type=')', preference=20)),
+-                  ### link rename
+-                  (20, r'[ \t]&gt;&gt;[ \t]', token(LinkToken, type='_', 
+-                         preference=20)),
+-                  ### special enclosing markup
+-                  (90, r'[/\*_=]', token(SwitchMarkupToken, preference=40)),
+-                  (10, r'\[[/\*_=\'&quot;^,#~]', token(EncapsulateMarkupToken, type='(',
+-                         preference=20, cut_left=1)),
+-                  (10, r'[/\*_=\'&quot;^,#~]\]', token(EncapsulateMarkupToken, type=')',
+-                         preference=20, cut_right=1)),
+-
+-                  ### modifiers
+-                  (10, r'&lt;[:()^,]&gt;', token(StructureModifyToken, cut_left=1, 
+-                         cut_right=1)),
+-                  ### headlines
+-                  (10, r'\n={1,6}[ \t]', token(HeadlineToken, preference=10)),
+-                  ### lists
+-                  (10, r'\n[#*-]+[ \t]', token(ListToken, preference=10)),
+-                  ### tables
+-                  (10, r'\n\|', token(TableToken, type='(', preference=0)),
+-                  (10, r'\|(?=\n)', token(TableToken, type=')', preference=0)),
+-                  (90, r'\|', token(TableToken, type='_', preference=0)),
+-                  ### macros
+-                  (10, r'\{\{', token(MacroToken, type='(', preference=20)),
+-                  (10, r'\}\}', token(MacroToken, type=')', preference=20)),
+-                  ### n-dash and m-dash
+-                  (20, r'--', token(TextToken, new_text=u'\u2013')),
+-                  (20, r'---', token(TextToken, new_text=u'\u2014')),
+-                  ### horizontal rule
+-                  (10, r'\n----(?=\n)', token(SingleToken, preference=0, 
+-                         html_tag='hr')),
+-                  ### what's left 
+-                  (90, r'[ \t]', token(TextToken, preference=30)),
+-                  (99, r'.', token(TextToken))
+-                 ]
+-
+     def __init__(self):
+         regexes = self.regexes[:]
+         regexes.sort()
+-        regexes = [(b,c) for (a,b,c) in regexes]
++        regexes = [(rex, callback) for (_, rex, callback) in regexes]
+         self.scanner = sre.Scanner(regexes)
+ 
+     def parse(self, text):
+-        tokens = self.scanner.scan(''.join(['\n\n',text,'\n\n']))
++        tokens = self.scanner.scan(''.join(['\n\n', text, '\n\n']))
+         
+-        if tokens[1] &lt;&gt; '':
+-            raise 'ParserException' ## TODO: Exception
++        if tokens[1] != '':
++            raise WikiParserError('WikiParser error in &quot;%s&quot;' % text)
+         
+-        tokens=tokens[0]
++        tokens = tokens[0]
+         tokens.append(EndToken())
+         result = []
+         
+         while len(tokens) &gt; 0:
+             token = tokens.pop(0)
+-            token.evaluate(result, tokens, token.fold_results(result,tokens))
++            token.evaluate(result, tokens, token.fold_results(result, tokens))
+         
+-        if len(tokens) &lt;&gt; 0:
+-            raise 'ParserException' ## TODO: Exception
+-        if len(result) &lt;&gt; 1:
+-            raise 'ParserException' ## TODO: Exception
++        if len(tokens) != 0:
++            raise WikiParserError('WikiParser error in &quot;%s&quot;' % text)
++        if len(result) != 1:
++            raise WikiParserError('WikiParser error in &quot;%s&quot;' % text)
+             
+         xhtml_tree = result[0].xhtml
+         
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000000.html">[fellowiki-svncheckins] r3 - in trunk/fellowiki: . tests tests/wiki
+</A></li>
+	<LI>Next message: <A HREF="000003.html">[fellowiki-svncheckins] r5 - trunk/fellowiki/tests/wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#2">[ date ]</a>
+              <a href="thread.html#2">[ thread ]</a>
+              <a href="subject.html#2">[ subject ]</a>
+              <a href="author.html#2">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,2449 @@
+From fingerle at mail.berlios.de  Thu Jul 20 00:17:48 2006
+From: fingerle at mail.berlios.de (fingerle at BerliOS)
+Date: Thu, 20 Jul 2006 00:17:48 +0200
+Subject: [fellowiki-svncheckins] r23 - in trunk/fellowiki/wiki: . tests
+	tests/tests/simple_markup
+Message-ID: <200607192217.k6JMHmZE023758@sheep.berlios.de>
+
+Author: fingerle
+Date: 2006-07-20 00:17:47 +0200 (Thu, 20 Jul 2006)
+New Revision: 23
+
+Added:
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description_rename.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description_rename.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_rename.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_rename.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_simple.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_simple.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_external.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_external.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_invalid.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_invalid.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_rename.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_simple.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/mailto_link.wiki
+Removed:
+   trunk/fellowiki/wiki/tests/tests/simple_markup/include_link_rename.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/include_link_simple.wiki
+Modified:
+   trunk/fellowiki/wiki/parser.py
+   trunk/fellowiki/wiki/tests/test_parser.py
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_rename.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_simple.wiki
+Log:
+- some work on links
+
+
+Modified: trunk/fellowiki/wiki/parser.py
+===================================================================
+--- trunk/fellowiki/wiki/parser.py	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/parser.py	2006-07-19 22:17:47 UTC (rev 23)
+@@ -46,6 +46,8 @@
+ BLOCK_LEVEL = 'block level'
+ PROC = 'procedure'
+ MACRO = 'macro:'
++LINK = 'link'
++IMAGE_LINK = 'image link'
+ 
+ 
+ SPECIAL_MARKUP = {'/': ('em', 'italic'),
+@@ -69,7 +71,7 @@
+         self.content = []
+         self.attributes = {}
+         self.callback = []
+-        self.translation = None
++        self.translations = []
+         
+     def to_element_tree(self): 
+         xhtml = ElementTree.Element(self.tag)
+@@ -103,13 +105,13 @@
+             xhtml.text = current_text
+         else:
+             sub_xhtml.tail = current_text
+-        if self.translation is not None:
+-            if self.translation[1] is None:
++        for translation in self.translations:
++            if translation[1] is None:
+                 translations.append((xhtml, 
+-                                     self.translation[0], 
+-                                     self.translation[2]))
++                                     translation[0], 
++                                     translation[2]))
+             else:
+-                self.translation[1](xhtml,  self.translation[2])
++                translation[1](xhtml, translation[2])
+         return xhtml, translations
+         
+     def is_empty(self):
+@@ -492,14 +494,6 @@
+     def render(self, new_token):
+         PrefixToken.render(self, new_token)
+         
+-        
+-        
+-##class HeadlineToken(PrefixToken): 
+-##    def do_prefix(self, new_token):
+-##        new_token.xhtml.tag = 'h%i' % (len(self.token) - 1)
+-##        self.tokens.insert(0, BeetweenParagraphsXHTML(new_token.xhtml, 
+-##                                                      self.token))
+-        
+ class MacroToken(Token): 
+     def render(self, new_token):
+         if not self.block_level:
+@@ -515,9 +509,8 @@
+         self.xhtml.append(self.text)
+         self.block_level = False
+         
+-        
+-        match_obj = re.match(r'\{\{(([^\\\}\n\|]|\\.|\}[^\\\}\n\|]|\}\\.)*)' \
+-                             r'\|(([^\\\}\n]|\\.|\}[^\\\}\n]|\}\\.)*)\}\}', 
++        match_obj = re.match(r'\{\{(([^\\\}\|]|\\.|\}(?=[^\}]))*)' \
++                             r'\|(([^\\\}]|\\.|\}(?=[^\}]))*)\}\}', 
+                              self.text)
+                              
+         
+@@ -553,9 +546,9 @@
+         if not this_proc.get(DEFERRED):
+             self.proc_not_deferred = this_proc[PROC]
+             
+-        self.xhtml.translation = (self.proc, 
++        self.xhtml.translations.append((self.proc, 
+                                   self.proc_not_deferred,
+-                                  self.parameter)
++                                  self.parameter))
+         self.xhtml.attributes['class'] = 'macro_resolved'
+         
+         if this_proc.get(BLOCK_LEVEL):
+@@ -563,11 +556,134 @@
+             self.xhtml.tag = 'p'
+             self.tokens.insert(0, BeetweenParagraphsXHTML(self.xhtml, self.token))
+             
++class LinkToken(Token): 
++    def render(self, new_token):
++        new_token.prepend(self.xhtml)
++        
++    def evaluate(self, result, tokens, state, procs):
++        Token.evaluate(self, result, tokens, state, procs)
++        
++        self.xhtml = XMLElement('a')
++        
++        match_obj = re.match(r'\[\[(([^\\\]]|\\.|\](?=[^\]]))*)' \
++                               r'>>(([^\\\]]|\\.|\](?=[^\]]))*)\]\]', 
++                             self.text)
++        
++        if match_obj:
++            text, _, target, _ = match_obj.groups()
++        else:
++            text = target = self.text[2:-2]
++                
++        text = remove_escaping_backslashes(text)
++        target = remove_backslashes_and_whitespace(target)
++        
++        self.xhtml.append(text)
++        
++        if re.match(r'(http|ftp)://', target):
++            self.xhtml.attributes['class'] = 'link_external'
++            self.xhtml.attributes['href'] = target
++            return
++        
++        try:
++            link_proc = procs[LINK]
++        except KeyError:
++            self.xhtml.attributes['class'] = 'link_unresolved'
++            self.xhtml.tag = 'span'
++            return
+             
+-class LinkToken(Token): 
+-    pass
+-class EmbeddedLinkToken(LinkToken): 
+-    pass
++        self.xhtml.translations.append((LINK, 
++                                       None,
++                                       [target]))
++        self.xhtml.attributes['class'] = 'link_internal'
++            
++class ImageLinkToken(Token): 
++    def render(self, new_token):
++        new_token.prepend(self.xhtml)
++        
++    def evaluate(self, result, tokens, state, procs):
++        Token.evaluate(self, result, tokens, state, procs)
++        
++        self.xhtml = XMLElement('a')
++        
++        # 1st attempt: description and link
++        match_obj = re.match(r'\[\[\[(([^\\\]]|\\.|\]{1,2}(?=[^\]]))*)' \
++                               r'\|\|(([^\\\]]|\\.|\]{1,2}(?=[^\]]))*)' \
++                                 r'>>(([^\\\]]|\\.|\]{1,2}(?=[^\]]))*)\]\]\]',
++                             self.text)
++                             
++        if match_obj:
++            image, _, description, _, target, _ = match_obj.groups()
++        else: # 2nd attempt: only link
++            match_obj = re.match(r'\[\[\[(([^\\\]]|\\.|\]{1,2}(?=[^\]]))*)' \
++                                     r'>>(([^\\\]]|\\.|\]{1,2}(?=[^\]]))*)\]\]\]', 
++                                 self.text)
++            if match_obj:
++                image, _, target, _ = match_obj.groups()
++                description = None
++            else: # 3rd attempt: only description
++                match_obj = re.match(r'\[\[\[(([^\\\]]|\\.|\]{1,2}(?=[^\]]))*)' \
++                                       r'\|\|(([^\\\]]|\\.|\]{1,2}(?=[^\]]))*)\]\]\]', 
++                                     self.text)
++                if match_obj:
++                    image, _, description, _ = match_obj.groups()
++                    target = None
++                else:
++                    image = self.text[3:-3]
++                    description = target = None
++        
++        
++        image = remove_backslashes_and_whitespace(image)
++        if description is not None:
++            description = remove_backslashes_and_whitespace(description)
++        else:
++            description = ''
++            
++        has_target = False
++        
++        if target is not None:
++            has_target = True
++            target = remove_backslashes_and_whitespace(target)
++            if re.match(r'(http|ftp)://', target):
++                self.xhtml.attributes['class'] = 'link_external'
++                self.xhtml.attributes['href'] = target
++            else:    
++                try:
++                    link_proc = procs[LINK]
++                    self.xhtml.translations.append((LINK, 
++                                                    None,
++                                                    [target]))
++                    self.xhtml.attributes['class'] = 'link_internal'
++                except KeyError:
++                    self.xhtml.tag = 'span'
++                    self.xhtml.attributes['class'] = 'link_unresolved'
++                    
++        if re.match(r'(http|ftp)://', image):
++            img = XMLElement('img')
++            img.attributes['class'] = 'img_external'
++            img.attributes['src'] = image
++            
++            img.attributes['alt'] = description
++                
++            if has_target:
++                self.xhtml.append(img)
++            else:
++                self.xhtml = img
++        else:   
++            try:
++                link_proc = procs[IMAGE_LINK]
++                self.xhtml.translations.append((IMAGE_LINK, 
++                                                None,
++                                                [image, description, has_target]))
++            except KeyError:
++                span = XMLElement('span')
++                
++                span.append(image)
++                if description <> '':
++                    span.append(": %s" % description)
++                    
++                span.attributes['class'] = 'image_unresolved'
++                self.xhtml.append(span)
++    
+ class TableToken(Token): 
+     pass
+ 
+@@ -594,19 +710,12 @@
+                      token_factory(LineBreakOutputToken, preference=1)),
+               # line break in input (non-printable)
+               (40, r'[ \t]*\n[ \t]*', token_factory(LineBreakToken, preference=20)),
+-              # include link start
+-              (10, r'\[\[\[', token_factory(EmbeddedLinkToken, type='(', 
+-                     preference=20)),
+-              # include link stop
+-              (10, r'\]\]\]', token_factory(EmbeddedLinkToken, type=')', 
+-                     preference=20)),
+-              # link start
+-              (20, r'\[\[', token_factory(LinkToken, type='(', preference=20)),
+-              # link stop
+-              (20, r'\]\]', token_factory(LinkToken, type=')', preference=20)),
+-              # link rename
+-              (20, r'[ \t]>>[ \t]', token_factory(LinkToken, type='_', 
+-                     preference=20)),
++              # image link
++              (10, r'\[\[\[([^\\\]\n]|\\.|\]{1,2}(?=[^\]]))*\]\]\]', 
++                    token_factory(ImageLinkToken, preference=20)),
++              # link
++              (20, r'\[\[([^\\\]\n]|\\.|\](?=[^\]]))*\]\]', 
++                    token_factory(LinkToken, preference=20)),
+               # special enclosing markup
+               (90, r'[/\*_=]', token_factory(SwitchMarkupToken, preference=90)),
+               (10, r'\[[/\*_=\'"^,#~]', token_factory(EncapsulateMarkupToken, 
+@@ -628,7 +737,7 @@
+                     preference=0)),
+               (90, r'\|', token_factory(TableToken, type='_', preference=0)),
+               # macros
+-              (10, r'\{\{([^\\\}\n]|\\.|\}[^\\\}\n]|\}\\.)*\}\}', 
++              (10, r'\{\{([^\\\}\n]|\\.|\}(?=[^\}]))*\}\}', 
+                     token_factory(MacroToken, preference=20)),
+               # n-dash and m-dash
+               (20, r'----+', token_factory(TextToken)),
+
+Modified: trunk/fellowiki/wiki/tests/test_parser.py
+===================================================================
+--- trunk/fellowiki/wiki/tests/test_parser.py	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/test_parser.py	2006-07-19 22:17:47 UTC (rev 23)
+@@ -28,18 +28,18 @@
+ wer're using nosetests
+ """
+ 
+-import unittest
+ import codecs
+ import sys
+ 
+ from os.path import dirname, isdir, splitext, join, abspath, basename
+ from os import listdir
+ from copy import copy
++from urllib import quote
+ from elementtree.ElementTree import tostring, fromstring, Element, SubElement
+ from xml.parsers.xmlproc import xmlval, utils, xmldtd
+ 
+ from fellowiki.wiki.parser import WikiParser, SPLIT, ESCAPE, PROC, MACRO, \
+-                                  DEFERRED, BLOCK_LEVEL
++                                  DEFERRED, BLOCK_LEVEL, LINK, IMAGE_LINK
+ 
+ # Pre-load the xhtml DTD once, since reloading for each xmlproc
+ # would be a major performance hit.
+@@ -73,7 +73,39 @@
+         xhtml = SubElement(element, 'span', {'class': 'test_macro_class'}) 
+         xhtml.text = '{MACRO %s: %s}' % (macro_name, unicode(args))
+     return new_test_proc
++    
++def _link_test_proc(element, target):
++    if target in ['link1', 'link 2', 'link   3']:
++        element.set('class', '%s_resolved' % element.get('class'))
++        element.set('href', quote('/view/%s' % target))
++    else:
++        element.set('class', '%s_unresolved' % element.get('class'))
++        element.set('href', quote('/edit/%s' % target))
+ 
++def _image_link_test_proc(element, image, description, new_subelement):
++    if image in ['link1', 'link 2', 'link   3']:
++        if new_subelement:
++            xhtml = SubElement(element, 'img')
++        else:
++            xhtml = element
++            xhtml.tag = 'img'
++        
++        xhtml.set('class', 'image_internal_resolved')
++        xhtml.set('src', quote('/view_img/%s' % image))
++        xhtml.set('alt', description)
++        
++    else:
++        if new_subelement:
++            xhtml = SubElement(element, 'span')
++        else:
++            xhtml = element
++            xhtml.tag = 'span'
++        xhtml.set('class', 'image_internal_unresolved')
++        if description == '':
++            xhtml.text = image
++        else:
++            xhtml.text = "%s: %s" % (image, description)
++
+ procs = {MACRO + 'macro default': {PROC: _macro_test_proc('default macro'),
+                                    SPLIT: True,
+                                    ESCAPE: True},
+@@ -94,7 +126,9 @@
+                                     SPLIT: True,
+                                     ESCAPE: True,
+                                     DEFERRED: True,
+-                                    BLOCK_LEVEL: True}}
++                                    BLOCK_LEVEL: True},
++         LINK: {PROC: _link_test_proc},
++         IMAGE_LINK: {PROC: _image_link_test_proc}}
+ 
+ for (num, name) in enumerate(['testmacro', 'test macro2', 'Test: -Macro3-',
+                               'testmacro4', 'testmacro5', 'testmacro6',
+@@ -175,7 +209,7 @@
+         
+         # do one 'round trip' to get a canonical form
+         xhtml_text_wiki_ext = tostring(xhtml_tree_wiki_ext)
+-        xhtml_tree_wiki_ext_cononical = fromstring(xhtml_text_wiki_ext)
++        xhtml_tree_wiki_ext_canonical = fromstring(xhtml_text_wiki_ext)
+         
+         # read expected XML tree from file
+         try:
+@@ -188,7 +222,7 @@
+         xhtml_tree = fromstring(xhtml_text)
+         
+         # and now for the tests
+-        _assert_etrees(xhtml_tree, xhtml_tree_wiki_ext_cononical)
++        _assert_etrees(xhtml_tree, xhtml_tree_wiki_ext_canonical)
+         xhtml_validator.parse_resource(xhtml_fn) # validate as XHTML
+         
+     except AssertionError, ex_val:
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description.complete.xml	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description.complete.xml	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><img alt="This image shows you everything at link 1." class="image_internal_resolved" src="/view_img/link1" /> <img alt="Link 2 is the most important image ever." class="image_internal_resolved" src="/view_img/link%202" /> <img alt="The   same   for   link  3." class="image_internal_resolved" src="/view_img/link%20%20%203" /> <span class="image_internal_unresolved">link 4: This is link 4.</span> <span class="image_internal_unresolved">link 5: And link 5.</span> <span class="image_internal_unresolved">||: |</span></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description.wiki	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1,6 @@
++[[[link1 ||This image shows you everything at link 1.]]]
++[[[ link 2 || Link 2 is the most important image ever. ]]]
++[[[link   3||The   same   for   link  3.]]]
++[[[ link 4|| This is link 4.]]]
++[[[link 5 ||And link 5. ]]]
++[[[\||||\|]]]
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description_rename.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description_rename.complete.xml	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description_rename.complete.xml	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a class="link_internal_resolved" href="/view/link%202"><img alt="This image shows you everything at link 1." class="image_internal_resolved" src="/view_img/link1" /></a> <a class="link_internal_resolved" href="/view/link%20%20%203"><img alt="Link 2 is the most important image ever." class="image_internal_resolved" src="/view_img/link%202" /></a> <a class="link_internal_unresolved" href="/edit/link%204"><img alt="The   same   for   link  3." class="image_internal_resolved" src="/view_img/link%20%20%203" /></a> <a class="link_internal_unresolved" href="/edit/link%205"><span class="image_internal_unresolved">link 4: This is link 4.</span></a> <a class="link_internal_unresolved" href="/edit/%3E"><span class="image_internal_unresolved">|||||&gt;&gt;&gt;&gt;&gt;||: |&gt;&gt;</span></a> <a class="link_internal_unresolved" href="/edit/%3E%7C%7C%7C%7C%7C"><span class="image_in!
+ ternal_unresolved">&gt;&gt;&gt;&gt;&gt;||: |&gt;&gt;</span></a></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description_rename.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description_rename.wiki	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description_rename.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1,6 @@
++[[[link1||This image shows you everything at link 1.>> link 2 ]]]
++[[[ link 2 || Link 2 is the most important image ever. >>link   3]]]
++[[[link   3||The   same   for   link  3.>> link 4]]]
++[[[ link 4|| This is link 4.>>link 5 ]]]
++[[[\||||\|\>>>>\>\||||\|\>>>>\>]]]
++[[[\>>>>\>\||||\|\>>>>\>\||||\|]]]
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.wiki	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1,4 @@
++[[[look out for ???]]]
++[[[ a?? || ? ]]]
++[[[ ??? >> ??? ]]]
++[[[ ??? || ? >> ??? ]]]
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external.complete.xml	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external.complete.xml	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><img alt="" class="img_external" src="http://127.0.0.1/example.png" /> <img alt="" class="img_external" src="http://127.0.0.1/example.png" /> <img alt="This is an external example." class="img_external" src="http://127.0.0.1/example.png" /> <img alt="Yet another external example" class="img_external" src="http://127.0.0.1/example.png" /> <a class="link_external" href="http://127.0.0.1/example.png"><img alt="" class="img_external" src="http://127.0.0.1/example.png" /></a>] <a class="link_external" href="http://127.0.0.1/example.png"><span class="image_internal_unresolved">link 5</span></a> <img alt="link1" class="img_external" src="http://127.0.0.1/example.png" /> <a class="link_external" href="http://127.0.0.1/example.png"><img alt="This is an external example." class="img_external" src="http://127.0.0.1/example.png" /></a>] <a class="link_internal_resolved" href="/vie!
+ w/link1"><img alt="Yet another external example" class="img_external" src="http://127.0.0.1/example.png" /></a> <a class="link_external" href="http://127.0.0.1/example.png"><span class="image_internal_unresolved">link 5: And link 5.</span></a></p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external.wiki	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1,10 @@
++[[[ http://127.0.0.1/example.png ]]]
++[[[http://127.0.0.1/example.png]]]
++[[[ http://127.0.0.1/example.png || This is an external example. ]]]
++[[[http://127.0.0.1/example.png||Yet another external example]]]
++[[[ http://127.0.0.1/example.png >>http://127.0.0.1/example.png]]]]
++[[[link 5 >> http://127.0.0.1/example.png ]]]
++[[[http://127.0.0.1/example.png||link1]]]
++[[[ http://127.0.0.1/example.png || This is an external example. >>http://127.0.0.1/example.png]]]]
++[[[http://127.0.0.1/example.png||Yet another external example>>link1]]]
++[[[link 5 ||And link 5. >> http://127.0.0.1/example.png ]]]
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.wiki	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1,8 @@
++[[[ http://???:?@www.m?ller.invalid/~???/????????=123&????=456 ]]]
++[[[ http://???:?@www.m?ller.invalid/~???/????????=123&????=456 || ? ]]]
++[[[ http://???:?@www.m?ller.invalid/~???/????????=123&????=456 >> ftp://???:?@ftp.m?ller.invalid/~???/???;type=a ]]]
++[[[ http://???:?@www.m?ller.invalid/~???/????????=123&????=456 || ? >> ftp://???:?@ftp.m?ller.invalid/~???/???;type=a ]]]
++[[[ ftp://???:?@ftp.m?ller.invalid/~???/???;type=a ]]]
++[[[ ftp://???:?@ftp.m?ller.invalid/~???/???;type=a || ? ]]]
++[[[ ftp://???:?@ftp.m?ller.invalid/~???/???;type=a >> http://???:?@www.m?ller.invalid/~???/????????=123&????=456 ]]]
++[[[ ftp://???:?@ftp.m?ller.invalid/~???/???;type=a || ? >> http://???:?@www.m?ller.invalid/~???/????????=123&????=456 ]]]
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_rename.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_rename.complete.xml	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_rename.complete.xml	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a class="link_internal_resolved" href="/view/link%202"><img alt="" class="image_internal_resolved" src="/view_img/link1" /></a> <a class="link_internal_resolved" href="/view/link%20%20%203"><img alt="" class="image_internal_resolved" src="/view_img/link%202" /></a> <a class="link_internal_unresolved" href="/edit/link%204"><img alt="" class="image_internal_resolved" src="/view_img/link%20%20%203" /></a> <a class="link_internal_unresolved" href="/edit/link%205"><span class="image_internal_unresolved">link 4</span></a> <a class="link_internal_unresolved" href="/edit/%3E"><span class="image_internal_unresolved">&gt;&gt;</span></a></p></div></body></html>
+\ No newline at end of file
+
+Copied: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_rename.wiki (from rev 20, trunk/fellowiki/wiki/tests/tests/simple_markup/include_link_rename.wiki)
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/include_link_rename.wiki	2006-06-09 18:11:59 UTC (rev 20)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_rename.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1,5 @@
++[[[link1>> link 2 ]]]
++[[[ link 2 >>link   3]]]
++[[[link   3>> link 4]]]
++[[[ link 4>>link 5 ]]]
++[[[\>>>>\>]]]
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_simple.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_simple.complete.xml	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_simple.complete.xml	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><img alt="" class="image_internal_resolved" src="/view_img/link1" /> <img alt="" class="image_internal_resolved" src="/view_img/link%202" /> <img alt="" class="image_internal_resolved" src="/view_img/link%20%20%203" /> <span class="image_internal_unresolved">link 4</span> <span class="image_internal_unresolved">link 5</span> <span class="image_internal_unresolved">&gt;&gt;</span> <span class="image_internal_unresolved">||</span></p></div></body></html>
+\ No newline at end of file
+
+Copied: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_simple.wiki (from rev 20, trunk/fellowiki/wiki/tests/tests/simple_markup/include_link_simple.wiki)
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/include_link_simple.wiki	2006-06-09 18:11:59 UTC (rev 20)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_simple.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1,7 @@
++[[[link1]]]
++[[[ link 2 ]]]
++[[[link   3]]]
++[[[ link 4]]]
++[[[link 5 ]]]
++[[[\>>]]]
++[[[\||]]]
+
+Deleted: trunk/fellowiki/wiki/tests/tests/simple_markup/include_link_rename.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/include_link_rename.wiki	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/include_link_rename.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -1,2 +0,0 @@
+-[[[include >> ressource]]]
+-[[[ include  >>  ressource]]]
+
+Deleted: trunk/fellowiki/wiki/tests/tests/simple_markup/include_link_simple.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/include_link_simple.wiki	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/include_link_simple.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -1,5 +0,0 @@
+-[[[include]]]
+-[[[ include ]]]
+-[[[include>>this]]]
+-[[[include >>this]]]
+-[[[include>> this]]]
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.wiki	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1,8 @@
++[[?rger]]
++[[M?glichkeit]]
++[[?berheblichkeit]]
++[[d?mlich]]
++[[?fters]]
++[[?bel]]
++[[Das ?, ?, ?, ?, ?. ? und ?]]
++[[ ??? >> ??? ]]
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_external.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_external.complete.xml	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_external.complete.xml	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a class="link_external" href="http://www.w3c.org/">http://www.w3c.org/</a> <a class="link_external" href="http://www.w3c.org/">http://www.w3c.org/ </a> <a class="link_external" href="http://www.w3c.org/"> http://www.w3c.org/</a> <a class="link_external" href="http://www.w3c.org">http://www.w3c.org</a> <a class="link_external" href="ftp://127.0.0.1/">ftp://127.0.0.1/</a> <a class="link_internal_unresolved" href="/edit/127.0.0.1">127.0.0.1</a> <a class="link_internal_unresolved" href="/edit/www.w3c.org">www.w3c.org</a></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_external.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_external.wiki	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_external.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1,7 @@
++[[http://www.w3c.org/]]
++[[http://www.w3c.org/ ]]
++[[ http://www.w3c.org/]]
++[[http://www.w3c.org]]
++[[ftp://127.0.0.1/]]
++[[127.0.0.1]]
++[[www.w3c.org]]
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.wiki	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1,14 @@
++[[ ftp://???:?@ftp.m?ller.invalid/~???/???;type=a ]]
++[[ ftp://???@ftp.m?ller.invalid/~???/???;type=a ]]
++[[ ftp://ftp.m?ller.invalid/~???/???;type=a ]]
++[[ ftp://???:?@ftp.m?ller.invalid/~???/??? ]]
++[[ ftp://???:?@ftp.m?ller.invalid/]]
++[[ ftp://???:?@ftp.m?ller.invalid ]]
++[[ ftp://???%EE%AB%ac%cB%De:?%EE%AB%ac%cB%De at ftp.m?ller.invalid ]]
++[[ ftp://ftp.m?ller.invalid/~???/??? ]]
++[[ ftp://ftp.m?ller.invalid/~???/???/%EE%AB%ac%cB%De ]]
++[[ ftp://ftp.m?ller.invalid/]]
++[[ ftp://ftp.m?ller.invalid ]]
++[[ ftp://ftp.m?ller.invalid.%EE ]]
++[[ ftp.m?ller.invalid ]]
++[[ ??? >> ftp://???:?@ftp.m?ller.invalid/~???/???;type=a ]]
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.wiki	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1,14 @@
++[[ http://???:?@www.m?ller.invalid/~???/????????=123&????=456 ]]
++[[ hTtP://???:?@www.m?ller.invalid/~???/????????=123&????=456 ]]
++[[ HtTp://???:?@www.m?ller.invalid/~???/????????=123&????=456 ]]
++[[ http://???@www.m?ller.invalid/~???/????????=123&????=456 ]]
++[[ http://www.m?ller.invalid/~???/???&????=123]]
++[[ http://www.m?ller.invalid/~???/??? ]]
++[[ http://www.m?ller.invalid/~???/???/%EE%AB%ac%cB%De ]]
++[[ http://www.m?ller.invalid ]]
++[[ http://www.m?ller.invalid.%EE ]]
++[[ http://???:?@www.m?ller.invalid ]]
++[[ http://???%EE%AB%ac%cB%De:?%EE%AB%ac%cB%De at www.m?ller.invalid ]]
++[[ www.m?ller.invalid ]]
++[[ ??? >> http://???:?@www.m?ller.invalid/~???/????????=123&????=456 ]]
++
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_invalid.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_invalid.complete.xml	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_invalid.complete.xml	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>[[link1] [link2]] [link3]</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_invalid.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_invalid.wiki	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_invalid.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1,3 @@
++[[link1]
++[link2]]
++[link3]
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_rename.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_rename.complete.xml	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_rename.complete.xml	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a class="link_internal_resolved" href="/view/link1">This is just a description.</a> <a class="link_internal_resolved" href="/view/link%202"> This is just another description. </a> <a class="link_internal_resolved" href="/view/link%20%20%203">  This  is  yet  another  description.  </a> <a class="link_internal_unresolved" href="/edit/link%204"> Guess, what's this.</a> <a class="link_internal_unresolved" href="/edit/link%205">'nuff said. </a> <a class="link_internal_unresolved" href="/edit/%3E">&gt;&gt;</a></p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/link_rename.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_rename.wiki	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_rename.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -1,2 +1,6 @@
+-[[link >> ressource]]
+-[[ link  >>  resource ]]
++[[This is just a description.>>link1]]
++[[ This is just another description. >> link 2 ]]
++[[  This  is  yet  another  description.  >>  link   3]]
++[[ Guess, what's this.>> link 4]]
++[['nuff said. >>link 5 ]]
++[[\>>>>\>]]
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_simple.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_simple.complete.xml	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_simple.complete.xml	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a class="link_internal_resolved" href="/view/link1">link1</a> <a class="link_internal_resolved" href="/view/link%202"> link 2 </a> <a class="link_internal_resolved" href="/view/link%20%20%203">link   3</a> <a class="link_internal_unresolved" href="/edit/link%204"> link 4</a> <a class="link_internal_unresolved" href="/edit/link%205">link 5 </a> <a class="link_internal_unresolved" href="/edit/%3E%3E">&gt;&gt;</a></p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/link_simple.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_simple.wiki	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_simple.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -1,5 +1,6 @@
+-[[link]]
+-[[ link ]]
+-[[link>>this]]
+-[[link >>this]]
+-[[link>> this]]
++[[link1]]
++[[ link 2 ]]
++[[link   3]]
++[[ link 4]]
++[[link 5 ]]
++[[\>>]]
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/mailto_link.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/mailto_link.wiki	2006-06-10 10:19:08 UTC (rev 22)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/mailto_link.wiki	2006-07-19 22:17:47 UTC (rev 23)
+@@ -0,0 +1,11 @@
++[[ mailto:test at test.invalid ]]
++[[ MaIlTo:test at test.invalid ]]
++[[ mAiLtO:test at test.invalid ]]
++[[ test at test.invalid ]]
++[[mailto:test at test.invalid]]
++[[ test address >> mailto:test at test.invalid  ]]
++[[ mailto:???@???.invalid ]]
++[[[ mailto:test at test.invalid ]]]
++[[[ test >> mailto:test at test.invalid ]]]
++[[[ mailto:test at test.invalid >> test ]]]
++
+
+
+
+From fingerle at mail.berlios.de  Fri Jul 21 01:39:03 2006
+From: fingerle at mail.berlios.de (fingerle at BerliOS)
+Date: Fri, 21 Jul 2006 01:39:03 +0200
+Subject: [fellowiki-svncheckins] r24 - in trunk/fellowiki/wiki: . tests
+	tests/tests/simple_markup
+Message-ID: <200607202339.k6KNd3Zc027331@sheep.berlios.de>
+
+Author: fingerle
+Date: 2006-07-21 01:38:55 +0200 (Fri, 21 Jul 2006)
+New Revision: 24
+
+Added:
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.complete.xml
+Modified:
+   trunk/fellowiki/wiki/parser.py
+   trunk/fellowiki/wiki/tests/test_parser.py
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.wiki
+Log:
+- some work on encoded external links
+
+
+Modified: trunk/fellowiki/wiki/parser.py
+===================================================================
+--- trunk/fellowiki/wiki/parser.py	2006-07-19 22:17:47 UTC (rev 23)
++++ trunk/fellowiki/wiki/parser.py	2006-07-20 23:38:55 UTC (rev 24)
+@@ -30,6 +30,8 @@
+ import elementtree.ElementTree as ElementTree
+ from fellowiki.util.assorted import attributes_from_dict, \
+       remove_escaping_backslashes, remove_backslashes_and_whitespace
++from urllib import quote, unquote, splitattr, splituser
++from urlparse import urlsplit, urlunsplit    
+       
+ import sre
+ import re
+@@ -49,7 +51,10 @@
+ LINK = 'link'
+ IMAGE_LINK = 'image link'
+ 
++link_allowed_targets = ['http', 'ftp', 'mailto']
++image_link_allowed_targets = ['http', 'ftp']
+ 
++
+ SPECIAL_MARKUP = {'/': ('em', 'italic'),
+                   '*': ('b' , 'bold'),
+                   '_': ('span', 'underlined'),
+@@ -556,6 +561,49 @@
+             self.xhtml.tag = 'p'
+             self.tokens.insert(0, BeetweenParagraphsXHTML(self.xhtml, self.token))
+             
++def check_and_normalize_url(url, allowed_schemes):
++    scheme, location, path, query, fragment = urlsplit(url)
++    
++    if scheme not in allowed_schemes:
++        return None, url
++    
++    if location is not None:
++        user, host = splituser(location)
++        host = host.encode('idna')
++        
++        if user is not None:
++            user = ':'.join([quote(unquote(u.encode('utf-8'))) for u in user.split(':')])
++            location = u'%s@%s' % (user, host)
++        else:
++            location = host
++    
++    if path is not None:
++        path_ = [splitattr(segment) for segment in path.split('/')]
++        path_ = [(quote(unquote(seg.encode('utf-8'))), 
++                    [u'='.join([quote(unquote(p.encode('utf-8'))) for p in parm_.split('=')]) 
++                    for parm_ in parm])    
++                for (seg, parm) in path_]
++        
++        path = []
++        
++        for (segment, parms) in path_:
++            if len(parms) > 0:
++                segment_ = u';'.join([segment, u';'.join(parms)])
++                path.append(segment_)
++            else:
++                path.append(segment)
++                
++        path = u'/'.join(path)
++    
++    if query is not None:
++        query = u'&'.join([u'='.join([quote(unquote(q.encode('utf-8'))) for q in query_.split('=')]) 
++                           for query_ in query.split('&')])
++    
++    if fragment is not None:
++        fragment = quote(unquote(fragment.encode('utf-8')))
++    
++    return scheme, urlunsplit((scheme, location, path, query, fragment))
++            
+ class LinkToken(Token): 
+     def render(self, new_token):
+         new_token.prepend(self.xhtml)
+@@ -579,9 +627,15 @@
+         
+         self.xhtml.append(text)
+         
+-        if re.match(r'(http|ftp)://', target):
+-            self.xhtml.attributes['class'] = 'link_external'
+-            self.xhtml.attributes['href'] = target
++        scheme, url = check_and_normalize_url(target, link_allowed_targets)
++        
++        if scheme is not None:
++            if scheme == 'mailto':
++                self.xhtml.attributes['class'] = 'link_mailto'
++            else:
++                self.xhtml.attributes['class'] = 'link_external'
++            
++            self.xhtml.attributes['href'] = url
+             return
+         
+         try:
+@@ -643,9 +697,14 @@
+         if target is not None:
+             has_target = True
+             target = remove_backslashes_and_whitespace(target)
+-            if re.match(r'(http|ftp)://', target):
+-                self.xhtml.attributes['class'] = 'link_external'
+-                self.xhtml.attributes['href'] = target
++            scheme, url = check_and_normalize_url(target, link_allowed_targets)
++            
++            if scheme is not None:
++                if scheme == 'mailto':
++                    self.xhtml.attributes['class'] = 'link_mailto'
++                else:
++                    self.xhtml.attributes['class'] = 'link_external'
++                self.xhtml.attributes['href'] = url
+             else:    
+                 try:
+                     link_proc = procs[LINK]
+@@ -657,10 +716,12 @@
+                     self.xhtml.tag = 'span'
+                     self.xhtml.attributes['class'] = 'link_unresolved'
+                     
+-        if re.match(r'(http|ftp)://', image):
++        scheme, url = check_and_normalize_url(image, image_link_allowed_targets)
++        
++        if scheme is not None:
+             img = XMLElement('img')
+             img.attributes['class'] = 'img_external'
+-            img.attributes['src'] = image
++            img.attributes['src'] = url
+             
+             img.attributes['alt'] = description
+                 
+
+Modified: trunk/fellowiki/wiki/tests/test_parser.py
+===================================================================
+--- trunk/fellowiki/wiki/tests/test_parser.py	2006-07-19 22:17:47 UTC (rev 23)
++++ trunk/fellowiki/wiki/tests/test_parser.py	2006-07-20 23:38:55 UTC (rev 24)
+@@ -75,15 +75,15 @@
+     return new_test_proc
+     
+ def _link_test_proc(element, target):
+-    if target in ['link1', 'link 2', 'link   3']:
++    if target in ['link1', 'link 2', 'link   3', u'\xc4rger']:
+         element.set('class', '%s_resolved' % element.get('class'))
+-        element.set('href', quote('/view/%s' % target))
++        element.set('href', '/view/%s' % quote(target.encode('utf-8')))
+     else:
+         element.set('class', '%s_unresolved' % element.get('class'))
+-        element.set('href', quote('/edit/%s' % target))
++        element.set('href', '/edit/%s' % quote(target.encode('utf-8')))
+ 
+ def _image_link_test_proc(element, image, description, new_subelement):
+-    if image in ['link1', 'link 2', 'link   3']:
++    if image in ['link1', 'link 2', 'link   3', u'\xe4\xf6\xfc', u'look out for \xe9\xe8\xea']:
+         if new_subelement:
+             xhtml = SubElement(element, 'img')
+         else:
+@@ -91,7 +91,7 @@
+             xhtml.tag = 'img'
+         
+         xhtml.set('class', 'image_internal_resolved')
+-        xhtml.set('src', quote('/view_img/%s' % image))
++        xhtml.set('src', '/view_img/%s' % quote(image.encode('utf-8')))
+         xhtml.set('alt', description)
+         
+     else:
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.complete.xml	2006-07-19 22:17:47 UTC (rev 23)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.complete.xml	2006-07-20 23:38:55 UTC (rev 24)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><img alt="" class="image_internal_resolved" src="/view_img/look%20out%20for%20%C3%A9%C3%A8%C3%AA" /> <img alt="&#223;" class="image_internal_resolved" src="/view_img/%C3%A4%C3%B6%C3%BC" /> <a class="link_internal_unresolved" href="/edit/%C3%A9%C3%A8%C3%AA"><img alt="" class="image_internal_resolved" src="/view_img/%C3%A4%C3%B6%C3%BC" /></a> <a class="link_internal_unresolved" href="/edit/%C3%A9%C3%A8%C3%AA"><img alt="&#223;" class="image_internal_resolved" src="/view_img/%C3%A4%C3%B6%C3%BC" /></a></p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.wiki	2006-07-19 22:17:47 UTC (rev 23)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.wiki	2006-07-20 23:38:55 UTC (rev 24)
+@@ -1,4 +1,4 @@
+ [[[look out for ???]]]
+-[[[ a?? || ? ]]]
++[[[ ??? || ? ]]]
+ [[[ ??? >> ??? ]]]
+ [[[ ??? || ? >> ??? ]]]
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.complete.xml	2006-07-19 22:17:47 UTC (rev 23)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.complete.xml	2006-07-20 23:38:55 UTC (rev 24)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a class="link_internal_resolved" href="/view/%C3%84rger">&#196;rger</a> <a class="link_internal_unresolved" href="/edit/M%C3%B6glichkeit">M&#246;glichkeit</a> <a class="link_internal_unresolved" href="/edit/%C3%9Cberheblichkeit">&#220;berheblichkeit</a> <a class="link_internal_unresolved" href="/edit/d%C3%A4mlich">d&#228;mlich</a> <a class="link_internal_unresolved" href="/edit/%C3%B6fters">&#246;fters</a> <a class="link_internal_unresolved" href="/edit/%C3%BCbel">&#252;bel</a> <a class="link_internal_unresolved" href="/edit/Das%20%C3%A4%2C%20%C3%B6%2C%20%C3%BC%2C%20%C3%9F%2C%20%C3%84.%20%C3%96%20und%20%C3%9C">Das &#228;, &#246;, &#252;, &#223;, &#196;. &#214; und &#220;</a> <a class="link_internal_unresolved" href="/edit/%C3%84%C3%96%C3%9C"> &#228;&#246;&#252; </a></p></div></body></html>
+\ No newline at end of file
+
+
+
+From fingerle at mail.berlios.de  Sun Jul 23 03:14:16 2006
+From: fingerle at mail.berlios.de (fingerle at BerliOS)
+Date: Sun, 23 Jul 2006 03:14:16 +0200
+Subject: [fellowiki-svncheckins] r25 - in trunk/fellowiki/wiki: . tests
+	tests/tests/mixed_markup tests/tests/simple_markup
+Message-ID: <200607230114.k6N1EGJP020450@sheep.berlios.de>
+
+Author: fingerle
+Date: 2006-07-23 03:14:00 +0200 (Sun, 23 Jul 2006)
+New Revision: 25
+
+Added:
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/lists_combined.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/pre_with_non_pre.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/bold_block.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/bold_local.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/double_quotes.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/empty.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/escaped_text.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/headlines.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/headlines_with_text.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/horizontal_rule.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description_rename.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_rename.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_simple.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/italic_block.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/italic_local.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/just_text.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/just_text_multiline.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/large_font.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/line_break.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_external.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_invalid.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_rename.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_simple.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/lists_invalid.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_different_configs.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_invalid.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_simple.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_escapes.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_parms.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/mailto_link.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/mailto_link.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/numbered_lists_hierarchical.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/numbered_lists_simple.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/paragraph.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/pre.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/single_quotes.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/small_font.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/some_special_markup_with_blanks.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/special_characters.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/special_chars.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/subscript.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/superscript.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_block.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_local.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_block.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_local.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/unnumbered_lists_hierarchical.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/unnumbered_lists_simple.no_test_procs.xml
+Modified:
+   trunk/fellowiki/wiki/parser.py
+   trunk/fellowiki/wiki/tests/test_parser.py
+Log:
+- finished links
+
+
+Modified: trunk/fellowiki/wiki/parser.py
+===================================================================
+--- trunk/fellowiki/wiki/parser.py	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/parser.py	2006-07-23 01:14:00 UTC (rev 25)
+@@ -53,6 +53,7 @@
+ 
+ link_allowed_targets = ['http', 'ftp', 'mailto']
+ image_link_allowed_targets = ['http', 'ftp']
++user_domain_schemes = ['mailto']
+ 
+ 
+ SPECIAL_MARKUP = {'/': ('em', 'italic'),
+@@ -566,10 +567,15 @@
+     
+     if scheme not in allowed_schemes:
+         return None, url
++        
++    if scheme in user_domain_schemes:
++        location = path
++        path = query = fragment = ''
+     
+     if location is not None:
+         user, host = splituser(location)
+-        host = host.encode('idna')
++        if host <> '': ## idna encoding encodes '' ==> '.' :-(
++            host = host.encode('idna')
+         
+         if user is not None:
+             user = ':'.join([quote(unquote(u.encode('utf-8'))) for u in user.split(':')])
+@@ -602,6 +608,10 @@
+     if fragment is not None:
+         fragment = quote(unquote(fragment.encode('utf-8')))
+     
++    if scheme in user_domain_schemes:
++        path = location
++        location = ''
++        
+     return scheme, urlunsplit((scheme, location, path, query, fragment))
+             
+ class LinkToken(Token): 
+
+Modified: trunk/fellowiki/wiki/tests/test_parser.py
+===================================================================
+--- trunk/fellowiki/wiki/tests/test_parser.py	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/test_parser.py	2006-07-23 01:14:00 UTC (rev 25)
+@@ -66,103 +66,7 @@
+     for (child_1, child_2) in zip(children_1, children_2):
+         _assert_etrees(child_1, child_2)    
+ 
+-
+-def _macro_test_proc(macro_name):
+-    def new_test_proc(element, *args):
+-        element.text = None
+-        xhtml = SubElement(element, 'span', {'class': 'test_macro_class'}) 
+-        xhtml.text = '{MACRO %s: %s}' % (macro_name, unicode(args))
+-    return new_test_proc
+-    
+-def _link_test_proc(element, target):
+-    if target in ['link1', 'link 2', 'link   3', u'\xc4rger']:
+-        element.set('class', '%s_resolved' % element.get('class'))
+-        element.set('href', '/view/%s' % quote(target.encode('utf-8')))
+-    else:
+-        element.set('class', '%s_unresolved' % element.get('class'))
+-        element.set('href', '/edit/%s' % quote(target.encode('utf-8')))
+-
+-def _image_link_test_proc(element, image, description, new_subelement):
+-    if image in ['link1', 'link 2', 'link   3', u'\xe4\xf6\xfc', u'look out for \xe9\xe8\xea']:
+-        if new_subelement:
+-            xhtml = SubElement(element, 'img')
+-        else:
+-            xhtml = element
+-            xhtml.tag = 'img'
+-        
+-        xhtml.set('class', 'image_internal_resolved')
+-        xhtml.set('src', '/view_img/%s' % quote(image.encode('utf-8')))
+-        xhtml.set('alt', description)
+-        
+-    else:
+-        if new_subelement:
+-            xhtml = SubElement(element, 'span')
+-        else:
+-            xhtml = element
+-            xhtml.tag = 'span'
+-        xhtml.set('class', 'image_internal_unresolved')
+-        if description == '':
+-            xhtml.text = image
+-        else:
+-            xhtml.text = "%s: %s" % (image, description)
+-
+-procs = {MACRO + 'macro default': {PROC: _macro_test_proc('default macro'),
+-                                   SPLIT: True,
+-                                   ESCAPE: True},
+-         MACRO + 'macro no split': {PROC: _macro_test_proc('no split'),
+-                                      ESCAPE: True},
+-         MACRO + 'macro no escape': {PROC: _macro_test_proc('no escape'),
+-                                       SPLIT: True},
+-         MACRO + 'macro w/o s/e': {PROC: _macro_test_proc('no split, escape')},
+-         MACRO + 'macro deferred': {PROC: _macro_test_proc('deferred'),
+-                                    SPLIT: True,
+-                                    ESCAPE: True,
+-                                    DEFERRED: True},
+-         MACRO + 'macro block level': {PROC: _macro_test_proc('block level'),
+-                                       SPLIT: True,
+-                                       ESCAPE: True,
+-                                       BLOCK_LEVEL: True},
+-         MACRO + 'macro b/l, def': {PROC: _macro_test_proc('block level, deferred'),
+-                                    SPLIT: True,
+-                                    ESCAPE: True,
+-                                    DEFERRED: True,
+-                                    BLOCK_LEVEL: True},
+-         LINK: {PROC: _link_test_proc},
+-         IMAGE_LINK: {PROC: _image_link_test_proc}}
+-
+-for (num, name) in enumerate(['testmacro', 'test macro2', 'Test: -Macro3-',
+-                              'testmacro4', 'testmacro5', 'testmacro6',
+-                              'testmacro7', 'testmacro8', 'testmacro9',
+-                              'test macro 10', 'test macro | 11 ',
+-                              'test macro \\', 'test macro \\ ',
+-                              'test macro \\\\', 'test macro \\\\ ']):
+-    procs[MACRO + name] = {PROC: _macro_test_proc('testmacro %i' % num),
+-                           SPLIT: True,
+-                           ESCAPE: True}
+-
+-
+-procs2 = copy(procs)
+-
+-procs2[MACRO + 'macro default'] = {PROC: _macro_test_proc('default macro DEFERRED'),
+-                                   SPLIT: True,
+-                                   ESCAPE: True},
+-
+-procs2[MACRO + 'macro deferred'] = {PROC: _macro_test_proc('DEFERRED'),
+-                                    SPLIT: True,
+-                                    ESCAPE: True,
+-                                    DEFERRED: True}
+-                                
+-procs2[MACRO + 'macro b/l, def'] = {PROC: _macro_test_proc('DEFERRED and block level'),
+-                                    SPLIT: True,
+-                                    ESCAPE: True,
+-                                    DEFERRED: True,
+-                                    BLOCK_LEVEL: True}
+-
+-#set up wiki parser
+-parser = WikiParser(procs = procs)
+-parser2 = WikiParser(procs = procs2)
+-
+-def wiki_ut(fname, tc_extension):
++def wiki_ut(fname, tc_extension, parser1, parser2):
+     """test translation of one wiki markup string
+     
+     parameters: fname: file name, see below
+@@ -196,7 +100,7 @@
+         wiki_file = codecs.open('%s.wiki' % fname, 'r', 'utf8')
+         wiki_text = wiki_file.read()
+         wiki_file.close()
+-        parsed_content = parser.parse(wiki_text)
++        parsed_content = parser1.parse(wiki_text)
+         xhtml_tree_wiki = parser2.evaluate(parsed_content)
+         
+         # 'extend' tree to a complete XML tree
+@@ -239,8 +143,9 @@
+         raise AssertionError, ex_val, ex_tb 
+ 
+ 
+-def make_ut_wiki(tc_extension, tc_path = 
+-                 join(dirname(abspath(__file__)),'tests'), **kwargs):
++def make_ut_wiki(tc_extension, parser1, parser2, tc_path = 
++                 join(dirname(abspath(__file__)),'tests'),
++                 **kwargs):
+     """generate wiki test cases
+     
+     parameters: tc_extension: extension for XML file names ("<fname>.wiki" will
+@@ -270,12 +175,115 @@
+     
+     # for every *.wiki file generate a test method
+     for file_ in files:
+-        yield wiki_ut, file_, tc_extension
++        yield wiki_ut, file_, tc_extension, parser1, parser2
+     
+     for dir_ in dirs:
+-        for tc in make_ut_wiki(tc_extension, tc_path = dir_):
++        for tc in make_ut_wiki(tc_extension, parser1, parser2, tc_path = dir_):
+             yield tc
+     
+-def test_parser():
+-    for tc in make_ut_wiki('complete'):
++def test_parser_typical():
++    def _macro_test_proc(macro_name):
++        def new_test_proc(element, *args):
++            element.text = None
++            xhtml = SubElement(element, 'span', {'class': 'test_macro_class'}) 
++            xhtml.text = '{MACRO %s: %s}' % (macro_name, unicode(args))
++        return new_test_proc
++        
++    def _link_test_proc(element, target):
++        if target in ['link1', 'link 2', 'link   3', u'\xc4rger']:
++            element.set('class', '%s_resolved' % element.get('class'))
++            element.set('href', '/view/%s' % quote(target.encode('utf-8')))
++        else:
++            element.set('class', '%s_unresolved' % element.get('class'))
++            element.set('href', '/edit/%s' % quote(target.encode('utf-8')))
++    
++    def _image_link_test_proc(element, image, description, new_subelement):
++        if image in ['link1', 'link 2', 'link   3', u'\xe4\xf6\xfc', u'look out for \xe9\xe8\xea']:
++            if new_subelement:
++                xhtml = SubElement(element, 'img')
++            else:
++                xhtml = element
++                xhtml.tag = 'img'
++            
++            xhtml.set('class', 'image_internal_resolved')
++            xhtml.set('src', '/view_img/%s' % quote(image.encode('utf-8')))
++            xhtml.set('alt', description)
++            
++        else:
++            if new_subelement:
++                xhtml = SubElement(element, 'span')
++            else:
++                xhtml = element
++                xhtml.tag = 'span'
++            xhtml.set('class', 'image_internal_unresolved')
++            if description == '':
++                xhtml.text = image
++            else:
++                xhtml.text = "%s: %s" % (image, description)
++    
++    procs = {MACRO + 'macro default': {PROC: _macro_test_proc('default macro'),
++                                       SPLIT: True,
++                                       ESCAPE: True},
++             MACRO + 'macro no split': {PROC: _macro_test_proc('no split'),
++                                          ESCAPE: True},
++             MACRO + 'macro no escape': {PROC: _macro_test_proc('no escape'),
++                                           SPLIT: True},
++             MACRO + 'macro w/o s/e': {PROC: _macro_test_proc('no split, escape')},
++             MACRO + 'macro deferred': {PROC: _macro_test_proc('deferred'),
++                                        SPLIT: True,
++                                        ESCAPE: True,
++                                        DEFERRED: True},
++             MACRO + 'macro block level': {PROC: _macro_test_proc('block level'),
++                                           SPLIT: True,
++                                           ESCAPE: True,
++                                           BLOCK_LEVEL: True},
++             MACRO + 'macro b/l, def': {PROC: _macro_test_proc('block level, deferred'),
++                                        SPLIT: True,
++                                        ESCAPE: True,
++                                        DEFERRED: True,
++                                        BLOCK_LEVEL: True},
++             LINK: {PROC: _link_test_proc},
++             IMAGE_LINK: {PROC: _image_link_test_proc}}
++    
++    for (num, name) in enumerate(['testmacro', 'test macro2', 'Test: -Macro3-',
++                                  'testmacro4', 'testmacro5', 'testmacro6',
++                                  'testmacro7', 'testmacro8', 'testmacro9',
++                                  'test macro 10', 'test macro | 11 ',
++                                  'test macro \\', 'test macro \\ ',
++                                  'test macro \\\\', 'test macro \\\\ ']):
++        procs[MACRO + name] = {PROC: _macro_test_proc('testmacro %i' % num),
++                               SPLIT: True,
++                               ESCAPE: True}
++    
++    
++    procs2 = copy(procs)
++    
++    procs2[MACRO + 'macro default'] = {PROC: _macro_test_proc('default macro DEFERRED'),
++                                       SPLIT: True,
++                                       ESCAPE: True},
++    
++    procs2[MACRO + 'macro deferred'] = {PROC: _macro_test_proc('DEFERRED'),
++                                        SPLIT: True,
++                                        ESCAPE: True,
++                                        DEFERRED: True}
++                                    
++    procs2[MACRO + 'macro b/l, def'] = {PROC: _macro_test_proc('DEFERRED and block level'),
++                                        SPLIT: True,
++                                        ESCAPE: True,
++                                        DEFERRED: True,
++                                        BLOCK_LEVEL: True}
++    
++    #set up wiki parser
++    parser1 = WikiParser(procs = procs)
++    parser2 = WikiParser(procs = procs2)
++
++    for tc in make_ut_wiki('complete', parser1, parser2):
+         yield tc
++
++
++def test_parser_without_test_procs():
++    #set up wiki parser
++    parser = WikiParser(procs = {})
++
++    for tc in make_ut_wiki('no_test_procs', parser, parser):
++        yield tc
+
+Added: trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-bold<b class="bold">bold*bold</b>non-bold*non-bold</p><p>non-bold<b class="bold">bold*bold</b>non-bold<b class="bold">bold</b>non-bold</p><p>non-bold*non-bold<b class="bold">bold*bold</b>non-bold</p><p>non-bold<b class="bold">bold</b>non-bold<b class="bold">bold*bold</b>non-bold</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-bold<b class="bold">boldboldbold</b>non-bold</p><p>non-bold*non-bold<b class="bold">bold</b>non-bold*non-bold</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-italic<em class="italic">italic/italic</em>non-italic/non-italic</p><p>non-italic<em class="italic">italic/italic</em>non-italic<em class="italic">italic</em>non-italic</p><p>non-italic/non-italic<em class="italic">italic/italic</em>non-italic</p><p>non-italic<em class="italic">italic</em>non-italic<em class="italic">italic/italic</em>non-italic</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-italic<em class="italic">italicitalicitalic</em>non-italic</p><p>non-italic/non-italic<em class="italic">italic</em>non-italic/non-italic</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/mixed_markup/lists_combined.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/lists_combined.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/lists_combined.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><ol class="ordered"><li>item 1<ul class="bullet"><li>item 1.*</li><li>item 1.*<ul class="dash"><li>item 1.*.-</li><li>item 1.*.-</li><li>item 1.*.-</li></ul></li></ul></li><li>item 2<ul class="dash"><li>item 2.-<ul class="bullet"><li>item 2.-.*</li><li>item 2.-.*</li><li>item 2.-.*</li></ul></li><li>item 2.-</li><li>item 2.-</li></ul></li><li>item 3</li></ol><ul class="bullet"><li>item *<ol class="ordered"><li>item *.1</li><li>item *.2<ul class="dash"><li>item *.2.-</li><li>item *.2.-</li><li>item *.2.-</li></ul></li></ol></li><li>item *<ol class="ordered"><li>item *.1</li><li>item *.2</li></ol><ul class="dash"><li>item *.-</li><li>item *.-<ol class="ordered"><li>item *.-.1</li><li>item *.-.2</li><li>item *.-.3</li></ol></li><li>item *.-<ol class="ordered"><li>item *.-.1</li></ol></li></ul></li></ul><ul class="dash"><li>item -<ol class="ordered"><li>item -.1</li><li>item !
+ -.2<ul class="bullet"><li>item -.2.*</li><li>item -.2.*</li><li>item -.2.*</li></ul></li></ol></li><li>item -<ol class="ordered"><li>item -.1</li><li>item -.2</li></ol><ul class="bullet"><li>item -.*</li><li>item -.*<ol class="ordered"><li>item -.*.1</li><li>item -.*.2</li><li>item -.*.3</li></ol></li><li>item -.*<ol class="ordered"><li>item -.*.1</li></ol></li></ul></li><li>item -</li></ul></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/mixed_markup/pre_with_non_pre.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/pre_with_non_pre.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/pre_with_non_pre.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1,5 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><pre>preformatted text.
++[@preformatted text. &lt;&amp;&gt;
++[@preformatted text.@]
++
++\preformatted text.</pre><p>non-preformatted text.@]</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-typewriter<tt class="typewriter">typewriter=typewriter</tt>non-typewriter=non-typewriter</p><p>non-typewriter<tt class="typewriter">typewriter=typewriter</tt>non-typewriter<tt class="typewriter">typewriter</tt>non-typewriter</p><p>non-typewriter=non-typewriter<tt class="typewriter">typewriter=typewriter</tt>non-typewriter</p><p>non-typewriter<tt class="typewriter">typewriter</tt>non-typewriter<tt class="typewriter">typewriter=typewriter</tt>non-typewriter</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-typewriter<tt class="typewriter">typewritertypewritertypewriter</tt>non-typewriter</p><p>non-typewriter=non-typewriter<tt class="typewriter">typewriter</tt>non-typewriter=non-typewriter</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-underlined<span class="underlined">underlined_underlined</span>non-underlined_non-underlined</p><p>non-underlined<span class="underlined">underlined_underlined</span>non-underlined<span class="underlined">underlined</span>non-underlined</p><p>non-underlined_non-underlined<span class="underlined">underlined_underlined</span>non-underlined</p><p>non-underlined<span class="underlined">underlined</span>non-underlined<span class="underlined">underlined_underlined</span>non-underlined</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-underlined<span class="underlined">underlinedunderlinedunderlined</span>non-underlined</p><p>non-underlined_non-underlined<span class="underlined">underlined</span>non-underlined_non-underlined</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/bold_block.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/bold_block.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/bold_block.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-bold<b class="bold">bold</b>non-bold</p><p>non-bold<b class="bold">bold bold</b>non-bold</p><p>non-bold<b class="bold">bold[*bold</b>non-bold</p><p>non-bold<b class="bold">bold</b>non-bold*]non-bold</p><p>non-bold<b class="bold">bold[*bold</b>non-bold*]non-bold</p><p>empty: [**]</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/bold_local.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/bold_local.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/bold_local.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-bold<b class="bold">bold</b>non-bold</p><p>non-bold*non-bold</p><p>non-bold<b class="bold">bold</b>non-bold*non-bold</p><p>non-bold*non-bold non-bold*non-bold</p><p>empty: **</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/double_quotes.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/double_quotes.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/double_quotes.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-double-quotes<span class="double_quotes">double-quotes</span>non-double-quotes</p><p>non-double-quotes<span class="double_quotes">double-quotes double-quotes</span>non-double-quotes</p><p>non-double-quotes<span class="double_quotes">double-quotes["double-quotes</span>non-double-quotes</p><p>non-double-quotes<span class="double_quotes">double-quotes</span>non-double-quotes"]non-double-quotes</p><p>non-double-quotes<span class="double_quotes">double-quotes["double-quotes</span>non-double-quotes"]non-double-quotes</p><p>empty: [""]</p><p>no non-block syntax: "non-double-quotes"</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/empty.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/empty.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/empty.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"/></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/escaped_text.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/escaped_text.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/escaped_text.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>[%Escaped text. Escaped text. &lt;&amp;&gt; [%Escaped text.%] \Escaped text. Escaped text.%] [%Escaped text.%]</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/headlines.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/headlines.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/headlines.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>=no headline ==no headline ===no headline ====no headline =====no headline ======no headline =======no headline</p><h1>Headline 1</h1><h1>Headline 1</h1><h2>Headline 2</h2><h2>Headline 2</h2><h3>Headline 3</h3><h3>Headline 3</h3><h4>Headline 4</h4><h4>Headline 4</h4><h5>Headline 5</h5><h5>Headline 5</h5><h6>Headline 6</h6><h6>Headline 6</h6><p>======= no Headline ======= no Headline</p><h1>we don't "close" headlines =</h1><h2>we don't "close" headlines ==</h2><h3>we don't "close" headlines ===</h3><h4>we don't "close" headlines ====</h4><h5>we don't "close" headlines =====</h5><h6>we don't "close" headlines ======</h6></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/headlines_with_text.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/headlines_with_text.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/headlines_with_text.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>Hello World!</p><h1>Headline 1</h1><p>Hello World!</p><h2>Headline 2</h2><p>Hello World!</p><h3>Headline 3</h3><p>Hello World!</p><h4>Headline 4</h4><p>Hello World! Hello World!</p><h5>Headline 5</h5><p>Hello World!</p><h6>Headline 6</h6><p>Hello World!</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/horizontal_rule.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/horizontal_rule.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/horizontal_rule.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>text</p><hr /><p>text ---- text ---- text ---- text &#8212; text ----- text</p><hr /><p>text</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a><span class="image_unresolved">link1: This image shows you everything at link 1.</span></a> <a><span class="image_unresolved">link 2: Link 2 is the most important image ever.</span></a> <a><span class="image_unresolved">link   3: The   same   for   link  3.</span></a> <a><span class="image_unresolved">link 4: This is link 4.</span></a> <a><span class="image_unresolved">link 5: And link 5.</span></a> <a><span class="image_unresolved">||: |</span></a></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description_rename.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description_rename.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_description_rename.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><span class="link_unresolved"><span class="image_unresolved">link1: This image shows you everything at link 1.</span></span> <span class="link_unresolved"><span class="image_unresolved">link 2: Link 2 is the most important image ever.</span></span> <span class="link_unresolved"><span class="image_unresolved">link   3: The   same   for   link  3.</span></span> <span class="link_unresolved"><span class="image_unresolved">link 4: This is link 4.</span></span> <span class="link_unresolved"><span class="image_unresolved">|||||&gt;&gt;&gt;&gt;&gt;||: |&gt;&gt;</span></span> <span class="link_unresolved"><span class="image_unresolved">&gt;&gt;&gt;&gt;&gt;||: |&gt;&gt;</span></span></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a><span class="image_unresolved">look out for &#233;&#232;&#234;</span></a> <a><span class="image_unresolved">&#228;&#246;&#252;: &#223;</span></a> <span class="link_unresolved"><span class="image_unresolved">&#228;&#246;&#252;</span></span> <span class="link_unresolved"><span class="image_unresolved">&#228;&#246;&#252;: &#223;</span></span></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><img alt="" class="img_external" src="http://127.0.0.1/example.png" /> <img alt="" class="img_external" src="http://127.0.0.1/example.png" /> <img alt="This is an external example." class="img_external" src="http://127.0.0.1/example.png" /> <img alt="Yet another external example" class="img_external" src="http://127.0.0.1/example.png" /> <a class="link_external" href="http://127.0.0.1/example.png"><img alt="" class="img_external" src="http://127.0.0.1/example.png" /></a>] <a class="link_external" href="http://127.0.0.1/example.png"><span class="image_unresolved">link 5</span></a> <img alt="link1" class="img_external" src="http://127.0.0.1/example.png" /> <a class="link_external" href="http://127.0.0.1/example.png"><img alt="This is an external example." class="img_external" src="http://127.0.0.1/example.png" /></a>] <span class="link_unresolved"><img alt="Yet another e!
+ xternal example" class="img_external" src="http://127.0.0.1/example.png" /></span> <a class="link_external" href="http://127.0.0.1/example.png"><span class="image_unresolved">link 5: And link 5.</span></a></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.complete.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.complete.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><img alt="" class="img_external" src="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456" /> <img alt="&#223;" class="img_external" src="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456" /> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a"><img alt="" class="img_external" src="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456" /></a> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%!
+ B6%C3%BC;type=a"><img alt="&#223;" class="img_external" src="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456" /></a> <img alt="" class="img_external" src="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a" /> <img alt="&#223;" class="img_external" src="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a" /> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456"><img alt="" class="img_external" src="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a" /></a> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%!
+ AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%!
+ C3%A4%C3
+%B6%C3%BC=456"><img alt="&#223;" class="img_external" src="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a" /></a></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><img alt="" class="img_external" src="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456" /> <img alt="&#223;" class="img_external" src="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456" /> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a"><img alt="" class="img_external" src="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456" /></a> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%!
+ B6%C3%BC;type=a"><img alt="&#223;" class="img_external" src="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456" /></a> <img alt="" class="img_external" src="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a" /> <img alt="&#223;" class="img_external" src="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a" /> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456"><img alt="" class="img_external" src="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a" /></a> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%!
+ AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%!
+ C3%A4%C3
+%B6%C3%BC=456"><img alt="&#223;" class="img_external" src="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a" /></a></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_rename.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_rename.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_rename.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><span class="link_unresolved"><span class="image_unresolved">link1</span></span> <span class="link_unresolved"><span class="image_unresolved">link 2</span></span> <span class="link_unresolved"><span class="image_unresolved">link   3</span></span> <span class="link_unresolved"><span class="image_unresolved">link 4</span></span> <span class="link_unresolved"><span class="image_unresolved">&gt;&gt;</span></span></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_simple.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_simple.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_simple.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a><span class="image_unresolved">link1</span></a> <a><span class="image_unresolved">link 2</span></a> <a><span class="image_unresolved">link   3</span></a> <a><span class="image_unresolved">link 4</span></a> <a><span class="image_unresolved">link 5</span></a> <a><span class="image_unresolved">&gt;&gt;</span></a> <a><span class="image_unresolved">||</span></a></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/italic_block.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/italic_block.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/italic_block.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-italic<em class="italic">italic</em>non-italic</p><p>non-italic<em class="italic">italic italic</em>non-italic</p><p>non-italic<em class="italic">italic[/italic</em>non-italic</p><p>non-italic<em class="italic">italic</em>non-italic/]non-italic</p><p>non-italic<em class="italic">italic[/italic</em>non-italic/]non-italic</p><p>empty: [//]</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/italic_local.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/italic_local.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/italic_local.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-italic<em class="italic">italic</em>non-italic</p><p>non-italic/non-italic</p><p>non-italic<em class="italic">italic</em>non-italic/non-italic</p><p>non-italic/non-italic non-italic/non-italic</p><p>empty: //</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/just_text.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/just_text.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/just_text.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>Hello World!</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/just_text_multiline.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/just_text_multiline.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/just_text_multiline.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>Hello World! Hello World! Hello World! Hello World!</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/large_font.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/large_font.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/large_font.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-large-font<span class="large">large-font</span>non-large-font</p><p>non-large-font<span class="large">large-font large-font</span>non-large-font</p><p>non-large-font<span class="large">large-font[#large-font</span>non-large-font</p><p>non-large-font<span class="large">large-font</span>non-large-font#]non-large-font</p><p>non-large-font<span class="large">large-font[#large-font</span>non-large-font#]non-large-font</p><p>empty: [##]</p><p>no non-block syntax: #non-large-font#</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/line_break.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/line_break.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/line_break.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>Hello world! %%% Hello world! %%%% Hello world!<br />Hello world!<br />Hello world!<br />Hello world!</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><span class="link_unresolved">&#196;rger</span> <span class="link_unresolved">M&#246;glichkeit</span> <span class="link_unresolved">&#220;berheblichkeit</span> <span class="link_unresolved">d&#228;mlich</span> <span class="link_unresolved">&#246;fters</span> <span class="link_unresolved">&#252;bel</span> <span class="link_unresolved">Das &#228;, &#246;, &#252;, &#223;, &#196;. &#214; und &#220;</span> <span class="link_unresolved"> &#228;&#246;&#252; </span></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_external.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_external.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_external.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a class="link_external" href="http://www.w3c.org/">http://www.w3c.org/</a> <a class="link_external" href="http://www.w3c.org/">http://www.w3c.org/ </a> <a class="link_external" href="http://www.w3c.org/"> http://www.w3c.org/</a> <a class="link_external" href="http://www.w3c.org">http://www.w3c.org</a> <a class="link_external" href="ftp://127.0.0.1/">ftp://127.0.0.1/</a> <span class="link_unresolved">127.0.0.1</span> <span class="link_unresolved">www.w3c.org</span></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.complete.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.complete.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a"> ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a </a> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a"> ftp://&#228;&#246;&#252;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a </a> <a class="link_external" href="ftp://ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a"> ftp://ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a </a> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC"> ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&!
+ #228;&#246;&#252; </a> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/"> ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/</a> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid"> ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid </a> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC%EE%AB%AC%CB%DE:%C3%9F%EE%AB%AC%CB%DE at ftp.xn--mller-kva.invalid"> ftp://&#228;&#246;&#252;%EE%AB%ac%cB%De:&#223;%EE%AB%ac%cB%De at ftp.m&#252;ller.invalid </a> <a class="link_external" href="ftp://ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC"> ftp://ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252; </a> <a class="link_external" href="ftp://ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC/%EE%AB%AC%CB%DE"> ftp://ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;/%EE%AB%ac%cB%De </a> <a class="link_external" href="ftp://ftp.xn--mller-kva.i!
+ nvalid/"> ftp://ftp.m&#252;ller.invalid/</a> <a class="link_ex!
+ ternal" 
+href="ftp://ftp.xn--mller-kva.invalid"> ftp://ftp.m&#252;ller.invalid </a> <a class="link_external" href="ftp://ftp.xn--mller-kva.invalid.%EE"> ftp://ftp.m&#252;ller.invalid.%EE </a> <a class="link_internal_unresolved" href="/edit/ftp.m%C3%BCller.invalid"> ftp.m&#252;ller.invalid </a> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a"> &#228;&#246;&#252; </a></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a"> ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a </a> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a"> ftp://&#228;&#246;&#252;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a </a> <a class="link_external" href="ftp://ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a"> ftp://ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a </a> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC"> ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&!
+ #228;&#246;&#252; </a> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/"> ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/</a> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid"> ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid </a> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC%EE%AB%AC%CB%DE:%C3%9F%EE%AB%AC%CB%DE at ftp.xn--mller-kva.invalid"> ftp://&#228;&#246;&#252;%EE%AB%ac%cB%De:&#223;%EE%AB%ac%cB%De at ftp.m&#252;ller.invalid </a> <a class="link_external" href="ftp://ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC"> ftp://ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252; </a> <a class="link_external" href="ftp://ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC/%EE%AB%AC%CB%DE"> ftp://ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;/%EE%AB%ac%cB%De </a> <a class="link_external" href="ftp://ftp.xn--mller-kva.i!
+ nvalid/"> ftp://ftp.m&#252;ller.invalid/</a> <a class="link_ex!
+ ternal" 
+href="ftp://ftp.xn--mller-kva.invalid"> ftp://ftp.m&#252;ller.invalid </a> <a class="link_external" href="ftp://ftp.xn--mller-kva.invalid.%EE"> ftp://ftp.m&#252;ller.invalid.%EE </a> <span class="link_unresolved"> ftp.m&#252;ller.invalid </span> <a class="link_external" href="ftp://%C3%A4%C3%B6%C3%BC:%C3%9F at ftp.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC;type=a"> &#228;&#246;&#252; </a></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.complete.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.complete.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a class="link_external" href="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456"> http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 </a> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456"> hTtP://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 </a> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%!
+ C3%9F%C3%A4%C3%B6%C3%BC=456"> HtTp://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 </a> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456"> http://&#228;&#246;&#252;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 </a> <a class="link_external" href="http://www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC%26%C3%9F%C3%84%C3%96%C3%9C%3D123"> http://www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;&amp;&#223;&#196;&#214;&#220;=123</a> <a class="link_external" href="http://www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC"> http://www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252; </a> <a class="link_externa!
+ l" href="http://www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%A!
+ A/%C3%A4
+%C3%B6%C3%BC/%EE%AB%AC%CB%DE"> http://www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;/%EE%AB%ac%cB%De </a> <a class="link_external" href="http://www.xn--mller-kva.invalid"> http://www.m&#252;ller.invalid </a> <a class="link_external" href="http://www.xn--mller-kva.invalid.%EE"> http://www.m&#252;ller.invalid.%EE </a> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid"> http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid </a> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC%EE%AB%AC%CB%DE:%C3%9F%EE%AB%AC%CB%DE at www.xn--mller-kva.invalid"> http://&#228;&#246;&#252;%EE%AB%ac%cB%De:&#223;%EE%AB%ac%cB%De at www.m&#252;ller.invalid </a> <a class="link_internal_unresolved" href="/edit/www.m%C3%BCller.invalid"> www.m&#252;ller.invalid </a> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C!
+ 3%BC=456"> &#228;&#246;&#252; </a></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a class="link_external" href="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456"> http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 </a> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456"> hTtP://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 </a> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%!
+ C3%9F%C3%A4%C3%B6%C3%BC=456"> HtTp://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 </a> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456"> http://&#228;&#246;&#252;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 </a> <a class="link_external" href="http://www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC%26%C3%9F%C3%84%C3%96%C3%9C%3D123"> http://www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;&amp;&#223;&#196;&#214;&#220;=123</a> <a class="link_external" href="http://www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC"> http://www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252; </a> <a class="link_externa!
+ l" href="http://www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%A!
+ A/%C3%A4
+%C3%B6%C3%BC/%EE%AB%AC%CB%DE"> http://www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;/%EE%AB%ac%cB%De </a> <a class="link_external" href="http://www.xn--mller-kva.invalid"> http://www.m&#252;ller.invalid </a> <a class="link_external" href="http://www.xn--mller-kva.invalid.%EE"> http://www.m&#252;ller.invalid.%EE </a> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid"> http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid </a> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC%EE%AB%AC%CB%DE:%C3%9F%EE%AB%AC%CB%DE at www.xn--mller-kva.invalid"> http://&#228;&#246;&#252;%EE%AB%ac%cB%De:&#223;%EE%AB%ac%cB%De at www.m&#252;ller.invalid </a> <span class="link_unresolved"> www.m&#252;ller.invalid </span> <a class="link_external" href="http://%C3%A4%C3%B6%C3%BC:%C3%9F at www.xn--mller-kva.invalid/%7E%C3%A9%C3%A8%C3%AA/%C3%A4%C3%B6%C3%BC?%C3%9F%C3%84%C3%96%C3%9C=123&amp;%C3%9F%C3%A4%C3%B6%C3%BC=456"> &#228;&#246;&#252; </a></p></!
+ div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_invalid.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_invalid.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_invalid.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>[[link1] [link2]] [link3]</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_rename.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_rename.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_rename.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><span class="link_unresolved">This is just a description.</span> <span class="link_unresolved"> This is just another description. </span> <span class="link_unresolved">  This  is  yet  another  description.  </span> <span class="link_unresolved"> Guess, what's this.</span> <span class="link_unresolved">'nuff said. </span> <span class="link_unresolved">&gt;&gt;</span></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_simple.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_simple.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_simple.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><span class="link_unresolved">link1</span> <span class="link_unresolved"> link 2 </span> <span class="link_unresolved">link   3</span> <span class="link_unresolved"> link 4</span> <span class="link_unresolved">link 5 </span> <span class="link_unresolved">&gt;&gt;</span></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/lists_invalid.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/lists_invalid.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/lists_invalid.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>*text</p><p>-text</p><p>#text</p><p>*-text</p><p>**text</p><p>*#text</p><p>&#8211;text</p><p>-*text</p><p>-#text</p><p>#-text</p><p>#*text</p><p>##text</p><p>before *text after</p><p>before -text after</p><p>before #text after</p><p>before *-text after</p><p>before **text after</p><p>before *#text after</p><p>before &#8211;text after</p><p>before -*text after</p><p>before -#text after</p><p>before #-text after</p><p>before #*text after</p><p>before ##text after</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_different_configs.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/macros_different_configs.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_different_configs.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><span class="macro_unresolved">{{ macro default | 12\ , ab\,cd,ef , \ gh }}</span> <span class="macro_unresolved">{{ macro no split | 12\ , ab\,cd,ef , \ gh }}</span> <span class="macro_unresolved">{{ macro block level | 12\ , ab\,cd,ef , \ gh }}</span> <span class="macro_unresolved">{{ macro no escape | 12\ , ab\,cd,ef , \ gh }}</span> <span class="macro_unresolved">{{ macro w/o s/e | 12\ , ab\,cd,ef , \ gh }}</span> <span class="macro_unresolved">{{ macro b/l, def | 12\ , ab\,cd,ef , \ gh }}</span> <span class="macro_unresolved">{{ macro deferred | 12\ , ab\,cd,ef , \ gh }}</span></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_invalid.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/macros_invalid.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_invalid.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>{testmacro} <span class="macro_unresolved">{{no macro}}</span> <span class="macro_unresolved">{{ no macro | 1, 2, 3 }}</span> {{testmacro}} {{testmacro}} {{testmacro}} {{testmacro}}</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_simple.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/macros_simple.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_simple.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><span class="macro_unresolved">{{testmacro}}</span> <span class="macro_unresolved">{{ test macro2 }}</span> <span class="macro_unresolved">{{Test: -Macro3-}}</span> <span class="macro_unresolved">{{{testmacro}}</span>}</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_escapes.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_escapes.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_escapes.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><span class="macro_unresolved">{{ test macro \| 11\ | 12 | 13 | 14, 15\, 16,\ 17}}</span> <span class="macro_unresolved">{{ test macro \\ }}</span> <span class="macro_unresolved">{{ test macro \\\ }}</span> <span class="macro_unresolved">{{ test macro \\\\ }}</span> <span class="macro_unresolved">{{ test macro \\\\\ }}</span> <span class="macro_unresolved">{{testmacro | a\ }}</span> <span class="macro_unresolved">{{testmacro | a\\ }}</span> <span class="macro_unresolved">{{testmacro | a\\\ }}</span> <span class="macro_unresolved">{{testmacro | a\\\\ }}</span> <span class="macro_unresolved">{{testmacro | a\\\\\ }}</span> <span class="macro_unresolved">{{\{testmacro\}}}</span></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_parms.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_parms.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_parms.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><span class="macro_unresolved">{{testmacro4|parm}}</span> <span class="macro_unresolved">{{testmacro5 | parm }}</span> <span class="macro_unresolved">{{ testmacro6 | parm1, parm2}}</span> <span class="macro_unresolved">{{testmacro7 | parameter 1 , parameter 2 }}</span> <span class="macro_unresolved">{{testmacro8 | 123, 456.789}}</span> <span class="macro_unresolved">{{testmacro9|a,b,c,d,e}}</span> <span class="macro_unresolved">{{ test macro 10 | 1, 2, 3, 4.56 }}</span></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/mailto_link.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/mailto_link.complete.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/mailto_link.complete.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a class="link_mailto" href="mailto:test at test.invalid"> mailto:test at test.invalid </a> <a class="link_mailto" href="mailto:test at test.invalid"> MaIlTo:test at test.invalid </a> <a class="link_mailto" href="mailto:test at test.invalid"> mAiLtO:test at test.invalid </a> <a class="link_internal_unresolved" href="/edit/test%40test.invalid"> test at test.invalid </a> <a class="link_mailto" href="mailto:test at test.invalid">mailto:test at test.invalid</a> <a class="link_mailto" href="mailto:test at test.invalid"> test address </a> <a class="link_mailto" href="mailto:%C3%A4%C3%B6%C3%BC at xn--4ca0bs.invalid"> mailto:&#228;&#246;&#252;@&#196;&#214;&#220;.invalid </a> <span class="image_internal_unresolved">mailto:test at test.invalid</span> <a class="link_mailto" href="mailto:test at test.invalid"><span class="image_internal_unresolved">test</span></a> <a class="link_internal_unresolved" href="/edit/test"><!
+ span class="image_internal_unresolved">mailto:test at test.invalid</span></a></p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/mailto_link.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/mailto_link.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/mailto_link.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p><a class="link_mailto" href="mailto:test at test.invalid"> mailto:test at test.invalid </a> <a class="link_mailto" href="mailto:test at test.invalid"> MaIlTo:test at test.invalid </a> <a class="link_mailto" href="mailto:test at test.invalid"> mAiLtO:test at test.invalid </a> <span class="link_unresolved"> test at test.invalid </span> <a class="link_mailto" href="mailto:test at test.invalid">mailto:test at test.invalid</a> <a class="link_mailto" href="mailto:test at test.invalid"> test address </a> <a class="link_mailto" href="mailto:%C3%A4%C3%B6%C3%BC at xn--4ca0bs.invalid"> mailto:&#228;&#246;&#252;@&#196;&#214;&#220;.invalid </a> <a><span class="image_unresolved">mailto:test at test.invalid</span></a> <a class="link_mailto" href="mailto:test at test.invalid"><span class="image_unresolved">test</span></a> <span class="link_unresolved"><span class="image_unresolved">mailto:test at test.invalid</span></span></p!
+ ></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/numbered_lists_hierarchical.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/numbered_lists_hierarchical.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/numbered_lists_hierarchical.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>text1</p><ol class="ordered"><li>item 1<ol class="ordered"><li>item 1.1</li><li>item 1.2<ol class="ordered"><li>item 1.2.1</li><li>item 1.2.2</li></ol></li></ol></li><li>item 2</li><li>item 3</li></ol><p>text2</p><ol class="ordered"><li>item 1<ol class="ordered"><li>item 1.1</li><li>item 1.2<ol class="ordered"><li>item 1.2.1</li><li>item 1.2.2</li></ol></li></ol></li><li>item 2</li><li>item 3</li></ol><p>text3</p><p>text4</p><ol class="ordered"><li>item 1<ol class="ordered"><li>item 1.1</li><li>item 1.2<ol class="ordered"><li>item 1.2.1</li><li>item 1.2.2</li></ol></li></ol></li><li>item 2</li><li>item 3</li></ol><ol class="ordered"><li>item 1<ol class="ordered"><li>item 1.1</li><li>item 1.2<ol class="ordered"><li>item 1.2.1</li><li>item 1.2.2</li></ol></li></ol></li><li>item 2</li><li>item 3</li></ol><p>text5</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/numbered_lists_simple.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/numbered_lists_simple.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/numbered_lists_simple.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>text1</p><ol class="ordered"><li>item 1</li><li>item 2</li><li>item 3</li><li>item 4</li></ol><p>text2</p><ol class="ordered"><li>item 1</li><li>item 2</li><li>item 3</li><li>item 4</li></ol><p>text3</p><p>text4</p><ol class="ordered"><li>item 1</li><li>item 2</li><li>item 3</li><li>item 4</li></ol><ol class="ordered"><li>item 1</li><li>item 2</li><li>item 3</li><li>item 4</li></ol><p>text5</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/paragraph.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/paragraph.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/paragraph.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>paragraph 1</p><p>paragraph 2</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/pre.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/pre.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/pre.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1,2 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><pre>Preformatted text. &lt;&amp;&gt;
++Preformatted text.</pre></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/single_quotes.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/single_quotes.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/single_quotes.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-single-quotes<span class="single_quotes">single-quotes</span>non-single-quotes</p><p>non-single-quotes<span class="single_quotes">single-quotes single-quotes</span>non-single-quotes</p><p>non-single-quotes<span class="single_quotes">single-quotes['single-quotes</span>non-single-quotes</p><p>non-single-quotes<span class="single_quotes">single-quotes</span>non-single-quotes']non-single-quotes</p><p>non-single-quotes<span class="single_quotes">single-quotes['single-quotes</span>non-single-quotes']non-single-quotes</p><p>empty: ['']</p><p>no non-block syntax: 'non-single-quotes'</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/small_font.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/small_font.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/small_font.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-small-font<span class="small">small-font</span>non-small-font</p><p>non-small-font<span class="small">small-font small-font</span>non-small-font</p><p>non-small-font<span class="small">small-font[~small-font</span>non-small-font</p><p>non-small-font<span class="small">small-font</span>non-small-font~]non-small-font</p><p>non-small-font<span class="small">small-font[~small-font</span>non-small-font~]non-small-font</p><p>empty: [~~]</p><p>no non-block syntax: ~non-small-font~</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/some_special_markup_with_blanks.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/some_special_markup_with_blanks.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/some_special_markup_with_blanks.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>/test / / test/ / test / <em class="italic">test</em> t<em class="italic">es</em>t</p><p>*test * * test* * test * <b class="bold">test</b> t<b class="bold">es</b>t</p><p>_test _ _ test_ _ test _ <span class="underlined">test</span> t<span class="underlined">es</span>t</p><p>=test = = test= = test = <tt class="typewriter">test</tt> t<tt class="typewriter">es</tt>t</p><p>test<em class="italic"> test test </em>test <em class="italic">test</em> test <em class="italic"> test </em> test</p><p>test<b class="bold"> test test </b>test <b class="bold">test</b> test <b class="bold"> test </b> test</p><p>test<span class="underlined"> test test </span>test <span class="underlined">test</span> test <span class="underlined"> test </span> test</p><p>test<tt class="typewriter"> test test </tt>test <tt class="typewriter">test</tt> test <tt class="typewriter"> test </tt> test</p><p>test<!
+ span class="single_quotes"> test test </span>test <span class="single_quotes">test</span> test <span class="single_quotes"> test </span> test</p><p>test<span class="double_quotes"> test test </span>test <span class="double_quotes">test</span> test <span class="double_quotes"> test </span> test</p><p>test<span class="superscript"> test test </span>test <span class="superscript">test</span> test <span class="superscript"> test </span> test</p><p>test<span class="subscript"> test test </span>test <span class="subscript">test</span> test <span class="subscript"> test </span> test</p><p>test<span class="large"> test test </span>test <span class="large">test</span> test <span class="large"> test </span> test</p><p>test<span class="small"> test test </span>test <span class="small">test</span> test <span class="small"> test </span> test</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/special_characters.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/special_characters.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/special_characters.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>n&#8211;dash n &#8211;dash n&#8211; dash n &#8211; dash m&#8212;dash m &#8212;dash m&#8212; dash m &#8212; dash</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/special_chars.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/special_chars.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/special_chars.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>&lt;&amp;&gt;</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/subscript.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/subscript.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/subscript.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-subscript<span class="subscript">subscript</span>non-subscript</p><p>non-subscript<span class="subscript">subscript subscript</span>non-subscript</p><p>non-subscript<span class="subscript">subscript[,subscript</span>non-subscript</p><p>non-subscript<span class="subscript">subscript</span>non-subscript,]non-subscript</p><p>non-subscript<span class="subscript">subscript[,subscript</span>non-subscript,]non-subscript</p><p>empty: [,,]</p><p>no non-block syntax: ,non-subscript,</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/superscript.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/superscript.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/superscript.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-superscript<span class="superscript">superscript</span>non-superscript</p><p>non-superscript<span class="superscript">superscript superscript</span>non-superscript</p><p>non-superscript<span class="superscript">superscript[^superscript</span>non-superscript</p><p>non-superscript<span class="superscript">superscript</span>non-superscript^]non-superscript</p><p>non-superscript<span class="superscript">superscript[^superscript</span>non-superscript^]non-superscript</p><p>empty: [^^]</p><p>no non-block syntax: ^non-superscript^</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_block.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_block.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_block.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-typewriter<tt class="typewriter">typewriter</tt>non-typewriter</p><p>non-typewriter<tt class="typewriter">typewriter typewriter</tt>non-typewriter</p><p>non-typewriter<tt class="typewriter">typewriter[=typewriter</tt>non-typewriter</p><p>non-typewriter<tt class="typewriter">typewriter</tt>non-typewriter=]non-typewriter</p><p>non-typewriter<tt class="typewriter">typewriter[=typewriter</tt>non-typewriter=]non-typewriter</p><p>empty: [==]</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_local.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_local.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_local.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-typewriter<tt class="typewriter">typewriter</tt>non-typewriter</p><p>non-typewriter=non-typewriter</p><p>non-typewriter<tt class="typewriter">typewriter</tt>non-typewriter=non-typewriter</p><p>non-typewriter=non-typewriter non-typewriter=non-typewriter</p><p>empty: ==</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_block.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_block.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_block.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-underlined<span class="underlined">underlined</span>non-underlined</p><p>non-underlined<span class="underlined">underlined underlined</span>non-underlined</p><p>non-underlined<span class="underlined">underlined[_underlined</span>non-underlined</p><p>non-underlined<span class="underlined">underlined</span>non-underlined_]non-underlined</p><p>non-underlined<span class="underlined">underlined[_underlined</span>non-underlined_]non-underlined</p><p>empty: [__]</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_local.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_local.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_local.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-underlined<span class="underlined">underlined</span>non-underlined</p><p>non-underlined_non-underlined</p><p>non-underlined<span class="underlined">underlined</span>non-underlined_non-underlined</p><p>non-underlined_non-underlined non-underlined_non-underlined</p><p>empty: __</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/unnumbered_lists_hierarchical.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/unnumbered_lists_hierarchical.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/unnumbered_lists_hierarchical.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>text1</p><ul class="dash"><li>item 1<ul class="dash"><li>item 1.1</li><li>item 1.2<ul class="dash"><li>item 1.2.1</li><li>item 1.2.2</li></ul></li></ul></li><li>item 2</li><li>item 3</li></ul><p>text2</p><ul class="dash"><li>item 1<ul class="dash"><li>item 1.1</li><li>item 1.2<ul class="dash"><li>item 1.2.1</li><li>item 1.2.2</li></ul></li></ul></li><li>item 2</li><li>item 3</li></ul><p>text3</p><p>text4</p><ul class="dash"><li>item 1<ul class="dash"><li>item 1.1</li><li>item 1.2<ul class="dash"><li>item 1.2.1</li><li>item 1.2.2</li></ul></li></ul></li><li>item 2</li><li>item 3</li></ul><ul class="dash"><li>item 1<ul class="dash"><li>item 1.1</li><li>item 1.2<ul class="dash"><li>item 1.2.1</li><li>item 1.2.2</li></ul></li></ul></li><li>item 2</li><li>item 3</li></ul><p>text5</p><ul class="bullet"><li>item 1<ul class="bullet"><li>item 1.1</li><li>item 1.2<ul class="bull!
+ et"><li>item 1.2.1</li><li>item 1.2.2</li></ul></li></ul></li><li>item 2</li><li>item 3</li></ul><p>text6</p><ul class="bullet"><li>item 1<ul class="bullet"><li>item 1.1</li><li>item 1.2<ul class="bullet"><li>item 1.2.1</li><li>item 1.2.2</li></ul></li></ul></li><li>item 2</li><li>item 3</li></ul><p>text7</p><p>text8</p><ul class="bullet"><li>item 1<ul class="bullet"><li>item 1.1</li><li>item 1.2<ul class="bullet"><li>item 1.2.1</li><li>item 1.2.2</li></ul></li></ul></li><li>item 2</li><li>item 3</li></ul><ul class="bullet"><li>item 1<ul class="bullet"><li>item 1.1</li><li>item 1.2<ul class="bullet"><li>item 1.2.1</li><li>item 1.2.2</li></ul></li></ul></li><li>item 2</li><li>item 3</li></ul><p>text9</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/unnumbered_lists_simple.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/unnumbered_lists_simple.no_test_procs.xml	2006-07-20 23:38:55 UTC (rev 24)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/unnumbered_lists_simple.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>text1</p><ul class="bullet"><li>item 1</li><li>item 2</li><li>item 3</li><li>item 4</li></ul><p>text2</p><ul class="bullet"><li>item 1</li><li>item 2</li><li>item 3</li><li>item 4</li></ul><p>text3</p><p>text4</p><ul class="bullet"><li>item 1</li><li>item 2</li><li>item 3</li><li>item 4</li></ul><ul class="bullet"><li>item 1</li><li>item 2</li><li>item 3</li><li>item 4</li></ul><p>text5</p><ul class="dash"><li>item 1</li><li>item 2</li><li>item 3</li><li>item 4</li></ul><p>text6</p><ul class="dash"><li>item 1</li><li>item 2</li><li>item 3</li><li>item 4</li></ul><p>text7</p><p>text8</p><ul class="dash"><li>item 1</li><li>item 2</li><li>item 3</li><li>item 4</li></ul><ul class="dash"><li>item 1</li><li>item 2</li><li>item 3</li><li>item 4</li></ul><p>text9</p></div></body></html>
+\ No newline at end of file
+
+
+
+From fingerle at mail.berlios.de  Sun Jul 30 03:20:41 2006
+From: fingerle at mail.berlios.de (fingerle at BerliOS)
+Date: Sun, 30 Jul 2006 03:20:41 +0200
+Subject: [fellowiki-svncheckins] r26 - in trunk/fellowiki/wiki: .
+	tests/tests/simple_markup
+Message-ID: <200607300120.k6U1KfQm015358@sheep.berlios.de>
+
+Author: fingerle
+Date: 2006-07-30 03:20:10 +0200 (Sun, 30 Jul 2006)
+New Revision: 26
+
+Added:
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.no_test_procs.xml
+Modified:
+   trunk/fellowiki/wiki/parser.py
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.wiki
+Log:
+- wiki parser: added table handling
+
+
+Modified: trunk/fellowiki/wiki/parser.py
+===================================================================
+--- trunk/fellowiki/wiki/parser.py	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/parser.py	2006-07-30 01:20:10 UTC (rev 26)
+@@ -39,6 +39,7 @@
+ 
+ PREFIX_COUNT = "prefix count"
+ ENCAPSULATE_MARKUP = "encapsulate markup"
++ENCAPSULATE_TABLE = "encapsulate table"
+ SWITCH_MARKUP = "switch markup"
+ EMBED_MARKUP = "embed markup"
+ 
+@@ -79,6 +80,13 @@
+         self.callback = []
+         self.translations = []
+         
++    def clone(self, other):
++        self.tag = other.tag
++        self.content = other.content
++        self.attributes = other.attributes
++        self.callback = other.callback
++        self.translations = other.translations
++        
+     def to_element_tree(self): 
+         xhtml = ElementTree.Element(self.tag)
+         sub_xhtml = None
+@@ -195,6 +203,7 @@
+             result.append(new_token)
+         if not isinstance(self, EndToken):
+             result.append(self)
++            
+ 
+ class ResultToken(Token):
+     def __init__(self):
+@@ -254,7 +263,7 @@
+     def evaluate(self, result, tokens, state, procs):
+         Token.evaluate(self, result, tokens, state, procs)
+         if self.type == '(':
+-           state[self.STATE] = state.get(self.STATE, 0) + 1
++            state[self.STATE] = state.get(self.STATE, 0) + 1
+         
+     def match_is_open(self):
+         if self.type == ')':
+@@ -265,12 +274,17 @@
+         return (self.state.get(self.STATE, 0) == 1 and
+                 self.type == ')' and isinstance(match, EncapsulateToken) and 
+                 self.STATE == match.STATE and self.text == match.text and 
+-                match.type == '(')
++                match.type in ('(', '_'))
+             
+     def close(self, match, new_token):
+-        self.state[self.STATE] = self.state.get(self.STATE, 0) - 1
+-        self.tokens.insert(0, new_token)
+-    
++        if match.type == '(':
++            self.state[self.STATE] = self.state.get(self.STATE, 0) - 1
++        self.insert_result(match, new_token)    
++            
++    def insert_result(self, match, result_token):
++        self.tokens.insert(0, result_token)
++   
++   
+ class EncapsulateMarkupToken(EncapsulateToken):
+     def __init__(self, token, *args, **kwargs):
+         EncapsulateToken.__init__(self, token, *args, **kwargs)
+@@ -384,9 +398,14 @@
+             LineBreakOutputToken.close(self, match, new_token)
+         else:
+             if new_token.xhtml.is_not_empty():
+-               new_token.xhtml.tag = 'p'
+-               match.xhtml.append(new_token.xhtml)
++                new_token.xhtml.tag = 'p'
++               
++                x, _ = match.xhtml.to_element_tree()
++                
++                match.xhtml.append(new_token.xhtml)
++                x, _ = match.xhtml.to_element_tree()
+             self.tokens.insert(0, match)
++            x, _ = match.xhtml.to_element_tree()
+             self.do_extended_close(match)
+             
+     def do_extended_close(self, inserted_token):
+@@ -401,14 +420,121 @@
+         embed.append(self.text)
+         inserted_token.xhtml.append(embed)
+ 
+-class BeetweenParagraphsXHTML(ParagraphToken):
++class BetweenParagraphsXHTML(ParagraphToken):
+     def __init__(self, xhtml, token):
+         ParagraphToken.__init__(self, token)
+-        self._xhtml = xhtml
++        self.xhtml = xhtml
+     
+     def do_extended_close(self, inserted_token):
+-        inserted_token.xhtml.append(self._xhtml)
++        inserted_token.xhtml.append(self.xhtml)
+ 
++
++def _lists_to_table(table_lists):
++    col_num = max([len(row) for row in table_lists])
++    xhtml_table = XMLElement('table')
++    xhtml_table.attributes['class'] = 'wiki-table'
++    for row in table_lists:
++        xhtml_row = XMLElement('tr')
++        xhtml_table.append(xhtml_row)
++        
++        for item in row:
++            if item is None:
++                if xhtml_row.is_empty():
++                    xhtml_item = XMLElement('td')
++                    xhtml_row.append(xhtml_item)
++                else:
++                    attributes = xhtml_row.content[-1].attributes
++                    attributes['colspan'] = str(int(attributes.get('colspan', 1)) + 1)
++            else:
++                item.xhtml.tag = 'td'
++                xhtml_row.append(item.xhtml)
++        
++        attributes = xhtml_row.content[-1].attributes
++        colspan = int(attributes.get('colspan', 1)) + col_num - len(row)
++        if colspan > 1:
++            attributes['colspan'] = str(colspan)
++    return xhtml_table
++                                  
++ 
++class TableResultToken(ParagraphToken):
++    def __init__(self, table_rows, token):
++        ParagraphToken.__init__(self, token)
++        self.rows = table_rows
++        self.table_xhtml = XMLElement('table')
++        self.xhtml.append(self.table_xhtml) ## ugly, but works
++            
++    def evaluate(self, result, tokens, state, procs):  
++        if (len(tokens) >= 2 and type(tokens[0]) == LineBreakToken and
++            type(tokens[1]) == TableResultToken):
++            next_token = tokens.pop(0)
++            next_token = tokens.pop(0)
++            self.token += next_token.token
++            self.rows.extend(next_token.rows)
++        else:
++            xhtml = _lists_to_table(self.rows)
++            self.table_xhtml.clone(xhtml) ## ugly, again
++        LineBreakOutputToken.evaluate(self, result, tokens, state, procs)
++            
++    def do_extended_close(self, inserted_token):
++        inserted_token.xhtml.append(*self.xhtml.content)
++
++
++class TableToken(EncapsulateToken): 
++    def __init__(self, token, *args, **kwargs):
++        EncapsulateToken.__init__(self, token, *args, **kwargs)
++        self.STATE = ENCAPSULATE_TABLE
++        self.table_row = []
++        self.table_rows = []
++        self.consumed_whitespace_left = False
++        self.consumed_whitespace_right = False
++        
++    def evaluate(self, result, tokens, state, procs):  
++        ## there can be only one WhitespaceToken in a row
++        if len(result) > 0 and type(result[-1]) == WhitespaceToken:
++            self.consumed_whitespace_left = True
++            result.pop()
++            self.token = ' ' +  self.token
++        if len(tokens) > 0 and type(tokens[0]) == WhitespaceToken:
++            tokens.pop(0)
++            self.consumed_whitespace_right = True
++            self.token = self.token + ' '
++        if self.type == '_' and len(tokens) > 0 and \
++                isinstance(tokens[0], LineBreakToken):
++            self.type = ')'
++        EncapsulateToken.evaluate(self, result, tokens, state, procs)
++            
++    def render(self, new_token):
++        EncapsulateToken.render(self, new_token)
++        if len(self.table_rows) > 0:
++            self.result.append(TableResultToken(self.table_rows,''))
++        
++    def insert_result(self, match, result_token):
++        if match.type == '(':
++            if (len(self.tokens) >= 2 and type(self.tokens[0]) == LineBreakToken and
++                  type(self.tokens[1]) == TableToken and self.tokens[1].type == '('):
++                self.tokens.pop(0)
++                new_table = self.tokens[0]
++                new_table.table_rows = self.table_rows
++                        
++            else:
++                self.tokens.insert(0, TableResultToken(self.table_rows, 
++                                                          self.token))
++        elif match.type == '_':
++            self.tokens.insert(0, self)
++        
++    def close(self, match, new_token):
++        if new_token.xhtml.is_not_empty() or \
++                    self.consumed_whitespace_left or \
++                    match.consumed_whitespace_right:
++            self.table_row.insert(0, new_token)
++        else:
++            self.table_row.insert(0, None)
++        if match.type == '(':
++            self.table_rows = match.table_rows
++            self.table_rows.append(self.table_row)
++        EncapsulateToken.close(self, match, new_token)
++ 
++
+ class StructureModifyToken(Token): 
+ #modifiziert letzte geoeffnete struktur, wird dann wegfallen lassen => keine
+ # preference
+@@ -442,7 +568,7 @@
+ class HeadlineToken(PrefixToken): 
+     def do_prefix(self, new_token):
+         new_token.xhtml.tag = 'h%i' % (len(self.token) - 1)
+-        self.tokens.insert(0, BeetweenParagraphsXHTML(new_token.xhtml, 
++        self.tokens.insert(0, BetweenParagraphsXHTML(new_token.xhtml, 
+                                                       self.token))
+ 
+ class ListResultToken(ParagraphToken):
+@@ -560,7 +686,7 @@
+         if this_proc.get(BLOCK_LEVEL):
+             self.block_level = True
+             self.xhtml.tag = 'p'
+-            self.tokens.insert(0, BeetweenParagraphsXHTML(self.xhtml, self.token))
++            self.tokens.insert(0, BetweenParagraphsXHTML(self.xhtml, self.token))
+             
+ def check_and_normalize_url(url, allowed_schemes):
+     scheme, location, path, query, fragment = urlsplit(url)
+@@ -755,8 +881,6 @@
+                 span.attributes['class'] = 'image_unresolved'
+                 self.xhtml.append(span)
+     
+-class TableToken(Token): 
+-    pass
+ 
+ def token_factory(token_cls, *args, **kw_args):
+     def new_token(_, token):
+@@ -803,10 +927,10 @@
+               # lists
+               (10, r'^[#*-]+[ \t]', token_factory(ListToken, preference=30)),
+               # tables
+-              (10, r'^\|', token_factory(TableToken, type='(', preference=0)),
++              (10, r'^\|', token_factory(TableToken, type='(', preference=30)),
+               (10, r'\|$', token_factory(TableToken, type=')', 
+-                    preference=0)),
+-              (90, r'\|', token_factory(TableToken, type='_', preference=0)),
++                    preference=30)),
++              (11, r'\|', token_factory(TableToken, type='_', preference=30)),
+               # macros
+               (10, r'\{\{([^\\\}\n]|\\.|\}(?=[^\}]))*\}\}', 
+                     token_factory(MacroToken, preference=20)),
+@@ -819,7 +943,7 @@
+                      preference = 0, html_tag='hr',cut_left=4)),
+               # what's left 
+               (90, r'[ \t]+', token_factory(WhitespaceToken)),
+-              (99, r'.', token_factory(TextToken))
++              (99, r'.[a-zA-Z0-9]*', token_factory(TextToken))
+               ]
+ 
+     def __init__(self, procs):
+@@ -830,6 +954,7 @@
+         self.procs = procs
+ 
+     def parse(self, text):
++        import time
+         tokens = self.scanner.scan(''.join(['\n\n', text, '\n\n']))
+         
+         if tokens[1] != '':
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.complete.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.complete.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>|(1) 1 this|1 isn't|1 a|1 table |(1) 2 this|2 isn't|2 a|2 table |(1) 3 this|3 isn't|3 a|3 table</p><p>(2) 1 this|1 isn't|1 a|1 table| (2) 2 this|2 isn't|2 a|2 table| (2) 3 this|3 isn't|3 a|3 table|</p><p>|(3) 1 this|1 isn't|1 a|1 table| |(3) 2 this|2 isn't|2 a|2 table| |(3) 3 this|3 isn't|3 a|3 table|</p><p>| (4) 1 this | 1 isn't | 1 a | 1 table | | (4) 2 this | 2 isn't | 2 a | 2 table | | (4) 3 this | 3 isn't | 3 a | 3 table |</p><p>|(5) 1 this|1 isn't|1 a|1 table|</p><table class="wiki-table"><tr><td>(5) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(5) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td>(6) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(6) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr></table><p>|(6) 3 this|3 isn't|3 a|3 table|</p><p>|(7) 1 this|1 isn't|1!
+  a|1 table</p><table class="wiki-table"><tr><td>(7) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr></table><p>|(7) 3 this|3 isn't|3 a|3 table</p><p>|before|before</p><table class="wiki-table"><tr><td>(8) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(8) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(8) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>before|before|</p><table class="wiki-table"><tr><td>(9) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(9) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(9) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td>(10) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(10) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(10) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>|after|after</p><table class="wiki-table"><tr><td>(11) 1 this<!
+ /td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(11)!
+  2 this<
+/td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(11) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>after|after|</p><p>|before|before</p><table class="wiki-table"><tr><td>(12) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(12) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(12) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>|after|after</p><p>before|before|</p><table class="wiki-table"><tr><td>(13) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(13) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(13) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>after|after|</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.no_test_procs.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>|(1) 1 this|1 isn't|1 a|1 table |(1) 2 this|2 isn't|2 a|2 table |(1) 3 this|3 isn't|3 a|3 table</p><p>(2) 1 this|1 isn't|1 a|1 table| (2) 2 this|2 isn't|2 a|2 table| (2) 3 this|3 isn't|3 a|3 table|</p><p>|(3) 1 this|1 isn't|1 a|1 table| |(3) 2 this|2 isn't|2 a|2 table| |(3) 3 this|3 isn't|3 a|3 table|</p><p>| (4) 1 this | 1 isn't | 1 a | 1 table | | (4) 2 this | 2 isn't | 2 a | 2 table | | (4) 3 this | 3 isn't | 3 a | 3 table |</p><p>|(5) 1 this|1 isn't|1 a|1 table|</p><table class="wiki-table"><tr><td>(5) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(5) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td>(6) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(6) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr></table><p>|(6) 3 this|3 isn't|3 a|3 table|</p><p>|(7) 1 this|1 isn't|1!
+  a|1 table</p><table class="wiki-table"><tr><td>(7) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr></table><p>|(7) 3 this|3 isn't|3 a|3 table</p><p>|before|before</p><table class="wiki-table"><tr><td>(8) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(8) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(8) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>before|before|</p><table class="wiki-table"><tr><td>(9) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(9) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(9) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td>(10) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(10) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(10) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>|after|after</p><table class="wiki-table"><tr><td>(11) 1 this<!
+ /td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(11)!
+  2 this<
+/td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(11) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>after|after|</p><p>|before|before</p><table class="wiki-table"><tr><td>(12) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(12) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(12) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>|after|after</p><p>before|before|</p><table class="wiki-table"><tr><td>(13) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(13) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(13) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>after|after|</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.wiki	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.wiki	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1,59 @@
++|(1) 1 this|1 isn't|1 a|1 table
++|(1) 2 this|2 isn't|2 a|2 table
++|(1) 3 this|3 isn't|3 a|3 table
++
++(2) 1 this|1 isn't|1 a|1 table|
++(2) 2 this|2 isn't|2 a|2 table|
++(2) 3 this|3 isn't|3 a|3 table|
++
++ |(3) 1 this|1 isn't|1 a|1 table|
++ |(3) 2 this|2 isn't|2 a|2 table|
++ |(3) 3 this|3 isn't|3 a|3 table|
++
++ | (4) 1 this | 1 isn't | 1 a | 1 table |
++ | (4) 2 this | 2 isn't | 2 a | 2 table |
++ | (4) 3 this | 3 isn't | 3 a | 3 table |
++
++ |(5) 1 this|1 isn't|1 a|1 table|
++|(5) 2 this|2 is|2 a|2 table|
++|(5) 3 this|3 is|3 a|3 table|
++
++|(6) 1 this|1 is|1 a|1 table|
++|(6) 2 this|2 is|2 a|2 table|
++ |(6) 3 this|3 isn't|3 a|3 table|
++
++|(7) 1 this|1 isn't|1 a|1 table
++|(7) 2 this|2 is|2 a|2 table|
++|(7) 3 this|3 isn't|3 a|3 table
++
++|before|before
++|(8) 1 this|1 is|1 a|1 table|
++|(8) 2 this|2 is|2 a|2 table|
++|(8) 3 this|3 is|3 a|3 table|
++
++before|before|
++|(9) 1 this|1 is|1 a|1 table|
++|(9) 2 this|2 is|2 a|2 table|
++|(9) 3 this|3 is|3 a|3 table|
++
++|(10) 1 this|1 is|1 a|1 table|
++|(10) 2 this|2 is|2 a|2 table|
++|(10) 3 this|3 is|3 a|3 table|
++|after|after
++
++|(11) 1 this|1 is|1 a|1 table|
++|(11) 2 this|2 is|2 a|2 table|
++|(11) 3 this|3 is|3 a|3 table|
++after|after|
++
++|before|before
++|(12) 1 this|1 is|1 a|1 table|
++|(12) 2 this|2 is|2 a|2 table|
++|(12) 3 this|3 is|3 a|3 table|
++|after|after
++
++before|before|
++|(13) 1 this|1 is|1 a|1 table|
++|(13) 2 this|2 is|2 a|2 table|
++|(13) 3 this|3 is|3 a|3 table|
++after|after|
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.complete.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.complete.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>before |before|before</p><table class="wiki-table"><tr><td>(1) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(1) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(1) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>after</p><p>before before|before|</p><table class="wiki-table"><tr><td>(2) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(2) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(2) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>after</p><p>before</p><table class="wiki-table"><tr><td>(3) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(3) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(3) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>|after|after after</p><p>before</p><table class="wiki-table"><tr>!
+ <td>(4) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(4) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(4) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>after|after| after</p><p>before |before|before</p><table class="wiki-table"><tr><td>(5) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(5) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(5) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>|after|after after</p><p>before before|before|</p><table class="wiki-table"><tr><td>(6) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(6) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(6) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>after|after| after</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.no_test_procs.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>before |before|before</p><table class="wiki-table"><tr><td>(1) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(1) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(1) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>after</p><p>before before|before|</p><table class="wiki-table"><tr><td>(2) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(2) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(2) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>after</p><p>before</p><table class="wiki-table"><tr><td>(3) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(3) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(3) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>|after|after after</p><p>before</p><table class="wiki-table"><tr>!
+ <td>(4) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(4) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(4) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>after|after| after</p><p>before |before|before</p><table class="wiki-table"><tr><td>(5) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(5) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(5) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>|after|after after</p><p>before before|before|</p><table class="wiki-table"><tr><td>(6) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(6) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(6) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>after|after| after</p></div></body></html>
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.wiki	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.wiki	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1,43 @@
++before
++|before|before
++|(1) 1 this|1 is|1 a|1 table|
++|(1) 2 this|2 is|2 a|2 table|
++|(1) 3 this|3 is|3 a|3 table|
++after
++
++before
++before|before|
++|(2) 1 this|1 is|1 a|1 table|
++|(2) 2 this|2 is|2 a|2 table|
++|(2) 3 this|3 is|3 a|3 table|
++after
++
++before
++|(3) 1 this|1 is|1 a|1 table|
++|(3) 2 this|2 is|2 a|2 table|
++|(3) 3 this|3 is|3 a|3 table|
++|after|after
++after
++
++before
++|(4) 1 this|1 is|1 a|1 table|
++|(4) 2 this|2 is|2 a|2 table|
++|(4) 3 this|3 is|3 a|3 table|
++after|after|
++after
++
++before
++|before|before
++|(5) 1 this|1 is|1 a|1 table|
++|(5) 2 this|2 is|2 a|2 table|
++|(5) 3 this|3 is|3 a|3 table|
++|after|after
++after
++
++before
++before|before|
++|(6) 1 this|1 is|1 a|1 table|
++|(6) 2 this|2 is|2 a|2 table|
++|(6) 3 this|3 is|3 a|3 table|
++after|after|
++after
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.complete.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.complete.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><table class="wiki-table"><tr><td>(1) 1 this</td><td colspan="3">1 is</td></tr><tr><td>(1) 2 this</td><td>2 is</td><td colspan="2">2 a</td></tr><tr><td>(1) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td>(2) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(2) 2 this</td><td>2 is</td><td colspan="2">2 a</td></tr><tr><td>(2) 3 this</td><td colspan="3">3 is</td></tr></table><table class="wiki-table"><tr><td>(3) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(3) 2 this</td><td>2 is</td><td colspan="2">2 a</td></tr><tr><td>(3) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td>(4) 1 this</td><td>1 is</td><td colspan="2">1 a</td></tr><tr><td>(4) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(4) 3 this</td><td>3 is</td><td colsp!
+ an="2">3 a</td></tr></table><table class="wiki-table"><tr><td>(5) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td colspan="2">(5) 2 this</td><td>2 a</td><td>2 table</td></tr><tr><td>(5) 3 this</td><td colspan="2">3 is</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td /><td>(6) 1 is</td><td>1 a</td><td>1 table</td></tr><tr><td colspan="2">(6) 2 this</td><td>2 a</td><td>2 table</td></tr><tr><td>(6) 3 this</td><td colspan="2">3 is</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td colspan="2">(7) 1 this</td><td>1 a</td><td>1 table</td></tr><tr><td colspan="2">(7) 2 this</td><td>2 a</td><td>2 table</td></tr><tr><td colspan="2">(7) 3 this</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td colspan="2">(8) 1 this</td><td>1 a</td><td>1 table</td></tr><tr><td>(8) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td colspan="2">(8) 3 this</td><td>3 a</td><td>3 table</td></tr></table><table class!
+ ="wiki-table"><tr><td /><td>1 is</td><td>1 a</td><td>1 table</!
+ td></tr>
+<tr><td>2 this</td><td /><td>2 a</td><td>2 table</td></tr><tr><td>3 this</td><td>3 is</td><td /><td>3 table</td></tr></table></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.no_test_procs.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><table class="wiki-table"><tr><td>(1) 1 this</td><td colspan="3">1 is</td></tr><tr><td>(1) 2 this</td><td>2 is</td><td colspan="2">2 a</td></tr><tr><td>(1) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td>(2) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(2) 2 this</td><td>2 is</td><td colspan="2">2 a</td></tr><tr><td>(2) 3 this</td><td colspan="3">3 is</td></tr></table><table class="wiki-table"><tr><td>(3) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(3) 2 this</td><td>2 is</td><td colspan="2">2 a</td></tr><tr><td>(3) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td>(4) 1 this</td><td>1 is</td><td colspan="2">1 a</td></tr><tr><td>(4) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(4) 3 this</td><td>3 is</td><td colsp!
+ an="2">3 a</td></tr></table><table class="wiki-table"><tr><td>(5) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td colspan="2">(5) 2 this</td><td>2 a</td><td>2 table</td></tr><tr><td>(5) 3 this</td><td colspan="2">3 is</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td /><td>(6) 1 is</td><td>1 a</td><td>1 table</td></tr><tr><td colspan="2">(6) 2 this</td><td>2 a</td><td>2 table</td></tr><tr><td>(6) 3 this</td><td colspan="2">3 is</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td colspan="2">(7) 1 this</td><td>1 a</td><td>1 table</td></tr><tr><td colspan="2">(7) 2 this</td><td>2 a</td><td>2 table</td></tr><tr><td colspan="2">(7) 3 this</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td colspan="2">(8) 1 this</td><td>1 a</td><td>1 table</td></tr><tr><td>(8) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td colspan="2">(8) 3 this</td><td>3 a</td><td>3 table</td></tr></table><table class!
+ ="wiki-table"><tr><td /><td>1 is</td><td>1 a</td><td>1 table</!
+ td></tr>
+<tr><td>2 this</td><td /><td>2 a</td><td>2 table</td></tr><tr><td>3 this</td><td>3 is</td><td /><td>3 table</td></tr></table></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.wiki	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.wiki	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1,35 @@
++|(1) 1 this|1 is|
++|(1) 2 this|2 is|2 a|
++|(1) 3 this|3 is|3 a|3 table|
++
++|(2) 1 this|1 is|1 a|1 table|
++|(2) 2 this|2 is|2 a|
++|(2) 3 this|3 is|
++
++|(3) 1 this|1 is|1 a|1 table|
++|(3) 2 this|2 is|2 a|
++|(3) 3 this|3 is|3 a|3 table|
++
++|(4) 1 this|1 is|1 a|
++|(4) 2 this|2 is|2 a|2 table|
++|(4) 3 this|3 is|3 a|
++
++|(5) 1 this|1 is|1 a|1 table|
++|(5) 2 this||2 a|2 table|
++|(5) 3 this|3 is||3 table|
++
++||(6) 1 is|1 a|1 table|
++|(6) 2 this||2 a|2 table|
++|(6) 3 this|3 is||3 table|
++
++|(7) 1 this||1 a|1 table|
++|(7) 2 this||2 a|2 table|
++|(7) 3 this||3 a|3 table|
++
++|(8) 1 this||1 a|1 table|
++|(8) 2 this|2 is|2 a|2 table|
++|(8) 3 this||3 a|3 table|
++
++| |1 is|1 a|1 table|
++|2 this|  |2 a|2 table|
++|3 this|3 is|   |3 table|
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.complete.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.complete.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><table class="wiki-table"><tr><td>(1) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(1) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(1) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td>(2) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(2) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(2) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td>(3) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(3) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(3) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td>(4) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(4) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></!
+ tr><tr><td>(4) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>(5) before</p><table class="wiki-table"><tr><td>(5) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(5) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(5) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>(5) after</p></div></body></html>
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.no_test_procs.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><table class="wiki-table"><tr><td>(1) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(1) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(1) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td>(2) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(2) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(2) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td>(3) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(3) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(3) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><table class="wiki-table"><tr><td>(4) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(4) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></!
+ tr><tr><td>(4) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>(5) before</p><table class="wiki-table"><tr><td>(5) 1 this</td><td>1 is</td><td>1 a</td><td>1 table</td></tr><tr><td>(5) 2 this</td><td>2 is</td><td>2 a</td><td>2 table</td></tr><tr><td>(5) 3 this</td><td>3 is</td><td>3 a</td><td>3 table</td></tr></table><p>(5) after</p></div></body></html>
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.wiki	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.wiki	2006-07-30 01:20:10 UTC (rev 26)
+@@ -1,61 +1,21 @@
+-|this|is|a|table|
+-|this|is|a|table|
+-|this|is|a|table|
++|(1) 1 this|1 is|1 a|1 table|
++|(1) 2 this|2 is|2 a|2 table|
++|(1) 3 this|3 is|3 a|3 table|
+ 
+-|this|is|a|table| 
+-|this|is|a|table|  
+-|this|is|a|table|   
++|(2) 1 this|1 is|1 a|1 table|  
++|(2) 2 this|2 is|2 a|2 table|  
++|(2) 3 this|3 is|3 a|3 table|  
+ 
+-before
+-|this|is|a|table|
+-|this|is|a|table|
+-|this|is|a|table|
+-after
++| (3) 1 this | 1 is | 1 a | 1 table |
++| (3) 2 this | 2 is | 2 a | 2 table |
++| (3) 3 this | 3 is | 3 a | 3 table |
+ 
+-|this|is|
+-|this|is|a|
+-|this|is|a|table|
++|  (4)  1  this  |  1  is  |  1  a  |  1  table  |
++|  (4)  2  this  |  2  is  |  2  a  |  2  table  |
++|  (4)  3  this  |  3  is  |  3  a  |  3  table  |
+ 
+-|this|is|a|table|
+-|this|is|a|
+-|this|is|
+-
+-|this|is|a|table|
+-|this|is|a|
+-|this|is|a|table|
+-
+-|this|is|a|
+-|this|is|a|table|
+-|this|is|a|
+-
+-|this|is|a|table|
+-|this||a|table|
+-|this|is||table|
+-
+-||is|a|table|
+-|this||a|table|
+-|this|is||table|
+-
+-|this||a|table|
+-|this||a|table|
+-|this||a|table|
+-
+-|this||a|table|
+-|this|is|a|table|
+-|this||a|table|
+-
+- |this|isn't|a|table|
+- |this|isn't|a|table|
+- |this|isn't|a|table|
+-
+- |this|isn't|a|table|
+-|this|is|a|table|
+-|this|is|a|table|
+-
+-|this|isn't|a|table
+-|this|isn't|a|table
+-|this|isn't|a|table
+-
+-|this|isn't|a|table
+-|this|is|a|table|
+-|this|isn't|a|table
++(5) before
++|(5) 1 this|1 is|1 a|1 table|
++|(5) 2 this|2 is|2 a|2 table|
++|(5) 3 this|3 is|3 a|3 table|
++(5) after
+
+
+

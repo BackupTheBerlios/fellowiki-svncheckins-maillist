@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r35 - pjm
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-November/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r35%20-%20pjm&In-Reply-To=%3C200611220058.kAM0wHbA013836%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000032.html">
+   <LINK REL="Next"  HREF="000034.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r35 - pjm</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r35%20-%20pjm&In-Reply-To=%3C200611220058.kAM0wHbA013836%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r35 - pjm">fingerle at mail.berlios.de
+       </A><BR>
+    <I>Wed Nov 22 01:58:17 CET 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000032.html">[fellowiki-svncheckins] r34 - trunk
+</A></li>
+        <LI>Next message: <A HREF="000034.html">[fellowiki-svncheckins] r36 - pjm trunk
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#33">[ date ]</a>
+              <a href="thread.html#33">[ thread ]</a>
+              <a href="subject.html#33">[ subject ]</a>
+              <a href="author.html#33">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-11-22 01:58:17 +0100 (Wed, 22 Nov 2006)
+New Revision: 35
+
+Added:
+   pjm/rollout-trunk-current.sh
+Log:
+Some changes for setuptools, helper script
+
+
+Added: pjm/rollout-trunk-current.sh
+===================================================================
+--- pjm/rollout-trunk-current.sh	2006-11-22 00:38:16 UTC (rev 34)
++++ pjm/rollout-trunk-current.sh	2006-11-22 00:58:17 UTC (rev 35)
+@@ -0,0 +1,10 @@
++#!/bin/sh
++
++# This is an *example script* which works on my local configuration.
++#
++# Usage: generate sdist and egg from current trunk
++
++cd ~/src/fellowiki/trunk
++svn up &amp;&amp; \
++svn st &amp;&amp; \
++python2.4 setup.py egg_info -rb.dev sdist --formats=gztar,zip bdist_egg &gt; /dev/null
+
+
+Property changes on: pjm/rollout-trunk-current.sh
+___________________________________________________________________
+Name: svn:executable
+   + *
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000032.html">[fellowiki-svncheckins] r34 - trunk
+</A></li>
+	<LI>Next message: <A HREF="000034.html">[fellowiki-svncheckins] r36 - pjm trunk
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#33">[ date ]</a>
+              <a href="thread.html#33">[ thread ]</a>
+              <a href="subject.html#33">[ subject ]</a>
+              <a href="author.html#33">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

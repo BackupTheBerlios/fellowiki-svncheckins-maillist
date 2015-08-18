@@ -1,0 +1,1334 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r29 - in trunk: . fellowiki	fellowiki/config fellowiki/controllers	fellowiki/controllers/wikiparser fellowiki/model	fellowiki/static fellowiki/static/css fellowiki/static/images	fellowiki/templates fellowiki/tests
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-September/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r29%20-%20in%20trunk%3A%20.%20fellowiki%0A%09fellowiki/config%20fellowiki/controllers%0A%09fellowiki/controllers/wikiparser%20fellowiki/model%0A%09fellowiki/static%20fellowiki/static/css%20fellowiki/static/images%0A%09fellowiki/templates%20fellowiki/tests&In-Reply-To=%3C200609101440.k8AEeHLC032012%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000026.html">
+   <LINK REL="Next"  HREF="000028.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r29 - in trunk: . fellowiki	fellowiki/config fellowiki/controllers	fellowiki/controllers/wikiparser fellowiki/model	fellowiki/static fellowiki/static/css fellowiki/static/images	fellowiki/templates fellowiki/tests</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r29%20-%20in%20trunk%3A%20.%20fellowiki%0A%09fellowiki/config%20fellowiki/controllers%0A%09fellowiki/controllers/wikiparser%20fellowiki/model%0A%09fellowiki/static%20fellowiki/static/css%20fellowiki/static/images%0A%09fellowiki/templates%20fellowiki/tests&In-Reply-To=%3C200609101440.k8AEeHLC032012%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r29 - in trunk: . fellowiki	fellowiki/config fellowiki/controllers	fellowiki/controllers/wikiparser fellowiki/model	fellowiki/static fellowiki/static/css fellowiki/static/images	fellowiki/templates fellowiki/tests">fingerle at mail.berlios.de
+       </A><BR>
+    <I>Sun Sep 10 16:40:17 CEST 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000026.html">[fellowiki-svncheckins] r28 - in trunk/fellowiki: .	wiki/tests/tests/mixed_markup wiki/tests/tests/simple_markup
+</A></li>
+        <LI>Next message: <A HREF="000028.html">[fellowiki-svncheckins] r30 - in trunk: . fellowiki	fellowiki/config fellowiki/controllers	fellowiki/controllers/wikiparser/tests fellowiki/model	fellowiki/templates fellowiki/tests
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#27">[ date ]</a>
+              <a href="thread.html#27">[ thread ]</a>
+              <a href="subject.html#27">[ subject ]</a>
+              <a href="author.html#27">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-09-10 16:40:09 +0200 (Sun, 10 Sep 2006)
+New Revision: 29
+
+Added:
+   trunk/README.txt
+   trunk/dev.cfg
+   trunk/fellowiki/config/
+   trunk/fellowiki/config/__init__.py
+   trunk/fellowiki/config/app.cfg
+   trunk/fellowiki/config/log.cfg
+   trunk/fellowiki/controllers/
+   trunk/fellowiki/controllers/__init__.py
+   trunk/fellowiki/controllers/wikiparser/
+   trunk/fellowiki/controllers/wikiparser/tests/
+   trunk/fellowiki/json.py
+   trunk/fellowiki/model/
+   trunk/fellowiki/model/__init__.py
+   trunk/fellowiki/model/model_classes.py
+   trunk/fellowiki/model/schema.py
+   trunk/fellowiki/static/
+   trunk/fellowiki/static/css/
+   trunk/fellowiki/static/css/style.css
+   trunk/fellowiki/static/images/
+   trunk/fellowiki/static/images/favicon.ico
+   trunk/fellowiki/static/images/header_inner.png
+   trunk/fellowiki/static/images/info.png
+   trunk/fellowiki/static/images/ok.png
+   trunk/fellowiki/static/images/tg_under_the_hood.png
+   trunk/fellowiki/static/images/under_the_hood_blue.png
+   trunk/fellowiki/static/javascript/
+   trunk/fellowiki/templates/
+   trunk/fellowiki/templates/__init__.py
+   trunk/fellowiki/templates/default.kid
+   trunk/fellowiki/templates/login.kid
+   trunk/fellowiki/templates/master.kid
+   trunk/fellowiki/templates/welcome.kid
+   trunk/fellowiki/tests/test_controllers.py
+   trunk/fellowiki/tests/test_model.py
+   trunk/sample-prod.cfg
+   trunk/setup.py
+   trunk/start-fellowiki.py
+Removed:
+   trunk/fellowiki/controllers/wikiparser/tests/
+   trunk/fellowiki/wiki/
+Log:
+- Started TurboGearsifying FelloWiki (take 2)
+
+
+Added: trunk/README.txt
+===================================================================
+--- trunk/README.txt	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/README.txt	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,4 @@
++FelloWiki
++
++This is a TurboGears (<A HREF="http://www.turbogears.org">http://www.turbogears.org</A>) project. It can be
++started by running the start-fellowiki.py script.
+\ No newline at end of file
+
+Added: trunk/dev.cfg
+===================================================================
+--- trunk/dev.cfg	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/dev.cfg	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,61 @@
++[global]
++# This is where all of your settings go for your development environment
++# Settings that are the same for both development and production
++# (such as template engine, encodings, etc.) all go in 
++# fellowiki/config/app.cfg
++
++# DATABASE
++
++# <A HREF="driver://username:password@host:port/database">driver://username:password@host:port/database</A>
++
++# pick the form for your database
++# sqlalchemy.dburi=&quot;<A HREF="postgres://username@hostname/databasename">postgres://username@hostname/databasename</A>&quot;
++# sqlalchemy.dburi=&quot;<A HREF="mysql://username:password@hostname:port/databasename">mysql://username:password@hostname:port/databasename</A>&quot;
++# sqlalchemy.dburi=&quot;<A HREF="sqlite://%(current_dir_uri">sqlite://%(current_dir_uri</A>)s/devdata.sqlite&quot;
++
++# If you have sqlite, here's a simple default to get you started
++# in development
++sqlalchemy.dburi=&quot;<A HREF="sqlite:///devdata.sqlite">sqlite:///devdata.sqlite</A>&quot;
++
++# set to 1 to make SQLAlchemy echo SQL commands on the console
++sqlalchemy.echo = 0
++
++# SERVER
++
++# Some server parameters that you may want to tweak
++# server.socket_port=8080
++
++# Enable the debug output at the end on pages.
++# log_debug_info_filter.on = False
++
++server.environment=&quot;development&quot;
++autoreload.package=&quot;fellowiki&quot;
++
++# session_filter.on = True
++
++# Set to True if you'd like to abort execution if a controller gets an
++# unexpected parameter. False by default
++tg.strict_parameters = True
++
++# LOGGING
++# Logging configuration generally follows the style of the standard
++# Python logging module configuration. Note that when specifying
++# log format messages, you need to use *() for formatting variables.
++# Deployment independent log configuration is in fellowiki/config/log.cfg
++[logging]
++
++[[loggers]]
++[[[fellowiki]]]
++level='DEBUG'
++qualname='fellowiki'
++handlers=['debug_out']
++
++[[[allinfo]]]
++level='INFO'
++handlers=['debug_out']
++
++[[[access]]]
++level='INFO'
++qualname='turbogears.access'
++handlers=['access_out']
++propagate=0
+
+Added: trunk/fellowiki/config/__init__.py
+===================================================================
+
+Added: trunk/fellowiki/config/app.cfg
+===================================================================
+--- trunk/fellowiki/config/app.cfg	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/config/app.cfg	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,42 @@
++[global]
++# The settings in this file should not vary depending on the deployment
++# environment. dev.cfg and prod.cfg are the locations for
++# the different deployment settings. Settings in this file will
++# be overridden by settings in those other files.
++
++# The commented out values below are the defaults
++
++# VIEW
++
++# which view (template engine) to use if one is not specified in the
++# template name
++# tg.defaultview = &quot;kid&quot;
++
++# The following kid settings determine the settings used by the kid serializer.
++
++# One of (html|xml|json)
++# kid.outputformat=&quot;html&quot;
++
++# kid.encoding=&quot;utf-8&quot;
++
++# The sitetemplate is used for overall styling of a site that
++# includes multiple TurboGears applications
++# tg.sitetemplate=&quot;&lt;packagename.templates.templatename&gt;&quot;
++
++# Allow every exposed function to be called as json,
++# tg.allow_json = False
++
++# List of Widgets to include on every page.
++# for exemple ['turbogears.mochikit']
++# tg.include_widgets = []
++
++# Set to True if the scheduler should be started
++# tg.scheduler = False
++
++[/static]
++static_filter.on = True
++static_filter.dir = &quot;%(top_level_dir)s/static&quot;
++
++[/favicon.ico]
++static_filter.on = True
++static_filter.file = &quot;%(top_level_dir)s/static/images/favicon.ico&quot;
+
+Added: trunk/fellowiki/config/log.cfg
+===================================================================
+--- trunk/fellowiki/config/log.cfg	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/config/log.cfg	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,29 @@
++# LOGGING
++# Logging is often deployment specific, but some handlers and
++# formatters can be defined here.
++
++[logging]
++[[formatters]]
++[[[message_only]]]
++format='*(message)s'
++
++[[[full_content]]]
++format='*(asctime)s *(name)s *(levelname)s *(message)s'
++
++[[handlers]]
++[[[debug_out]]]
++class='StreamHandler'
++level='DEBUG'
++args='(sys.stdout,)'
++formatter='full_content'
++
++[[[access_out]]]
++class='StreamHandler'
++level='INFO'
++args='(sys.stdout,)'
++formatter='message_only'
++
++[[[error_out]]]
++class='StreamHandler'
++level='ERROR'
++args='(sys.stdout,)'
+
+Added: trunk/fellowiki/controllers/__init__.py
+===================================================================
+--- trunk/fellowiki/controllers/__init__.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/controllers/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,51 @@
++import logging
++
++import cherrypy
++
++import turbogears
++from turbogears import controllers, expose, validate, redirect
++from turbogears.database import session
++
++from fellowiki import json
++
++log = logging.getLogger(&quot;fellowiki.controllers&quot;)
++
++class Root(controllers.RootController):
++    @expose(template=&quot;fellowiki.templates.welcome&quot;)
++    def index(self):
++        import time
++        log.debug(&quot;Happy TurboGears Controller Responding For Duty&quot;)
++        return dict(now=time.ctime())
++
++##
++##import cherrypy
++##from view import expose
++##import sqlalchemy
++##
++##from fellowiki.database.schema import metadata
++##
++##from fellowiki.database.model import *
++##
++##class FelloWikiRoot:
++##    @expose()
++##    def index(self):
++##        
++##        versions = DBVersion.select()
++##        
++##        return dict(page_title = 'Welcome to FelloWiki!',
++##                    page_body = 'index body: ' )
++##    
++##class WikiInstance:
++##    @expose()
++##    def default(self, *args, **kwargs):
++##        return dict(page_title = 'Welcome to FelloWiki!',
++##                    page_body = 'wiki instance: '+unicode(args))
++##           
++##class DataBaseHelper:
++##    def __init__(self, error_string):
++##        self.error_string = error_string
++##        
++##    @expose()
++##    def default(self, *args, **kwargs):
++##        return dict(page_title = 'FelloWiki: data base not available',
++##                    page_body = self.error_string)
+
+Copied: trunk/fellowiki/controllers/wikiparser (from rev 27, trunk/fellowiki/wiki)
+
+Copied: trunk/fellowiki/controllers/wikiparser/tests (from rev 28, trunk/fellowiki/wiki/tests)
+
+Added: trunk/fellowiki/json.py
+===================================================================
+--- trunk/fellowiki/json.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/json.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,12 @@
++# This module provides helper functions for the JSON part of your
++# view, if you are providing a JSON-based API for your app.
++
++# Here's what most rules would look like:
++# @jsonify.when(&quot;isinstance(obj, YourClass)&quot;)
++# def jsonify_yourclass(obj):
++#     return [obj.val1, obj.val2]
++#
++# The goal is to break your objects down into simple values:
++# lists, dicts, numbers and strings
++
++from turbojson.jsonify import jsonify
+
+Added: trunk/fellowiki/model/__init__.py
+===================================================================
+--- trunk/fellowiki/model/__init__.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/model/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1 @@
++from model_classes import *
+
+Added: trunk/fellowiki/model/model_classes.py
+===================================================================
+--- trunk/fellowiki/model/model_classes.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/model/model_classes.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,84 @@
++from sqlalchemy import *
++from sqlalchemy.ext.assignmapper import assign_mapper
++from sqlalchemy.ext.sessioncontext import SessionContext
++
++import turbogears.database
++
++from schema import *
++
++__all__ = ['DBVersion', 'User', 'Login', 'Group', 'Task', 'RessourceType', 
++           'Ressource', 'LoginTask', 'WikiItemType', 'WikiItem']
++
++sc = turbogears.database.session.context
++
++## more cascades?
++
++class DBVersion(object):
++    def __init__(self, prj, db_version):
++        self.prj = prj
++        self.db_version = db_version
++    def __repr__(self):
++        return u&quot;DBVersion(%s, %s)&quot; %(repr(self.prj), repr(self.db_version))
++
++class User(object): pass
++
++class Login(object): pass
++
++class Group(object): pass
++
++class Task(object): pass
++
++class RessourceType(object): pass
++
++class Ressource(object): pass
++
++class LoginTask(object): pass
++    
++class WikiItemType(object): pass
++
++class WikiItem(object): pass
++    
++    
++assign_mapper(sc, DBVersion, db_version)
++assign_mapper(sc, RessourceType, ressource_types)
++assign_mapper(sc, WikiItemType, wiki_item_types)
++    
++assign_mapper(sc, User, users)
++
++assign_mapper(sc, Login, logins, 
++              properties = {'user': relation(User, backref=backref('login', uselist=False))})
++
++assign_mapper(sc, Group, groups,
++              properties = {'children': relation(Group, 
++                                primaryjoin=groups.c.id==groups.c.parent_id,
++                                cascade=&quot;all&quot;),
++                            'users': relation(User, secondary=user_groups, backref='groups')}) 
++                                
++assign_mapper(sc, Task, tasks,
++              properties = {'sub_tasks': relation(Task,
++                                secondary=sub_tasks,
++                                primaryjoin=tasks.c.id==sub_tasks.c.super_task_id,
++                                secondaryjoin=sub_tasks.c.sub_task_id==tasks.c.id,
++                                backref='super_tasks')})
++
++assign_mapper(sc, Ressource, ressources,
++              properties = {'ressource_type' : relation(RessourceType)})
++                  
++assign_mapper(sc, LoginTask, login_tasks,
++              properties = {'login': relation(Login, primaryjoin=
++                                login_tasks.c.refers_to_login_id==Login.c.id),
++                            'task': relation(Task, primaryjoin=
++                                login_tasks.c.task_id==Task.c.id),
++                            'group': relation(Group, primaryjoin=
++                                login_tasks.c.group_id==Group.c.id),
++                            'user': relation(User, primaryjoin=
++                                login_tasks.c.user_id==User.c.id),
++                            'ressource': relation(Ressource, primaryjoin=
++                                login_tasks.c.ressource_id==Ressource.c.id)})
++    
++Login.mapper.add_property('tasks', relation(LoginTask, primaryjoin=logins.c.id==login_tasks.c.login_id, 
++                                            cascade=&quot;all, delete-orphan&quot;))
++    
++assign_mapper(sc, WikiItem, wiki_items,
++              properties = {'ressource': relation(Ressource),
++                            'item_type': relation(WikiItemType)})
+
+Added: trunk/fellowiki/model/schema.py
+===================================================================
+--- trunk/fellowiki/model/schema.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/model/schema.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,98 @@
++from sqlalchemy import *
++
++import turbogears.database
++
++md = turbogears.database.metadata
++
++from datetime import datetime
++
++
++DEFAULT_STRING_LENGTH = 200
++DEFAULT_COMMENT_LENGTH = 2000
++
++
++__all__ = ['db_version', 'users', 'logins', 'groups', 'tasks', 'sub_tasks', 
++           'user_groups', 'ressource_types', 'ressources', 'login_tasks', 
++           'wiki_item_types', 'wiki_items']
++
++db_version = Table('fw_db_version', md,
++    Column('prj', Unicode(30), nullable = False, primary_key = True),
++    Column('db_version', Integer, nullable = False, primary_key = True),
++    Column('installation_date', DateTime, default = datetime.utcnow))
++
++users = Table('fw_users', md,
++    Column('id', Integer, Sequence('fw_user_seq'), primary_key = True, nullable = False),
++    Column('forename', Unicode(DEFAULT_STRING_LENGTH), nullable = False),
++    Column('name', Unicode(DEFAULT_STRING_LENGTH), nullable = False),
++    Column('name_at_birth', Unicode(DEFAULT_STRING_LENGTH)),
++    Column('comment', Unicode(DEFAULT_COMMENT_LENGTH)))
++
++logins = Table('fw_logins', md,
++    Column('id', Integer, Sequence('fw_logins_seq'), primary_key = True, nullable = False),
++    Column('login_name', Unicode(DEFAULT_STRING_LENGTH), nullable = False, unique=True),
++    Column('user_id', Integer, ForeignKey(users.c.id), nullable = True, unique = True),
++    Column('last_change', DateTime, default = datetime.utcnow, nullable = False),
++    Column('password_encoded', Unicode(DEFAULT_STRING_LENGTH), nullable=False),
++    Column('change_at_login', Boolean, nullable = False, default=False))
++    
++groups = Table('fw_groups', md,
++    Column('id', Integer, Sequence('fw_groups_seq'), primary_key = True, nullable = False),
++    Column('name', Unicode(DEFAULT_STRING_LENGTH), nullable = False, unique=True),
++    Column('parent_id', Integer, ForeignKey('fw_groups.id')),
++    Column('comment', Unicode(DEFAULT_COMMENT_LENGTH)))
++    
++# pre-load:    
++tasks = Table('fw_tasks', md,
++    Column('id', Integer, primary_key = True, nullable = False),
++    Column('name', Unicode(DEFAULT_STRING_LENGTH), nullable = False, unique=True),
++    Column('related_to_group', Boolean, nullable = False),
++    Column('related_to_login', Boolean, nullable = False),
++    Column('related_to_user', Boolean, nullable = False),
++    Column('related_to_ressource', Boolean, nullable = False),
++    Column('comment', Unicode(DEFAULT_COMMENT_LENGTH)))
++    
++sub_tasks = Table('fw_sub_tasks', md,
++    Column('super_task_id', Integer, ForeignKey(tasks.c.id), nullable = False),
++    Column('sub_task_id', Integer, ForeignKey(tasks.c.id), nullable = False))
++    
++user_groups = Table('fw_user_groups', md,
++    Column('user_id', Integer, ForeignKey(users.c.id), nullable = False),
++    Column('group_id', Integer, ForeignKey(groups.c.id), nullable = False))
++
++# pre-load
++ressource_types = Table('fw_ressource_types', md,
++    Column('id', Integer, primary_key = True, nullable = False),
++    Column('name', Unicode(DEFAULT_STRING_LENGTH), nullable = False, unique = True))
++
++ressources = Table('fw_ressources', md,
++    Column('id', Integer, Sequence('fw_ressource_seq'), primary_key = True, nullable = False),
++    Column('name', Unicode(DEFAULT_STRING_LENGTH), nullable = False, unique = True),
++    Column('type_id', Integer, ForeignKey(ressource_types.c.id),nullable = False))
++    
++login_tasks = Table('fw_login_tasks', md,
++    Column('id', Integer, Sequence('fw_login_tasks_seq'), primary_key = True, nullable = False),
++    Column('login_id', Integer, ForeignKey(logins.c.id), nullable = False),
++    Column('task_id', Integer, ForeignKey(tasks.c.id), nullable = False),
++    Column('group_id', Integer, ForeignKey(groups.c.id), nullable = True),
++    Column('refers_to_login_id', Integer, ForeignKey(logins.c.id), nullable = True),
++    Column('user_id', Integer, ForeignKey(users.c.id), nullable = True),
++    Column('ressource_id', Integer, ForeignKey(ressources.c.id), nullable = True))
++
++#pre-load
++wiki_item_types = Table('fw_wiki_item_types', md,
++    Column('id', Integer, Sequence('fw_wiki_item_type_seq'), primary_key = True, nullable = False),
++    Column('name', Unicode(DEFAULT_STRING_LENGTH), unique = True, nullable = False),
++    Column('mime_type', String(DEFAULT_STRING_LENGTH)),
++    Column('parsing_handler', String(DEFAULT_STRING_LENGTH)),
++    Column('binary', Boolean, nullable = False))
++
++wiki_items = Table('fw_res_items', md,
++    Column('name', Unicode(DEFAULT_STRING_LENGTH), primary_key = True, nullable = False),
++    Column('version', Integer, primary_key = True, nullable = False),
++    Column('ressource_id', Integer, ForeignKey(ressources.c.id)),
++    Column('type_id', Integer, ForeignKey(wiki_item_types.c.id)),
++    Column('created', DateTime, default = datetime.utcnow, nullable = False),
++    Column('deleted', DateTime),
++    Column('text_content', Unicode),
++    Column('binary_content', Unicode),
++    Column('parsing_cache', PickleType))
+
+Added: trunk/fellowiki/static/css/style.css
+===================================================================
+--- trunk/fellowiki/static/css/style.css	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/static/css/style.css	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,124 @@
++/*
++ * Quick mash-up of CSS for the TG quick start page.
++ */
++
++html, body, th, td {
++  color: black;
++  background-color: #ddd;
++  font: x-small &quot;Lucida Grande&quot;, &quot;Lucida Sans Unicode&quot;, geneva, verdana, sans-serif;
++  margin: 0;
++  padding: 0;
++}
++
++#header {
++  height: 80px;
++  width: 777px;
++  background: blue URL('../images/header_inner.png') no-repeat;
++  border-left: 1px solid #aaa;
++  border-right: 1px solid #aaa;
++  margin: 0 auto 0 auto;
++}
++
++a.link, a, a.active {
++  color: #369;
++}
++
++
++#main_content {
++  color: black;
++  font-size: 127%;
++  background-color: white;
++  width: 757px;
++  margin: 0 auto 0 auto;
++  border-left: 1px solid #aaa;
++  border-right: 1px solid #aaa;
++  padding: 10px;
++}
++
++#sidebar {
++  border: 1px solid #aaa;
++  background-color: #eee;
++  margin: 0.5em;
++  padding: 1em;
++  float: right;
++  width: 200px;
++  font-size: 88%;
++}
++
++#sidebar h2 {
++  margin-top: 0;
++}
++
++#sidebar ul {
++  margin-left: 1.5em;
++  padding-left: 0;
++}
++
++h1,h2,h3,h4,h5,h6,#getting_started_steps {
++  font-family: &quot;Century Schoolbook L&quot;, Georgia, serif;
++  font-weight: bold;
++}
++
++h2 {
++  font-size:150%
++}
++
++#getting_started_steps a {
++  text-decoration:none;
++}
++
++#getting_started_steps a:hover {
++  text-decoration:underline;
++}
++
++#getting_started_steps li {
++  font-size:80%
++  margin-bottom: 0.5em;
++}
++
++#getting_started_steps h2 {
++  font-size:120%;
++}
++
++#getting_started_steps p {
++  font: 100% &quot;Lucida Grande&quot;, &quot;Lucida Sans Unicode&quot;, geneva, verdana, sans-serif;
++}
++
++#footer {
++  border: 1px solid #aaa;
++  border-top: 0px none;
++  color: #999;
++  background-color: white;
++  padding: 10px;
++  font-size: 80%;
++  text-align: center;
++  width: 757px;
++  margin: 0 auto 1em auto;
++}
++
++.code {
++  font-family: monospace;
++}
++
++span.code {
++  font-weight: bold;
++  background: #eee;
++}
++
++#status_block {
++	margin: 0 auto 0.5em auto;
++	padding: 15px 10px 15px 55px;
++  background: #cec URL('../images/ok.png') left center no-repeat;
++	border: 1px solid #9c9;
++  width: 450px;
++  font-size: 120%;
++  font-weight: bolder;
++}
++
++.notice {
++  margin: 0.5em auto 0.5em auto;
++  padding: 15px 10px 15px 55px;
++  width: 450px;
++  background: #eef URL('../images/info.png') left center no-repeat;
++  border: 1px solid #cce;
++}
+
+Added: trunk/fellowiki/static/images/favicon.ico
+===================================================================
+(Binary files differ)
+
+
+Property changes on: trunk/fellowiki/static/images/favicon.ico
+___________________________________________________________________
+Name: svn:mime-type
+   + application/octet-stream
+
+Added: trunk/fellowiki/static/images/header_inner.png
+===================================================================
+(Binary files differ)
+
+
+Property changes on: trunk/fellowiki/static/images/header_inner.png
+___________________________________________________________________
+Name: svn:mime-type
+   + application/octet-stream
+
+Added: trunk/fellowiki/static/images/info.png
+===================================================================
+(Binary files differ)
+
+
+Property changes on: trunk/fellowiki/static/images/info.png
+___________________________________________________________________
+Name: svn:mime-type
+   + application/octet-stream
+
+Added: trunk/fellowiki/static/images/ok.png
+===================================================================
+(Binary files differ)
+
+
+Property changes on: trunk/fellowiki/static/images/ok.png
+___________________________________________________________________
+Name: svn:mime-type
+   + application/octet-stream
+
+Added: trunk/fellowiki/static/images/tg_under_the_hood.png
+===================================================================
+(Binary files differ)
+
+
+Property changes on: trunk/fellowiki/static/images/tg_under_the_hood.png
+___________________________________________________________________
+Name: svn:mime-type
+   + application/octet-stream
+
+Added: trunk/fellowiki/static/images/under_the_hood_blue.png
+===================================================================
+(Binary files differ)
+
+
+Property changes on: trunk/fellowiki/static/images/under_the_hood_blue.png
+___________________________________________________________________
+Name: svn:mime-type
+   + application/octet-stream
+
+Added: trunk/fellowiki/templates/__init__.py
+===================================================================
+
+Added: trunk/fellowiki/templates/default.kid
+===================================================================
+--- trunk/fellowiki/templates/default.kid	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/templates/default.kid	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,8 @@
++&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Strict//EN&quot; &quot;<A HREF="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd</A>&quot;&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:py=&quot;<A HREF="http://purl.org/kid/ns#">http://purl.org/kid/ns#</A>&quot;&gt;
++&lt;head&gt;
++&lt;meta content=&quot;text/html; charset=utf-8&quot; http-equiv=&quot;Content-Type&quot; /&gt;
++&lt;title&gt;&lt;div py:replace='page_title'&gt;Page title.&lt;/div&gt;&lt;/title&gt;
++&lt;/head&gt;
++&lt;body&gt;&lt;div py:replace='page_body'&gt;Page body.&lt;/div&gt;&lt;/body&gt;
++&lt;/html&gt;
+
+Added: trunk/fellowiki/templates/login.kid
+===================================================================
+--- trunk/fellowiki/templates/login.kid	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/templates/login.kid	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,113 @@
++&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot;
++    &quot;<A HREF="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd</A>&quot;&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;
++    xmlns:py=&quot;<A HREF="http://purl.org/kid/ns#">http://purl.org/kid/ns#</A>&quot;
++    py:extends=&quot;'master.kid'&quot;&gt;
++
++&lt;head&gt;
++    &lt;meta content=&quot;text/html; charset=UTF-8&quot;
++        http-equiv=&quot;content-type&quot; py:replace=&quot;''&quot;/&gt;
++    &lt;title&gt;Login&lt;/title&gt;
++    &lt;style type=&quot;text/css&quot;&gt;
++        #loginBox
++        {
++            width: 30%;
++            margin: auto;
++            margin-top: 10%;
++            padding-left: 10%;
++            padding-right: 10%;
++            padding-top: 5%;
++            padding-bottom: 5%;
++            font-family: verdana;
++            font-size: 10px;
++            background-color: #eee;
++            border: 2px solid #ccc;
++        }
++
++        #loginBox h1
++        {
++            font-size: 42px;
++            font-family: &quot;Trebuchet MS&quot;;
++            margin: 0;
++            color: #ddd;
++        }
++
++        #loginBox p
++        {
++            position: relative;
++            top: -1.5em;
++            padding-left: 4em;
++            font-size: 12px;
++            margin: 0;
++            color: #666;
++        }
++
++        #loginBox table
++        {
++            table-layout: fixed;
++            border-spacing: 0;
++            width: 100%;
++        }
++
++        #loginBox td.label
++        {
++            width: 33%;
++            text-align: right;
++        }
++
++        #loginBox td.field
++        {
++            width: 66%;
++        }
++
++        #loginBox td.field input
++        {
++            width: 100%;
++        }
++
++        #loginBox td.buttons
++        {
++            text-align: right;
++        }
++
++    &lt;/style&gt;
++&lt;/head&gt;
++
++&lt;body&gt;
++    &lt;div id=&quot;loginBox&quot;&gt;
++        &lt;h1&gt;Login&lt;/h1&gt;
++        &lt;p&gt;${message}&lt;/p&gt;
++        &lt;form action=&quot;${previous_url}&quot; method=&quot;POST&quot;&gt;
++            &lt;table&gt;
++                &lt;tr&gt;
++                    &lt;td class=&quot;label&quot;&gt;
++                        &lt;label for=&quot;user_name&quot;&gt;User Name:&lt;/label&gt;
++                    &lt;/td&gt;
++                    &lt;td class=&quot;field&quot;&gt;
++                        &lt;input type=&quot;text&quot; id=&quot;user_name&quot; name=&quot;user_name&quot;/&gt;
++                    &lt;/td&gt;
++                &lt;/tr&gt;
++                &lt;tr&gt;
++                    &lt;td class=&quot;label&quot;&gt;
++                        &lt;label for=&quot;password&quot;&gt;Password:&lt;/label&gt;
++                    &lt;/td&gt;
++                    &lt;td class=&quot;field&quot;&gt;
++                        &lt;input type=&quot;password&quot; id=&quot;password&quot; name=&quot;password&quot;/&gt;
++                    &lt;/td&gt;
++                &lt;/tr&gt;
++                &lt;tr&gt;
++                    &lt;td colspan=&quot;2&quot; class=&quot;buttons&quot;&gt;
++                        &lt;input type=&quot;submit&quot; name=&quot;login&quot; value=&quot;Login&quot;/&gt;
++                    &lt;/td&gt;
++                &lt;/tr&gt;
++            &lt;/table&gt;
++
++            &lt;input py:if=&quot;forward_url&quot; type=&quot;hidden&quot; name=&quot;forward_url&quot;
++                value=&quot;${forward_url}&quot;/&gt;
++                
++            &lt;input py:for=&quot;name,value in original_parameters.items()&quot;
++                type=&quot;hidden&quot; name=&quot;${name}&quot; value=&quot;${value}&quot;/&gt;
++        &lt;/form&gt;
++    &lt;/div&gt;
++&lt;/body&gt;
++&lt;/html&gt;
+
+Added: trunk/fellowiki/templates/master.kid
+===================================================================
+--- trunk/fellowiki/templates/master.kid	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/templates/master.kid	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,46 @@
++&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot; &quot;<A HREF="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd</A>&quot;&gt;
++&lt;?python import sitetemplate ?&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:py=&quot;<A HREF="http://purl.org/kid/ns#">http://purl.org/kid/ns#</A>&quot; py:extends=&quot;sitetemplate&quot;&gt;
++
++&lt;head py:match=&quot;item.tag=='{<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>}head'&quot; py:attrs=&quot;item.items()&quot;&gt;
++    &lt;meta content=&quot;text/html; charset=UTF-8&quot; http-equiv=&quot;content-type&quot; py:replace=&quot;''&quot;/&gt;
++    &lt;title py:replace=&quot;''&quot;&gt;Your title goes here&lt;/title&gt;
++    &lt;meta py:replace=&quot;item[:]&quot;/&gt;
++    &lt;style type=&quot;text/css&quot;&gt;
++        #pageLogin
++        {
++            font-size: 10px;
++            font-family: verdana;
++            text-align: right;
++        }
++    &lt;/style&gt;
++    &lt;style type=&quot;text/css&quot; media=&quot;screen&quot;&gt;
+<A HREF="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">+ at import</A> &quot;/static/css/style.css&quot;;
++&lt;/style&gt;
++&lt;/head&gt;
++
++&lt;body py:match=&quot;item.tag=='{<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>}body'&quot; py:attrs=&quot;item.items()&quot;&gt;
++    &lt;div py:if=&quot;tg.config('identity.on',False) and not 'logging_in' in locals()&quot;
++        id=&quot;pageLogin&quot;&gt;
++        &lt;span py:if=&quot;tg.identity.anonymous&quot;&gt;
++            &lt;a href=&quot;/login&quot;&gt;Login&lt;/a&gt;
++        &lt;/span&gt;
++        &lt;span py:if=&quot;not tg.identity.anonymous&quot;&gt;
++            Welcome ${tg.identity.user.display_name}.
++            &lt;a href=&quot;/logout&quot;&gt;Logout&lt;/a&gt;
++        &lt;/span&gt;
++    &lt;/div&gt;
++
++    &lt;div py:if=&quot;tg_flash&quot; class=&quot;flash&quot; py:content=&quot;tg_flash&quot;&gt;&lt;/div&gt;
++
++    &lt;div py:replace=&quot;[item.text]+item[:]&quot;/&gt;
++
++	&lt;!-- End of main_content --&gt;
++&lt;div id=&quot;footer&quot;&gt; &lt;img src=&quot;/static/images/under_the_hood_blue.png&quot; /&gt;
++  &lt;p&gt;TurboGears is a open source front-to-back web development
++    framework written in Python&lt;/p&gt;
++  &lt;p&gt;Copyright &copy; 2006 Kevin Dangoor&lt;/p&gt;
++&lt;/div&gt;
++&lt;/body&gt;
++
++&lt;/html&gt;
+
+Added: trunk/fellowiki/templates/welcome.kid
+===================================================================
+--- trunk/fellowiki/templates/welcome.kid	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/templates/welcome.kid	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,50 @@
++&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot; &quot;<A HREF="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd</A>&quot;&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:py=&quot;<A HREF="http://purl.org/kid/ns#">http://purl.org/kid/ns#</A>&quot;
++    py:extends=&quot;'master.kid'&quot;&gt;
++&lt;head&gt;
++&lt;meta content=&quot;text/html; charset=utf-8&quot; http-equiv=&quot;Content-Type&quot; py:replace=&quot;''&quot;/&gt;
++&lt;title&gt;Welcome to TurboGears&lt;/title&gt;
++&lt;/head&gt;
++&lt;body&gt;
++&lt;div id=&quot;header&quot;&gt;&nbsp;&lt;/div&gt;
++&lt;div id=&quot;main_content&quot;&gt;
++  &lt;div id=&quot;status_block&quot;&gt;Your TurboGears application is now running.&lt;/div&gt;
++  &lt;!--h1&gt;Take steps to dive right in:&lt;/h1--&gt;
++  &lt;div id=&quot;sidebar&quot;&gt;
++    &lt;h2&gt;Learn more&lt;/h2&gt;
++    Learn more about TurboGears and take part in its
++    development
++    &lt;ul class=&quot;links&quot;&gt;
++      &lt;li&gt;&lt;a href=&quot;<A HREF="http://www.turbogears.org">http://www.turbogears.org</A>&quot;&gt;Official website&lt;/a&gt;&lt;/li&gt;
++      &lt;li&gt;&lt;a href=&quot;<A HREF="http://docs.turbogears.org">http://docs.turbogears.org</A>&quot;&gt;Documentation&lt;/a&gt;&lt;/li&gt;
++      &lt;li&gt;&lt;a href=&quot;<A HREF="http://trac.turbogears.org/turbogears/">http://trac.turbogears.org/turbogears/</A>&quot;&gt;Trac
++        (bugs/suggestions)&lt;/a&gt;&lt;/li&gt;
++      &lt;li&gt;&lt;a href=&quot;<A HREF="http://groups.google.com/group/turbogears">http://groups.google.com/group/turbogears</A>&quot;&gt; Mailing list&lt;/a&gt; &lt;/li&gt;
++    &lt;/ul&gt;
++  &lt;/div&gt;
++  &lt;div id=&quot;getting_started&quot;&gt;
++    &lt;ol id=&quot;getting_started_steps&quot;&gt;
++      &lt;li class=&quot;getting_started&quot;&gt;
++        &lt;h3&gt;Model&lt;/h3&gt;
++        &lt;p&gt; &lt;a href=&quot;<A HREF="http://docs.turbogears.org/1.0/GettingStarted/DefineDatabase">http://docs.turbogears.org/1.0/GettingStarted/DefineDatabase</A>&quot;&gt;Design models&lt;/a&gt; in the &lt;span class=&quot;code&quot;&gt;model.py&lt;/span&gt;.&lt;br/&gt;
++          Edit &lt;span class=&quot;code&quot;&gt;dev.cfg&lt;/span&gt; to &lt;a href=&quot;<A HREF="http://docs.turbogears.org/1.0/GettingStarted/UseDatabase">http://docs.turbogears.org/1.0/GettingStarted/UseDatabase</A>&quot;&gt;use a different backend&lt;/a&gt;, or start with a pre-configured SQLite database. &lt;br/&gt;
++          Use script &lt;span class=&quot;code&quot;&gt;tg-admin sql create&lt;/span&gt; to create the database tables.&lt;/p&gt;
++      &lt;/li&gt;
++      &lt;li class=&quot;getting_started&quot;&gt;
++        &lt;h3&gt;View&lt;/h3&gt;
++        &lt;p&gt; Edit &lt;a href=&quot;<A HREF="http://docs.turbogears.org/1.0/GettingStarted/Kid">http://docs.turbogears.org/1.0/GettingStarted/Kid</A>&quot;&gt;html-like templates&lt;/a&gt; in the &lt;span class=&quot;code&quot;&gt;/templates&lt;/span&gt; folder;&lt;br/&gt;
++        Put all &lt;a href=&quot;<A HREF="http://docs.turbogears.org/1.0/StaticFiles">http://docs.turbogears.org/1.0/StaticFiles</A>&quot;&gt;static contents&lt;/a&gt; in the &lt;span class=&quot;code&quot;&gt;/static&lt;/span&gt; folder. &lt;/p&gt;
++      &lt;/li&gt;
++      &lt;li class=&quot;getting_started&quot;&gt;
++        &lt;h3&gt;Controller&lt;/h3&gt;
++        &lt;p&gt; Edit &lt;span class=&quot;code&quot;&gt; controllers.py&lt;/span&gt; and &lt;a href=&quot;<A HREF="http://docs.turbogears.org/1.0/GettingStarted/CherryPy">http://docs.turbogears.org/1.0/GettingStarted/CherryPy</A>&quot;&gt;build your
++          website structure&lt;/a&gt; with the simplicity of Python objects. &lt;br/&gt;
++          TurboGears will automatically reload itself when you modify your project. &lt;/p&gt;
++      &lt;/li&gt;
++    &lt;/ol&gt;
++    &lt;div class=&quot;notice&quot;&gt; If you create something cool, please &lt;a href=&quot;<A HREF="http://groups.google.com/group/turbogears">http://groups.google.com/group/turbogears</A>&quot;&gt;let people know&lt;/a&gt;, and consider contributing something back to the &lt;a href=&quot;<A HREF="http://groups.google.com/group/turbogears">http://groups.google.com/group/turbogears</A>&quot;&gt;community&lt;/a&gt;.&lt;/div&gt;
++  &lt;/div&gt;
++  &lt;!-- End of getting_started --&gt;
++&lt;/div&gt;
++&lt;/body&gt;
++&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/test_controllers.py
+===================================================================
+--- trunk/fellowiki/tests/test_controllers.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/tests/test_controllers.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,16 @@
++from turbogears import testutil
++from fellowiki.controllers import Root
++import cherrypy
++
++cherrypy.root = Root()
++
++def test_method():
++    &quot;the index method should return a string called now&quot;
++    import types
++    result = testutil.call(cherrypy.root.index)
++    assert type(result[&quot;now&quot;]) == types.StringType
++
++def test_indextitle():
++    &quot;The mainpage should have the right title&quot;
++    testutil.createRequest(&quot;/&quot;)
++    assert &quot;&lt;TITLE&gt;Welcome to TurboGears&lt;/TITLE&gt;&quot; in cherrypy.response.body[0]
+
+Added: trunk/fellowiki/tests/test_model.py
+===================================================================
+--- trunk/fellowiki/tests/test_model.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/tests/test_model.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,23 @@
++# If your project uses a database, you can set up database tests
++# similar to what you see below. Be sure to set the db_uri to
++# an appropriate uri for your testing database. sqlite is a good
++# choice for testing, because you can use an in-memory database
++# which is very fast.
++
++from turbogears import testutil, database
++# from fellowiki.model import YourDataClass, User
++
++# database.set_db_uri(&quot;<A HREF="sqlite:///:memory:">sqlite:///:memory:</A>&quot;)
++
++# class TestUser(testutil.DBTest):
++#     def get_model(self):
++#         return User
++#
++#     def test_creation(self):
++#         &quot;Object creation should set the name&quot;
++#         obj = User(user_name = &quot;creosote&quot;,
++#                       email_address = &quot;<A HREF="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">spam at python.not</A>&quot;,
++#                       display_name = &quot;Mr Creosote&quot;,
++#                       password = &quot;Wafer-thin Mint&quot;)
++#         assert obj.display_name == &quot;Mr Creosote&quot;
++
+
+Added: trunk/sample-prod.cfg
+===================================================================
+--- trunk/sample-prod.cfg	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/sample-prod.cfg	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,63 @@
++[global]
++# This is where all of your settings go for your production environment.
++# You'll copy this file over to your production server and provide it
++# as a command-line option to your start script.
++# Settings that are the same for both development and production
++# (such as template engine, encodings, etc.) all go in 
++# fellowiki/config/app.cfg
++
++# <A HREF="driver://username:password@host:port/database">driver://username:password@host:port/database</A>
++# pick the form for your database
++# sqlalchemy.dburi=&quot;<A HREF="postgres://username@hostname/databasename">postgres://username@hostname/databasename</A>&quot;
++# sqlalchemy.dburi=&quot;<A HREF="mysql://username:password@hostname:port/databasename">mysql://username:password@hostname:port/databasename</A>&quot;
++# sqlalchemy.dburi=&quot;<A HREF="sqlite:///file_name_and_path">sqlite:///file_name_and_path</A>&quot;
++
++# If you have sqlite, here's a simple default to get you started
++# in development
++sqlalchemy.dburi=&quot;<A HREF="sqlite:///%(current_dir_uri">sqlite:///%(current_dir_uri</A>)s/devdata.sqlite&quot;
++
++
++# SERVER
++
++server.environment=&quot;production&quot;
++
++# Sets the number of threads the server uses
++# server.thread_pool = 1
++
++# if this is part of a larger site, you can set the path
++# to the TurboGears instance here
++# server.webpath=&quot;&quot;
++
++# session_filter.on = True
++
++# Set to True if you'd like to abort execution if a controller gets an
++# unexpected parameter. False by default
++# tg.strict_parameters = False
++
++# LOGGING
++# Logging configuration generally follows the style of the standard
++# Python logging module configuration. Note that when specifying
++# log format messages, you need to use *() for formatting variables.
++# Deployment independent log configuration is in fellowiki/config/log.cfg
++[logging]
++
++[[handlers]]
++
++[[[access_out]]]
++# set the filename as the first argument below
++args=&quot;('server.log',)&quot;
++class='FileHandler'
++level='INFO'
++formatter='message_only'
++
++[[loggers]]
++[[[fellowiki]]]
++level='ERROR'
++qualname='fellowiki'
++handlers=['error_out']
++
++[[[access]]]
++level='INFO'
++qualname='turbogears.access'
++handlers=['access_out']
++propagate=0
+
+Added: trunk/setup.py
+===================================================================
+--- trunk/setup.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/setup.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,46 @@
++from setuptools import setup, find_packages
++from turbogears.finddata import find_package_data
++
++import os
++
++# Release information about FelloWiki
++
++setup(
++    name=&quot;FelloWiki&quot;,
++    version=&quot;pre0.01&quot;,
++    
++    description='Yet another wiki engine',
++    long_description='Yet another wiki engine - still heavily in alpha',
++    author=&quot;Jan Niklas Fingerle&quot;,
++    #author_email='<A HREF="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">xxx at yyy.invalid</A>',
++    #url='<A HREF="http://www.fellowiki.org">http://www.fellowiki.org</A>',
++    #download_url='<A HREF="http://download.fellowiki.org">http://download.fellowiki.org</A>',
++    license='MIT-style',
++    copyright = &quot;(c) 2006 Jan Niklas Fingerle&quot;,
++    
++    install_requires = [
++        &quot;TurboGears &gt;= 1.0b1&quot;,
++    ],
++    scripts = [&quot;start-fellowiki.py&quot;],
++    zip_safe=False,
++    packages=find_packages(),
++    package_data = find_package_data(where='fellowiki',
++                                     package='fellowiki'),
++    keywords = ['turbogears.app'],
++    classifiers = [
++        'Development Status :: 3 - Alpha',
++        'Operating System :: OS Independent',
++        'Programming Language :: Python',
++        'Topic :: Software Development :: Libraries :: Python Modules',
++        'Framework :: TurboGears',
++        # if this is an application that you'll distribute through
++        # the Cheeseshop, uncomment the next line
++        'Framework :: TurboGears :: Applications',
++        
++        # if this is a package that includes widgets that you'll distribute
++        # through the Cheeseshop, uncomment the next line
++        # 'Framework :: TurboGears :: Widgets',
++    ],
++    test_suite = 'nose.collector',
++    )
++    
+
+Added: trunk/start-fellowiki.py
+===================================================================
+--- trunk/start-fellowiki.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/start-fellowiki.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,162 @@
++#!/usr/bin/python2.4
++import pkg_resources
++pkg_resources.require(&quot;TurboGears&quot;)
++
++import turbogears
++import cherrypy
++cherrypy.lowercase_api = True
++
++from os.path import *
++import sys
++
++# first look on the command line for a desired config file,
++# if it's not on the command line, then
++# look for setup.py in this directory. If it's not there, this script is
++# probably installed
++if len(sys.argv) &gt; 1:
++    turbogears.update_config(configfile=sys.argv[1], 
++        modulename=&quot;fellowiki.config&quot;)
++elif exists(join(dirname(__file__), &quot;setup.py&quot;)):
++    turbogears.update_config(configfile=&quot;dev.cfg&quot;,
++        modulename=&quot;fellowiki.config&quot;)
++else:
++    turbogears.update_config(configfile=&quot;prod.cfg&quot;,
++        modulename=&quot;fellowiki.config&quot;)
++
++from fellowiki.controllers import Root
++
++turbogears.start_server(Root())
++
++
++##from optparse import OptionParser
++##from fellowiki.util.assorted import attributes_from_dict
++##
++##from fellowiki.database.model import DBVersion
++##from fellowiki.database.schema import metadata
++##
++##import cherrypy
++##
++##import sqlalchemy
++##from sqlalchemy.exceptions import SQLError
++##
++##from controllers import FelloWikiRoot, WikiInstance, DataBaseHelper
++##      
++##def get_configuration():
++##    parser = OptionParser()
++##    parser.add_option(&quot;-c&quot;, &quot;--config&quot;, dest=&quot;config_file&quot;, type='string',
++##                  help=&quot;read configuration from FILE&quot;, metavar=&quot;FILE&quot;)
++##    parser.add_option(&quot;-d&quot;, &quot;--development&quot;, action='store_true', dest=&quot;development_mode&quot;,
++##                  help=&quot;run in development/debug mode&quot;)
++##    parser.add_option(&quot;-u&quot;, &quot;--database &quot;, dest=&quot;db_uri&quot;, type='string',
++##                  help=&quot;data base URI&quot;, metavar=&quot;URI&quot;)
++##    parser.add_option(&quot;-l&quot;, &quot;--log&quot;, dest=&quot;log_file&quot;, type='string',
++##                  help=&quot;write logs to FILE&quot;, metavar=&quot;FILE&quot;)
++##    parser.add_option(&quot;-s&quot;, &quot;--silent&quot;, action='store_true', dest=&quot;silent&quot;,
++##                  help=&quot;don't write logs to the screen&quot;)
++##    parser.add_option(&quot;-b&quot;, &quot;--bind&quot;, dest=&quot;server_host&quot;, type='string',
++##                  help=&quot;bind server to HOST&quot;, metavar=&quot;HOST&quot;)
++##    parser.add_option(&quot;-p&quot;, &quot;--port&quot;, dest=&quot;server_port&quot;, type='int',
++##                  help=&quot;bind server to PORT&quot;, metavar=&quot;PORT&quot;)
++##    parser.add_option(&quot;--generate-tables&quot;, dest=&quot;generate_tables&quot;, 
++##                  action='store_true', default=False,
++##                  help=&quot;generate fellowiki data base tables&quot;)
++##    parser.add_option(&quot;--update-tables&quot;, dest=&quot;update_tables&quot;, 
++##                  action='store_true', default=False,
++##                  help=&quot;update fellowiki data base tables&quot;)
++##                  
++##    (options, args) = parser.parse_args()
++##    
++##    if len(args) &lt;&gt; 0:
++##        parser.error(&quot;positional parameters supplied, but not expected&quot;)
++##                      
++##    return options
++##
++##def config_cherrypy(options):
++##    cherrypy.config.environments = \
++##            {'development': {'server.log_file_not_found': True, 
++##                             'server.show_tracebacks': True, 
++##                             'server.log_request_headers': True, 
++##                             'autoreload.on': True, 
++##                             'log_debug_info_filter.on': False}, 
++##             'production':  {'server.log_file_not_found': False, 
++##                             'server.show_tracebacks': False,
++##                             'server.log_request_headers': False, 
++##                             'autoreload.on': False, 
++##                             'log_debug_info_filter.on': False}}
++##                             
++##    cherrypy.config.update({'global': {'server.environment': 'production'}})
++##        
++##    if options.config_file is not None:
++##        cherrypy.config.update(file=options.config_file)
++##    
++##    new_conf = {}
++##    
++##    if options.development_mode is True:
++##        new_conf['server.environment'] = 'development'
++##    if options.log_file is not None:
++##        new_conf['server.log_file'] = options.log_file
++##    if options.server_host is not None:
++##        new_conf['server.socket_host'] = options.server_host
++##    if options.server_port is not None:
++##        new_conf['server.socket_port'] = options.server_port
++##    if options.silent is True:
++##        new_conf['server.log_to_screen'] = False
++##    if options.db_uri is not None:   
++##        new_conf['db.uri'] = options.db_uri
++##        
++##    cherrypy.config.update({'global': new_conf})
++##
++##def start_web_server():
++##    options = get_configuration()
++##    
++##    config_cherrypy(options)
++##    
++##    if cherrypy.config.get('db.uri') in ['<A HREF="sqlite://">sqlite://</A>', '<A HREF="sqlite://:memory:">sqlite://:memory:</A>', 
++##                                         '<A HREF="sqlite:///">sqlite:///</A>', '<A HREF="sqlite:///:memory:">sqlite:///:memory:</A>']:
++##        # SQLite data bases require one DBApi per Thread. Cherrypy is 
++##        # multithreaded. Each thread will get its own *empty* memory DB, which
++##        # is not what we want, therefore...
++##        cherrypy.log(&quot;FelloWiki does not support SQLite memory data bases.&quot;, 'DB', 2)
++##        return
++##    
++##    cherrypy.log(&quot;creating database engine for URI '%s'&quot; % cherrypy.config.get('db.uri'), 'DB')
++##    engine = sqlalchemy.create_engine(cherrypy.config.get('db.uri'), encoding='utf-8')
++##    
++##    metadata.dispose()
++##    metadata.connect(engine)
++##    
++##    error_string = None
++##    
++##    try: 
++##        versions = DBVersion.select()
++##        if options.generate_tables:
++##            cherrypy.log('generation of data base tables requested, but '+
++##                         'schema version table exists', 'DB', 1)
++##    except SQLError:
++##        if options.generate_tables:
++##            cherrypy.log('generating data base tables, as requested', 'DB', 0)
++##            metadata.create_all(engine=engine)
++##            DBVersion('FelloWiki - Base', 1)
++##            sqlalchemy.objectstore.session.flush()
++##            
++##        else:
++##            error_string = &quot;The FelloWiki data base tables seem not to be &quot; \
++##                         + &quot;installed. Please run FelloWiki with the flag &quot; \
++##                         + &quot;'--generate-tables' to create all needed tables.&quot;
++##            cherrypy.root = DataBaseHelper(error_string)
++##            cherrypy.log(error_string, 'DB', 2)
++##            cherrypy.server.start()
++##            return
++##    
++##    
++##    
++##    wiki_root = cherrypy.root = FelloWikiRoot()
++##    wiki_root.wiki = WikiInstance()
++##        
++##        
++##    cherrypy.server.start()
++##
++##    
++##      
++##if __name__ == '__main__':
++##    start_web_server()
+
+
+Property changes on: trunk/start-fellowiki.py
+___________________________________________________________________
+Name: svn:executable
+   + *
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000026.html">[fellowiki-svncheckins] r28 - in trunk/fellowiki: .	wiki/tests/tests/mixed_markup wiki/tests/tests/simple_markup
+</A></li>
+	<LI>Next message: <A HREF="000028.html">[fellowiki-svncheckins] r30 - in trunk: . fellowiki	fellowiki/config fellowiki/controllers	fellowiki/controllers/wikiparser/tests fellowiki/model	fellowiki/templates fellowiki/tests
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#27">[ date ]</a>
+              <a href="thread.html#27">[ thread ]</a>
+              <a href="subject.html#27">[ subject ]</a>
+              <a href="author.html#27">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

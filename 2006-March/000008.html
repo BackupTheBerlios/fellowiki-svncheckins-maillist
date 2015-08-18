@@ -1,0 +1,1292 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r10 - in trunk/fellowiki: tests/wiki tests/wiki/tests tests/wiki/tests/mixed_markup tests/wiki/tests/simple_markup util wiki
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-March/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r10%20-%20in%20trunk/fellowiki%3A%20tests/wiki%20tests/wiki/tests%20tests/wiki/tests/mixed_markup%20tests/wiki/tests/simple_markup%20util%20wiki&In-Reply-To=%3C200603261906.k2QJ6Qxx024407%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000007.html">
+   <LINK REL="Next"  HREF="000009.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r10 - in trunk/fellowiki: tests/wiki tests/wiki/tests tests/wiki/tests/mixed_markup tests/wiki/tests/simple_markup util wiki</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r10%20-%20in%20trunk/fellowiki%3A%20tests/wiki%20tests/wiki/tests%20tests/wiki/tests/mixed_markup%20tests/wiki/tests/simple_markup%20util%20wiki&In-Reply-To=%3C200603261906.k2QJ6Qxx024407%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r10 - in trunk/fellowiki: tests/wiki tests/wiki/tests tests/wiki/tests/mixed_markup tests/wiki/tests/simple_markup util wiki">fingerle at berlios.de
+       </A><BR>
+    <I>Sun Mar 26 21:06:26 CEST 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000007.html">[fellowiki-svncheckins] r9 - in trunk/fellowiki: tests/wiki/tests/simple_markup wiki
+</A></li>
+        <LI>Next message: <A HREF="000009.html">[fellowiki-svncheckins] r11 - in trunk/fellowiki/tests/wiki/tests: . known_issues simple_markup
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8">[ date ]</a>
+              <a href="thread.html#8">[ thread ]</a>
+              <a href="subject.html#8">[ subject ]</a>
+              <a href="author.html#8">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-03-26 21:06:23 +0200 (Sun, 26 Mar 2006)
+New Revision: 10
+
+Added:
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_concurrent.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_concurrent.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_concurrent.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_concurrent.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/pre_with_non_pre.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/pre_with_non_pre.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_concurrent.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_concurrent.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_concurrent.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_concurrent.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/bold_block.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/bold_block.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/bold_local.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/bold_local.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/double_quotes.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/double_quotes.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/italic.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/italic_block.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/italic_block.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/italic_embedded.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/italic_embedded.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/italic_local.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/italic_local.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/large_font.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/large_font.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/single_quotes.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/single_quotes.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/small_font.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/small_font.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/some-special-markup-with-blanks.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/some-special-markup-with-blanks.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/subscript.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/subscript.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/superscript.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/superscript.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_block.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_block.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_local.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_local.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_block.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_block.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_local.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_local.wiki
+Removed:
+   trunk/fellowiki/tests/wiki/tests/simple_markup/italic.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.wiki
+Modified:
+   trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/line_break.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/line_break.wiki
+   trunk/fellowiki/tests/wiki/ut_parser.py
+   trunk/fellowiki/util/assorted.py
+   trunk/fellowiki/wiki/parser.py
+Log:
+- wiki parser: fixed headlines
+- wiki parser: fixed horizontal rule
+- wiki parser: fixed pre with non-pre (pre test-case)
+- wiki parser: fixed italic
+- wiki parser: fixed bold
+- wiki parser: fixed underlined
+- wiki parser: fixed typewriter
+- wiki parser: fixed single quotes
+- wiki parser: fixed double quotes
+- wiki parser: fixed superscript
+- wiki parser: fixed subscript
+- wiki parser: fixed large font
+- wiki parser: fixed small font
+- wiki parser: fixed n/m-dash
+- wiki parser: fixed line break in input
+
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_concurrent.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_concurrent.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_concurrent.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold*bold&lt;/b&gt;non-bold*non-bold&lt;/p&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold*bold&lt;/b&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;non-bold&lt;/p&gt;&lt;p&gt;non-bold*non-bold&lt;b class=&quot;bold&quot;&gt;bold*bold&lt;/b&gt;non-bold&lt;/p&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold*bold&lt;/b&gt;non-bold&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_concurrent.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_concurrent.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_concurrent.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,7 @@
++non-bold[*bold*bold*]non-bold*non-bold
++
++non-bold[*bold*bold*]non-bold*bold*non-bold
++
++non-bold*non-bold[*bold*bold*]non-bold
++
++non-bold*bold*non-bold[*bold*bold*]non-bold
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold&lt;span class=&quot;bold-embedded&quot;&gt;bold&lt;/span&gt;bold&lt;/b&gt;non-bold&lt;/p&gt;&lt;p&gt;non-bold*non-bold&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;non-bold*non-bold&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,3 @@
++non-bold[*bold*bold*bold*]non-bold
++
++non-bold*non-bold[*bold*]non-bold*non-bold
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_concurrent.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_concurrent.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_concurrent.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic/italic&lt;/em&gt;non-italic/non-italic&lt;/p&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic/italic&lt;/em&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;non-italic&lt;/p&gt;&lt;p&gt;non-italic/non-italic&lt;em class=&quot;italic&quot;&gt;italic/italic&lt;/em&gt;non-italic&lt;/p&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic/italic&lt;/em&gt;non-italic&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_concurrent.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_concurrent.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_concurrent.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,7 @@
++non-italic[/italic/italic/]non-italic/non-italic
++
++non-italic[/italic/italic/]non-italic/italic/non-italic
++
++non-italic/non-italic[/italic/italic/]non-italic
++
++non-italic/italic/non-italic[/italic/italic/]non-italic
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic&lt;span class=&quot;italic-embedded&quot;&gt;italic&lt;/span&gt;italic&lt;/em&gt;non-italic&lt;/p&gt;&lt;p&gt;non-italic/non-italic&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;non-italic/non-italic&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,3 @@
++non-italic[/italic/italic/italic/]non-italic
++
++non-italic/non-italic[/italic/]non-italic/non-italic
+
+Copied: trunk/fellowiki/tests/wiki/tests/mixed_markup/pre_with_non_pre.complete.xml (from rev 8, trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.complete.xml)
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.complete.xml	2006-03-19 23:19:08 UTC (rev 8)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/pre_with_non_pre.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,5 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;pre&gt;preformatted text.
++[@preformatted text. &lt;&amp;&gt;
++[@preformatted text.@]
++
++\preformatted text.&lt;/pre&gt;&lt;p&gt;non-preformatted text.@]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Copied: trunk/fellowiki/tests/wiki/tests/mixed_markup/pre_with_non_pre.wiki (from rev 7, trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.wiki)
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.wiki	2006-03-18 15:52:44 UTC (rev 7)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/pre_with_non_pre.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,6 @@
++[@preformatted text.
++[@preformatted text. &lt;&amp;&gt;
++\[@preformatted text.\@]
++
++\\\preformatted text.@]
++non-preformatted text.@]
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_concurrent.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_concurrent.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_concurrent.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter=typewriter&lt;/tt&gt;non-typewriter=non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter=typewriter&lt;/tt&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter=non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter=typewriter&lt;/tt&gt;non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter=typewriter&lt;/tt&gt;non-typewriter&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_concurrent.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_concurrent.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_concurrent.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,7 @@
++non-typewriter[=typewriter=typewriter=]non-typewriter=non-typewriter
++
++non-typewriter[=typewriter=typewriter=]non-typewriter=typewriter=non-typewriter
++
++non-typewriter=non-typewriter[=typewriter=typewriter=]non-typewriter
++
++non-typewriter=typewriter=non-typewriter[=typewriter=typewriter=]non-typewriter
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;span class=&quot;typewriter-embedded&quot;&gt;typewriter&lt;/span&gt;typewriter&lt;/tt&gt;non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter=non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;non-typewriter=non-typewriter&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,3 @@
++non-typewriter[=typewriter=typewriter=typewriter=]non-typewriter
++
++non-typewriter=non-typewriter[=typewriter=]non-typewriter=non-typewriter
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_concurrent.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_concurrent.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_concurrent.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined_underlined&lt;/span&gt;non-underlined_non-underlined&lt;/p&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined_underlined&lt;/span&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;non-underlined&lt;/p&gt;&lt;p&gt;non-underlined_non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined_underlined&lt;/span&gt;non-underlined&lt;/p&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined_underlined&lt;/span&gt;non-underlined&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_concurrent.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_concurrent.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_concurrent.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,7 @@
++non-underlined[_underlined_underlined_]non-underlined_non-underlined
++
++non-underlined[_underlined_underlined_]non-underlined_underlined_non-underlined
++
++non-underlined_non-underlined[_underlined_underlined_]non-underlined
++
++non-underlined_underlined_non-underlined[_underlined_underlined_]non-underlined
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined&lt;span class=&quot;underlined-embedded&quot;&gt;underlined&lt;/span&gt;underlined&lt;/span&gt;non-underlined&lt;/p&gt;&lt;p&gt;non-underlined_non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;non-underlined_non-underlined&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,3 @@
++non-underlined[_underlined_underlined_underlined_]non-underlined
++
++non-underlined_non-underlined[_underlined_]non-underlined_non-underlined
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/bold_block.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/bold_block.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/bold_block.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;non-bold&lt;/p&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold bold&lt;/b&gt;non-bold&lt;/p&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold[*bold&lt;/b&gt;non-bold&lt;/p&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;non-bold*]non-bold&lt;/p&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold[*bold&lt;/b&gt;non-bold*]non-bold&lt;/p&gt;&lt;p&gt;empty: [**]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/bold_block.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/bold_block.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/bold_block.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,12 @@
++non-bold[*bold*]non-bold
++
++non-bold[*bold
++bold*]non-bold
++
++non-bold[*bold[*bold*]non-bold
++
++non-bold[*bold*]non-bold*]non-bold
++
++non-bold[*bold[*bold*]non-bold*]non-bold
++
++empty: [**]
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/bold_local.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/bold_local.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/bold_local.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;non-bold&lt;/p&gt;&lt;p&gt;non-bold*non-bold&lt;/p&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;non-bold*non-bold&lt;/p&gt;&lt;p&gt;non-bold*non-bold non-bold*non-bold&lt;/p&gt;&lt;p&gt;empty: **&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/bold_local.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/bold_local.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/bold_local.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,10 @@
++non-bold*bold*non-bold
++
++non-bold*non-bold
++
++non-bold*bold*non-bold*non-bold
++
++non-bold*non-bold 
++non-bold*non-bold
++
++empty: **
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/double_quotes.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/double_quotes.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/double_quotes.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-double-quotes&lt;span class=&quot;double_quotes&quot;&gt;double-quotes&lt;/span&gt;non-double-quotes&lt;/p&gt;&lt;p&gt;non-double-quotes&lt;span class=&quot;double_quotes&quot;&gt;double-quotes double-quotes&lt;/span&gt;non-double-quotes&lt;/p&gt;&lt;p&gt;non-double-quotes&lt;span class=&quot;double_quotes&quot;&gt;double-quotes[&quot;double-quotes&lt;/span&gt;non-double-quotes&lt;/p&gt;&lt;p&gt;non-double-quotes&lt;span class=&quot;double_quotes&quot;&gt;double-quotes&lt;/span&gt;non-double-quotes&quot;]non-double-quotes&lt;/p&gt;&lt;p&gt;non-double-quotes&lt;span class=&quot;double_quotes&quot;&gt;double-quotes[&quot;double-quotes&lt;/span&gt;non-double-quotes&quot;]non-double-quotes&lt;/p&gt;&lt;p&gt;empty: [&quot;&quot;]&lt;/p&gt;&lt;p&gt;no non-block syntax: &quot;non-double-quotes&quot;&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/double_quotes.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/double_quotes.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/double_quotes.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,14 @@
++non-double-quotes[&quot;double-quotes&quot;]non-double-quotes
++
++non-double-quotes[&quot;double-quotes
++double-quotes&quot;]non-double-quotes
++
++non-double-quotes[&quot;double-quotes[&quot;double-quotes&quot;]non-double-quotes
++
++non-double-quotes[&quot;double-quotes&quot;]non-double-quotes&quot;]non-double-quotes
++
++non-double-quotes[&quot;double-quotes[&quot;double-quotes&quot;]non-double-quotes&quot;]non-double-quotes
++
++empty: [&quot;&quot;]
++
++no non-block syntax: &quot;non-double-quotes&quot;
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;=no headline ==no headline ===no headline ====no headline =====no headline ======no headline =======no headline&lt;/p&gt;&lt;h1&gt;Headline 1&lt;/h1&gt;&lt;h1&gt;Headline 1&lt;/h1&gt;&lt;h2&gt;Headline 2&lt;/h2&gt;&lt;h2&gt;Headline 2&lt;/h2&gt;&lt;h3&gt;Headline 3&lt;/h3&gt;&lt;h3&gt;Headline 3&lt;/h3&gt;&lt;h4&gt;Headline 4&lt;/h4&gt;&lt;h4&gt;Headline 4&lt;/h4&gt;&lt;h5&gt;Headline 5&lt;/h5&gt;&lt;h5&gt;Headline 5&lt;/h5&gt;&lt;h6&gt;Headline 6&lt;/h6&gt;&lt;h6&gt;Headline 6&lt;/h6&gt;&lt;p&gt;======= no Headline ======= no Headline&lt;/p&gt;&lt;h1&gt;we don't &quot;close&quot; headlines =&lt;/h1&gt;&lt;h2&gt;we don't &quot;close&quot; headlines ==&lt;/h2&gt;&lt;h3&gt;we don't &quot;close&quot; headlines ===&lt;/h3&gt;&lt;h4&gt;we don't &quot;close&quot; headlines ====&lt;/h4&gt;&lt;h5&gt;we don't &quot;close&quot; headlines =====&lt;/h5&gt;&lt;h6&gt;we don't &quot;close&quot; headlines ======&lt;/h6&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Modified: trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -1,10 +1,10 @@
+ =no headline
+ ==no headline
+ ===no headline
++====no headline
+ =====no headline
+ ======no headline
+ =======no headline
+-========no headline
+ 
+ = Headline 1
+ = Headline 1
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;text&lt;/p&gt;&lt;hr /&gt;&lt;p&gt;text ---- text ----  text ---- text &#8212; text ----- text&lt;/p&gt;&lt;hr /&gt;&lt;p&gt;text&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -1 +1,17 @@
+-TODO
++text
++----
++text
++ ----
++text
++---- 
++text
++ ---- 
++text
++---
++text
++-----
++text
++
++----
++
++text
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/italic.complete.xml
+===================================================================
+
+Deleted: trunk/fellowiki/tests/wiki/tests/simple_markup/italic.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/italic.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/italic.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -1,4 +0,0 @@
+-/italic/
+-[/italic/]
+-[/non-italic/italic/non-italic/]
+-/non-italic[/italic/]non-italic/
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/italic_block.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/italic_block.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/italic_block.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;non-italic&lt;/p&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic italic&lt;/em&gt;non-italic&lt;/p&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic[/italic&lt;/em&gt;non-italic&lt;/p&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;non-italic/]non-italic&lt;/p&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic[/italic&lt;/em&gt;non-italic/]non-italic&lt;/p&gt;&lt;p&gt;empty: [//]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/italic_block.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/italic_block.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/italic_block.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,12 @@
++non-italic[/italic/]non-italic
++
++non-italic[/italic
++italic/]non-italic
++
++non-italic[/italic[/italic/]non-italic
++
++non-italic[/italic/]non-italic/]non-italic
++
++non-italic[/italic[/italic/]non-italic/]non-italic
++
++empty: [//]
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/italic_embedded.complete.xml
+===================================================================
+
+Copied: trunk/fellowiki/tests/wiki/tests/simple_markup/italic_embedded.wiki (from rev 7, trunk/fellowiki/tests/wiki/tests/simple_markup/italic.wiki)
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/italic_local.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/italic_local.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/italic_local.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;non-italic&lt;/p&gt;&lt;p&gt;non-italic/non-italic&lt;/p&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;non-italic/non-italic&lt;/p&gt;&lt;p&gt;non-italic/non-italic non-italic/non-italic&lt;/p&gt;&lt;p&gt;empty: //&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/italic_local.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/italic_local.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/italic_local.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,10 @@
++non-italic/italic/non-italic
++
++non-italic/non-italic
++
++non-italic/italic/non-italic/non-italic
++
++non-italic/non-italic 
++non-italic/non-italic
++
++empty: //
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/large_font.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/large_font.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/large_font.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-large-font&lt;span class=&quot;large&quot;&gt;large-font&lt;/span&gt;non-large-font&lt;/p&gt;&lt;p&gt;non-large-font&lt;span class=&quot;large&quot;&gt;large-font large-font&lt;/span&gt;non-large-font&lt;/p&gt;&lt;p&gt;non-large-font&lt;span class=&quot;large&quot;&gt;large-font[#large-font&lt;/span&gt;non-large-font&lt;/p&gt;&lt;p&gt;non-large-font&lt;span class=&quot;large&quot;&gt;large-font&lt;/span&gt;non-large-font#]non-large-font&lt;/p&gt;&lt;p&gt;non-large-font&lt;span class=&quot;large&quot;&gt;large-font[#large-font&lt;/span&gt;non-large-font#]non-large-font&lt;/p&gt;&lt;p&gt;empty: [##]&lt;/p&gt;&lt;p&gt;no non-block syntax: #non-large-font#&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/large_font.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/large_font.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/large_font.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,14 @@
++non-large-font[#large-font#]non-large-font
++
++non-large-font[#large-font
++large-font#]non-large-font
++
++non-large-font[#large-font[#large-font#]non-large-font
++
++non-large-font[#large-font#]non-large-font#]non-large-font
++
++non-large-font[#large-font[#large-font#]non-large-font#]non-large-font
++
++empty: [##]
++
++no non-block syntax: #non-large-font#
+
+Modified: trunk/fellowiki/tests/wiki/tests/simple_markup/line_break.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/line_break.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/line_break.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;Hello world! %%% Hello world!&lt;br /&gt;Hello world!&lt;br /&gt;Hello world!&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;Hello world! %%% Hello world! %%%% Hello world!&lt;br /&gt;Hello world!&lt;br /&gt;Hello world!&lt;br /&gt;Hello world!&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/tests/wiki/tests/simple_markup/line_break.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/line_break.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/line_break.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -5,3 +5,8 @@
+ Hello world!
+ %%%%%
+ Hello world!
++%%%%%%
++Hello world!
++%%%%%
++%%%%%%
++Hello world!
+
+Deleted: trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -1,4 +0,0 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;[@Preformatted text.&lt;/p&gt;&lt;pre&gt;Preformatted text. &lt;&amp;&gt;
+-[@Preformatted text.@]
+-
+-\Preformatted text.&lt;/pre&gt;&lt;p&gt;Preformatted text.@]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Deleted: trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -1,6 +0,0 @@
+-[@Preformatted text.
+-[@Preformatted text. &lt;&amp;&gt;
+-\[@Preformatted text.\@]
+-
+-\\\Preformatted text.@]
+-Preformatted text.@]
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/single_quotes.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/single_quotes.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/single_quotes.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-single-quotes&lt;span class=&quot;single_quotes&quot;&gt;single-quotes&lt;/span&gt;non-single-quotes&lt;/p&gt;&lt;p&gt;non-single-quotes&lt;span class=&quot;single_quotes&quot;&gt;single-quotes single-quotes&lt;/span&gt;non-single-quotes&lt;/p&gt;&lt;p&gt;non-single-quotes&lt;span class=&quot;single_quotes&quot;&gt;single-quotes['single-quotes&lt;/span&gt;non-single-quotes&lt;/p&gt;&lt;p&gt;non-single-quotes&lt;span class=&quot;single_quotes&quot;&gt;single-quotes&lt;/span&gt;non-single-quotes']non-single-quotes&lt;/p&gt;&lt;p&gt;non-single-quotes&lt;span class=&quot;single_quotes&quot;&gt;single-quotes['single-quotes&lt;/span&gt;non-single-quotes']non-single-quotes&lt;/p&gt;&lt;p&gt;empty: ['']&lt;/p&gt;&lt;p&gt;no non-block syntax: 'non-single-quotes'&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/single_quotes.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/single_quotes.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/single_quotes.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,14 @@
++non-single-quotes['single-quotes']non-single-quotes
++
++non-single-quotes['single-quotes
++single-quotes']non-single-quotes
++
++non-single-quotes['single-quotes['single-quotes']non-single-quotes
++
++non-single-quotes['single-quotes']non-single-quotes']non-single-quotes
++
++non-single-quotes['single-quotes['single-quotes']non-single-quotes']non-single-quotes
++
++empty: ['']
++
++no non-block syntax: 'non-single-quotes'
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/small_font.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/small_font.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/small_font.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-small-font&lt;span class=&quot;small&quot;&gt;small-font&lt;/span&gt;non-small-font&lt;/p&gt;&lt;p&gt;non-small-font&lt;span class=&quot;small&quot;&gt;small-font small-font&lt;/span&gt;non-small-font&lt;/p&gt;&lt;p&gt;non-small-font&lt;span class=&quot;small&quot;&gt;small-font[~small-font&lt;/span&gt;non-small-font&lt;/p&gt;&lt;p&gt;non-small-font&lt;span class=&quot;small&quot;&gt;small-font&lt;/span&gt;non-small-font~]non-small-font&lt;/p&gt;&lt;p&gt;non-small-font&lt;span class=&quot;small&quot;&gt;small-font[~small-font&lt;/span&gt;non-small-font~]non-small-font&lt;/p&gt;&lt;p&gt;empty: [~~]&lt;/p&gt;&lt;p&gt;no non-block syntax: ~non-small-font~&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/small_font.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/small_font.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/small_font.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,14 @@
++non-small-font[~small-font~]non-small-font
++
++non-small-font[~small-font
++small-font~]non-small-font
++
++non-small-font[~small-font[~small-font~]non-small-font
++
++non-small-font[~small-font~]non-small-font~]non-small-font
++
++non-small-font[~small-font[~small-font~]non-small-font~]non-small-font
++
++empty: [~~]
++
++no non-block syntax: ~non-small-font~
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/some-special-markup-with-blanks.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/some-special-markup-with-blanks.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/some-special-markup-with-blanks.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;/test / / test/ / test / &lt;em class=&quot;italic&quot;&gt;test&lt;/em&gt; t&lt;em class=&quot;italic&quot;&gt;es&lt;/em&gt;t&lt;/p&gt;&lt;p&gt;*test * * test* * test * &lt;b class=&quot;bold&quot;&gt;test&lt;/b&gt; t&lt;b class=&quot;bold&quot;&gt;es&lt;/b&gt;t&lt;/p&gt;&lt;p&gt;_test _ _ test_ _ test _ &lt;span class=&quot;underlined&quot;&gt;test&lt;/span&gt; t&lt;span class=&quot;underlined&quot;&gt;es&lt;/span&gt;t&lt;/p&gt;&lt;p&gt;=test = = test= = test = &lt;tt class=&quot;typewriter&quot;&gt;test&lt;/tt&gt; t&lt;tt class=&quot;typewriter&quot;&gt;es&lt;/tt&gt;t&lt;/p&gt;&lt;p&gt;test&lt;em class=&quot;italic&quot;&gt; test test &lt;/em&gt;test &lt;em class=&quot;italic&quot;&gt;test&lt;/em&gt; test &lt;em class=&quot;italic&quot;&gt; test &lt;/em&gt; test&lt;/p&gt;&lt;p&gt;test&lt;b class=&quot;bold&quot;&gt; test test &lt;/b&gt;test &lt;b class=&quot;bold&quot;&gt;test&lt;/b&gt; test &lt;b class=&quot;bold&quot;&gt; test &lt;/b&gt; test&lt;/p&gt;&lt;p&gt;test&lt;span class=&quot;underlined&quot;&gt; test test &lt;/span&gt;test &lt;span class=&quot;underlined&quot;&gt;test&lt;/span&gt; test &lt;span class=&quot;underlined&quot;&gt; test &lt;/span&gt; test&lt;/p&gt;&lt;p&gt;test&lt;tt class=&quot;typewriter&quot;&gt; test test &lt;/tt&gt;test &lt;tt class=&quot;typewriter&quot;&gt;test&lt;/tt&gt; test &lt;tt class=&quot;typewriter&quot;&gt; test &lt;/tt&gt; test&lt;/p&gt;&lt;p&gt;test&lt;!
+ span class=&quot;single_quotes&quot;&gt; test test &lt;/span&gt;test &lt;span class=&quot;single_quotes&quot;&gt;test&lt;/span&gt; test &lt;span class=&quot;single_quotes&quot;&gt; test &lt;/span&gt; test&lt;/p&gt;&lt;p&gt;test&lt;span class=&quot;double_quotes&quot;&gt; test test &lt;/span&gt;test &lt;span class=&quot;double_quotes&quot;&gt;test&lt;/span&gt; test &lt;span class=&quot;double_quotes&quot;&gt; test &lt;/span&gt; test&lt;/p&gt;&lt;p&gt;test&lt;span class=&quot;superscript&quot;&gt; test test &lt;/span&gt;test &lt;span class=&quot;superscript&quot;&gt;test&lt;/span&gt; test &lt;span class=&quot;superscript&quot;&gt; test &lt;/span&gt; test&lt;/p&gt;&lt;p&gt;test&lt;span class=&quot;subscript&quot;&gt; test test &lt;/span&gt;test &lt;span class=&quot;subscript&quot;&gt;test&lt;/span&gt; test &lt;span class=&quot;subscript&quot;&gt; test &lt;/span&gt; test&lt;/p&gt;&lt;p&gt;test&lt;span class=&quot;large&quot;&gt; test test &lt;/span&gt;test &lt;span class=&quot;large&quot;&gt;test&lt;/span&gt; test &lt;span class=&quot;large&quot;&gt; test &lt;/span&gt; test&lt;/p&gt;&lt;p&gt;test&lt;span class=&quot;small&quot;&gt; test test &lt;/span&gt;test &lt;span class=&quot;small&quot;&gt;test&lt;/span&gt; test &lt;span class=&quot;small&quot;&gt; test &lt;/span&gt; test&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/some-special-markup-with-blanks.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/some-special-markup-with-blanks.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/some-special-markup-with-blanks.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,27 @@
++/test / / test/ / test / /test/ t/es/t
++
++*test * * test* * test * *test* t*es*t
++
++_test _ _ test_ _ test _ _test_ t_es_t
++
++=test = = test= = test = =test= t=es=t
++
++test[/ test test /]test [/test/] test [/ test /] test
++
++test[* test test *]test [*test*] test [* test *] test
++
++test[_ test test _]test [_test_] test [_ test _] test
++
++test[= test test =]test [=test=] test [= test =] test
++
++test[' test test ']test ['test'] test [' test '] test
++
++test[&quot; test test &quot;]test [&quot;test&quot;] test [&quot; test &quot;] test
++
++test[^ test test ^]test [^test^] test [^ test ^] test
++
++test[, test test ,]test [,test,] test [, test ,] test
++
++test[# test test #]test [#test#] test [# test #] test
++
++test[~ test test ~]test [~test~] test [~ test ~] test
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/subscript.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/subscript.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/subscript.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-subscript&lt;span class=&quot;subscript&quot;&gt;subscript&lt;/span&gt;non-subscript&lt;/p&gt;&lt;p&gt;non-subscript&lt;span class=&quot;subscript&quot;&gt;subscript subscript&lt;/span&gt;non-subscript&lt;/p&gt;&lt;p&gt;non-subscript&lt;span class=&quot;subscript&quot;&gt;subscript[,subscript&lt;/span&gt;non-subscript&lt;/p&gt;&lt;p&gt;non-subscript&lt;span class=&quot;subscript&quot;&gt;subscript&lt;/span&gt;non-subscript,]non-subscript&lt;/p&gt;&lt;p&gt;non-subscript&lt;span class=&quot;subscript&quot;&gt;subscript[,subscript&lt;/span&gt;non-subscript,]non-subscript&lt;/p&gt;&lt;p&gt;empty: [,,]&lt;/p&gt;&lt;p&gt;no non-block syntax: ,non-subscript,&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/subscript.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/subscript.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/subscript.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,14 @@
++non-subscript[,subscript,]non-subscript
++
++non-subscript[,subscript
++subscript,]non-subscript
++
++non-subscript[,subscript[,subscript,]non-subscript
++
++non-subscript[,subscript,]non-subscript,]non-subscript
++
++non-subscript[,subscript[,subscript,]non-subscript,]non-subscript
++
++empty: [,,]
++
++no non-block syntax: ,non-subscript,
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/superscript.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/superscript.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/superscript.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-superscript&lt;span class=&quot;superscript&quot;&gt;superscript&lt;/span&gt;non-superscript&lt;/p&gt;&lt;p&gt;non-superscript&lt;span class=&quot;superscript&quot;&gt;superscript superscript&lt;/span&gt;non-superscript&lt;/p&gt;&lt;p&gt;non-superscript&lt;span class=&quot;superscript&quot;&gt;superscript[^superscript&lt;/span&gt;non-superscript&lt;/p&gt;&lt;p&gt;non-superscript&lt;span class=&quot;superscript&quot;&gt;superscript&lt;/span&gt;non-superscript^]non-superscript&lt;/p&gt;&lt;p&gt;non-superscript&lt;span class=&quot;superscript&quot;&gt;superscript[^superscript&lt;/span&gt;non-superscript^]non-superscript&lt;/p&gt;&lt;p&gt;empty: [^^]&lt;/p&gt;&lt;p&gt;no non-block syntax: ^non-superscript^&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/superscript.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/superscript.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/superscript.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,14 @@
++non-superscript[^superscript^]non-superscript
++
++non-superscript[^superscript
++superscript^]non-superscript
++
++non-superscript[^superscript[^superscript^]non-superscript
++
++non-superscript[^superscript^]non-superscript^]non-superscript
++
++non-superscript[^superscript[^superscript^]non-superscript^]non-superscript
++
++empty: [^^]
++
++no non-block syntax: ^non-superscript^
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_block.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_block.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_block.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter typewriter&lt;/tt&gt;non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter[=typewriter&lt;/tt&gt;non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;non-typewriter=]non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter[=typewriter&lt;/tt&gt;non-typewriter=]non-typewriter&lt;/p&gt;&lt;p&gt;empty: [==]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_block.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_block.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_block.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,12 @@
++non-typewriter[=typewriter=]non-typewriter
++
++non-typewriter[=typewriter
++typewriter=]non-typewriter
++
++non-typewriter[=typewriter[=typewriter=]non-typewriter
++
++non-typewriter[=typewriter=]non-typewriter=]non-typewriter
++
++non-typewriter[=typewriter[=typewriter=]non-typewriter=]non-typewriter
++
++empty: [==]
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_local.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_local.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_local.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter=non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;non-typewriter=non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter=non-typewriter non-typewriter=non-typewriter&lt;/p&gt;&lt;p&gt;empty: ==&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_local.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_local.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_local.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,10 @@
++non-typewriter=typewriter=non-typewriter
++
++non-typewriter=non-typewriter
++
++non-typewriter=typewriter=non-typewriter=non-typewriter
++
++non-typewriter=non-typewriter 
++non-typewriter=non-typewriter
++
++empty: ==
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_block.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_block.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_block.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;non-underlined&lt;/p&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined underlined&lt;/span&gt;non-underlined&lt;/p&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined[_underlined&lt;/span&gt;non-underlined&lt;/p&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;non-underlined_]non-underlined&lt;/p&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined[_underlined&lt;/span&gt;non-underlined_]non-underlined&lt;/p&gt;&lt;p&gt;empty: [__]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_block.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_block.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_block.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,12 @@
++non-underlined[_underlined_]non-underlined
++
++non-underlined[_underlined
++underlined_]non-underlined
++
++non-underlined[_underlined[_underlined_]non-underlined
++
++non-underlined[_underlined_]non-underlined_]non-underlined
++
++non-underlined[_underlined[_underlined_]non-underlined_]non-underlined
++
++empty: [__]
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_local.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_local.complete.xml	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_local.complete.xml	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;non-underlined&lt;/p&gt;&lt;p&gt;non-underlined_non-underlined&lt;/p&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;non-underlined_non-underlined&lt;/p&gt;&lt;p&gt;non-underlined_non-underlined non-underlined_non-underlined&lt;/p&gt;&lt;p&gt;empty: __&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_local.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_local.wiki	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_local.wiki	2006-03-26 19:06:23 UTC (rev 10)
+@@ -0,0 +1,10 @@
++non-underlined_underlined_non-underlined
++
++non-underlined_non-underlined
++
++non-underlined_underlined_non-underlined_non-underlined
++
++non-underlined_non-underlined 
++non-underlined_non-underlined
++
++empty: __
+
+Modified: trunk/fellowiki/tests/wiki/ut_parser.py
+===================================================================
+--- trunk/fellowiki/tests/wiki/ut_parser.py	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/tests/wiki/ut_parser.py	2006-03-26 19:06:23 UTC (rev 10)
+@@ -132,7 +132,7 @@
+                 gen_file = codecs.open('%s.%s.generated.xml' % 
+                              (fname, tc_extension), 'w+','utf8')
+                 gen_file.write(xhtml_text_wiki_ext)
+-                gen_file.close
++                gen_file.close()
+             except:
+                 pass # it's only debug output after all
+             raise self.failureException, ex_val, ex_tb 
+
+Modified: trunk/fellowiki/util/assorted.py
+===================================================================
+--- trunk/fellowiki/util/assorted.py	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/util/assorted.py	2006-03-26 19:06:23 UTC (rev 10)
+@@ -29,7 +29,6 @@
+ __revision__ = &quot;$Revision:$&quot;
+ 
+ import re
+-import copy
+ 
+ # TODO: howto support CElementTree (portably!, utf8-support?)
+ 
+@@ -103,7 +102,7 @@
+         ret.text = save_add(etree_1.text, etree_2.text)
+         ret[:] = etree_2[:]
+     else:
+-        last_sub = copy.copy(etree_1[len(etree_1)-1])
++        last_sub = etree_1[len(etree_1)-1]
+         last_sub.tail = save_add(last_sub.tail, etree_2.text)
+         ret.text = etree_1.text
+         ret[:] = etree_1[:-1] + [last_sub] + etree_2[:]
+
+Modified: trunk/fellowiki/wiki/parser.py
+===================================================================
+--- trunk/fellowiki/wiki/parser.py	2006-03-22 01:06:18 UTC (rev 9)
++++ trunk/fellowiki/wiki/parser.py	2006-03-26 19:06:23 UTC (rev 10)
+@@ -30,13 +30,30 @@
+ __revision__ = &quot;$Revision:$&quot;
+ 
+ 
+-from elementtree.ElementTree import Element, SubElement
+-
++from elementtree.ElementTree import Element, SubElement, tostring
+ from fellowiki.util.assorted import attributes_from_dict, \
+-      remove_escaping_backslashes, add_element_contents
++      remove_escaping_backslashes, add_element_contents, save_add
+       
+-import sre, re
++import sre
++import re
+ 
++PREFIX_COUNT = &quot;prefix count&quot;
++ENCAPSULATE_MARKUP = &quot;encapsulate markup&quot;
++SWITCH_MARKUP = &quot;switch markup&quot;
++EMBED_MARKUP = &quot;embed markup&quot;
++
++
++SPECIAL_MARKUP = {'/': ('em', 'italic'),
++                  '*': ('b' , 'bold'),
++                  '_': ('span', 'underlined'),
++                  '=': ('tt', 'typewriter'), 
++                  &quot;'&quot;: ('span', 'single_quotes'),
++                  '&quot;': ('span', 'double_quotes'),
++                  '^': ('span', 'superscript'),
++                  ',': ('span', 'subscript'),
++                  '#': ('span', 'large'),
++                  '~': ('span', 'small')}
++
+ class WikiError(StandardError):
+     pass
+ 
+@@ -129,128 +146,111 @@
+         return True
+ 
+ class TextToken(Token):
++    def __init__(self, token, new_text = None, **attr_dict):
++        Token.__init__(self, token, new_text = new_text, **attr_dict)
++        
+     def render(self, new_token):
+         xhtml = Element('div')
+-        xhtml.text = re.sub('[ \n\t]+', ' ', self.text)
++        if self.new_text is None:
++            xhtml.text = re.sub('[ \n\t]+', ' ', self.text)
++        else:
++            xhtml.text = re.sub('[ \n\t]+', ' ', self.new_text)
+         new_token.prepend_element_contents(xhtml)
+ 
+-class SingleToken(Token):
+-    def render(self, new_token):
+-        xhtml = Element('div')
+-        SubElement(xhtml, self.html_tag)
+-        new_token.prepend_element_contents(xhtml)
++class WhitespaceToken(TextToken):
++    def evaluate(self, result, tokens, state):
++        TextToken.evaluate(self, result, tokens, state)
++        for key in SPECIAL_MARKUP.keys():
++            state[SWITCH_MARKUP + key] = 0
+         
+ class EncapsulateToken(Token):
+-    open_wiki_markup = {}
+-    open_html_markup = {}
++    def render(self, new_token):
++        if self.type == '(':
++            self.state[self.STATE] = self.state.get(self.STATE, 0) - 1
++        Token.render(self, new_token)
++    
+     def evaluate(self, result, tokens, state):
++        self.second_content = None
++        Token.evaluate(self, result, tokens, state)
+         if self.type == '(':
+-            self.is_nested_wiki = bool(self.open_wiki_markup.get(self.text, 
+-                                                                 False))
+-            self.is_nested_html = bool(self.open_html_markup.get(self.html_tag,
+-                                                                 False))
+-            self.open_wiki_markup[self.text] = \
+-                                self.open_wiki_markup.get(self.text, 0) + 1
+-            self.open_html_markup[self.html_tag] = \
+-                                self.open_html_markup.get(self.html_tag, 0) + 1
+-#          if self.type == '_' and self.open_wiki_markup.get(self.text, False):
+-#              self.is_valid_middle_element = \ 
+-#                            markers.get(self.input_marker+'~_',False)
+-#                markers[self.input_marker+'~_'] = True
+-        if self.type == ')':
+-            self.second_content = None
+-        Token.evaluate(self, result, tokens, state)
++           state[self.STATE] = state.get(self.STATE, 0) + 1
+         
+     def match_is_open(self):
+         if self.type == ')':
+-            try: 
+-                return bool(self.open_wiki_markup[self.text])
+-            except KeyError:
+-                return False
+-        # was ist mit '_'?
++            return self.state.get(self.STATE, 0) &gt; 0
++        return False
+     
+     def close_matching(self, match):
+-        if (self.type == ')' and self.__class__ == match.__class__
+-            and self.text == match.text
+-            and match.type == '(' and not match.is_nested_html):
+-            return True
+-        else:
+-            try:
+-                return (self.type == ')' and isinstance(self, match.__class__)
+-                    and self.text == match.text
+-                    and match.type == '_' and match.is_valid_middle_element)
+-            except AttributeError:
+-                return False
++        return (self.state.get(self.STATE, 0) == 1 and
++                self.type == ')' and isinstance(match, EncapsulateToken) and 
++                self.STATE == match.STATE and self.text == match.text and 
++                match.type == '(')
+             
+     def close(self, match, new_token):
+-        if match.type == '(':
+-            match.open_wiki_markup[match.text] = \
+-                            match.open_wiki_markup.get(match.text, 0) - 1
+-            match.open_html_markup[match.html_tag] = \
+-                            match.open_html_markup.get(match.html_tag, 0) - 1
+-            self.type = '*'
+-            self.do_close(match, new_token, self.second_content)
+-        #elif self.type == '_' and markers[self.input_marker]:
+-        #    markers[match.input_marker+'~_'] = False
+-        #    self.second_content = new_token
+-        else:
+-            raise WikiTokenError(&quot;'close' where not allowed&quot;)
+-        self.tokens.insert(0, self)
++        self.state[self.STATE] = self.state.get(self.STATE, 0) - 1
++        self.tokens.insert(0, new_token)
+     
+-    def gets_eaten(self):
+-        if self.type == '(':
+-            self.open_wiki_markup[self.text] = \
+-                                self.open_wiki_markup.get(self.text, 0) - 1
+-            self.open_html_markup[self.html_tag] = \
+-                                self.open_html_markup.get(self.html_tag, 0) - 1
+-
+ class EncapsulateMarkupToken(EncapsulateToken):
+-    special_markup = {'/': ('em', 'italic'),
+-                            '*': ('b', 'bold'),
+-                            '_': ('em', 'underline'),
+-                            '=': ('tt', 'typewriter'), 
+-                            &quot;'&quot;: ('div', 'single_quotes'),
+-                            '&quot;': ('div', 'double_quotes'),
+-                            '^': ('div', 'superscript'),
+-                            ',': ('div', 'subscript'),
+-                            '#': ('div', 'large'),
+-                            '~': ('div', 'small')}; # TODO: check markup
+-    
+     def __init__(self, token, *args, **kwargs):
+         EncapsulateToken.__init__(self, token, *args, **kwargs)
+-        self.html_tag = self.special_markup[self.text][0]
+-        self.xhtml = Element('div')
++        self.STATE = ENCAPSULATE_MARKUP + self.text
++        self.EMBED = EMBED_MARKUP + self.text
+ 
+-    def render(self, new_token):
+-        if not self.type == '*':
+-            self.gets_eaten()
+-            self.xhtml.text = self.token
+-        new_token.prepend_element_contents(self.xhtml)
+-        
+-    def do_close(self, match, new_token, second_content):
+-        assert(second_content is not None)
+-        
++    def close(self, match, new_token):
++        EncapsulateToken.close(self, match, new_token)
+         if new_token.xhtml.text is not None or len(new_token.xhtml) &gt; 0:
+-            new_token.xhtml.tag = self.special_markup[self.text][0]
+-            self.xhtml[:] = [new_token]
++            new_token.xhtml.tag = SPECIAL_MARKUP[self.text][0]
++            new_token.xhtml.set('class',SPECIAL_MARKUP[self.text][1])
++            xhtml = Element('div')
++            xhtml.append(new_token.xhtml)
++            new_token.xhtml = xhtml
++            for xhtml_purge in self.state.pop(self.EMBED,()):
++                xhtml_purge.tag = 'span'
++                xhtml_purge.set('class', xhtml_purge.get('class') + '-embedded')
+         else:
+-            self.xhtml.text = match.token + self.token
++            new_token.xhtml.text = save_add(match.token+self.token, 
++                                            new_token.xhtml.text)
+             
+-class SwitchMarkupToken(EncapsulateMarkupToken):
+-    open_wiki_markup = {}
++class SwitchMarkupToken(Token):
++    def __init__(self, token, *args, **kwargs):
++        Token.__init__(self, token, *args, **kwargs)
++        self.STATE = SWITCH_MARKUP + self.text
++        self.EMBED = EMBED_MARKUP + self.text
++    
+     def evaluate(self, result, tokens, state):
+-        if not hasattr(self, 'type'):
+-            if (bool(self.open_wiki_markup.get(self.text, False)) or
+-                 bool(self.open_html_markup.get(self.html_tag, False))):
+-                self.type = ')'
+-            else:
+-                self.type = '('
+-            
+-        EncapsulateMarkupToken.evaluate(self, result, tokens, state)
+-    def do_close(self,match, new_token, second_content): 
+-        self.content = new_token.xhtml # TODO: this is only a DEBUG fix
++        Token.evaluate(self, result, tokens, state)
++        state[self.STATE] = state.get(self.STATE, 0) + 1
+ 
++    def match_is_open(self):
++        return self.state.get(self.STATE, 0) &gt; 0
++
++    def close_matching(self, match):
++        return self.state.get(self.STATE, 0) == 1 \
++            and isinstance(match, SwitchMarkupToken)
+         
++    def close(self, match, new_token):
++        self.state[self.STATE] = self.state.get(self.STATE, 0) - 2
++        if new_token.xhtml.text is not None or len(new_token.xhtml) &gt; 0:
++            new_token.xhtml.tag = SPECIAL_MARKUP[self.text][0]
++            new_token.xhtml.set('class', SPECIAL_MARKUP[self.text][1])
++            if self.state.get(ENCAPSULATE_MARKUP + self.text, 0) &gt; 0:
++                if not self.state.has_key(self.EMBED):
++                    self.state[self.EMBED] = []
++                self.state[self.EMBED].append(new_token.xhtml)
++            xhtml = Element('div')
++            xhtml.append(new_token.xhtml)
++            new_token.xhtml = xhtml
++        else:
++            new_token.xhtml.text = save_add(match.token+self.token, 
++                                            new_token.xhtml.text)
++        self.tokens.insert(0, new_token)
++
++    def render(self, new_token):
++        self.state[self.STATE] = self.state.get(self.STATE, 0) - 1
++        Token.render(self, new_token)
++
++
++        
+ class LineBreakToken(Token):
+     def render(self, new_token):
+         xhtml = Element('div')
+@@ -265,19 +265,33 @@
+             Token.evaluate(self, result, tokens, state)
+     
+     def match_is_open(self):
+-        return self.state.get(&quot;prefix_count&quot;, 0) &gt; 0
++        return self.state.get(PREFIX_COUNT, 0) &gt; 0
+     
+     def close_matching(self, match):
+         return isinstance(match, PrefixToken)
+         
+     def close(self, match, new_token):
+-        self.state[&quot;prefix_count&quot;] = self.state.get(&quot;prefix_count&quot;, 0) - 1
++        self.state[PREFIX_COUNT] = self.state.get(PREFIX_COUNT, 0) - 1
+         match.prefix(new_token)
+         self.tokens.insert(0, self)
+             
+-class ParagraphToken(LineBreakToken):
++class LineBreakOutputToken(LineBreakToken):
++    def render(self, new_token):
++        xhtml = Element('div')
++        SubElement(xhtml, 'br')
++        new_token.prepend_element_contents(xhtml)
++    def evaluate(self, result, tokens, state):
++        while type(tokens[0]) == LineBreakToken:
++            next_token = tokens.pop(0)
++            self.token += next_token.token
++        while len(result) &gt;0 and type(result[-1]) == LineBreakToken:
++            previous_result = result.pop()
++            self.token = previous_result.token + self.token
++        LineBreakToken.evaluate(self, result, tokens, state)
++        
++class ParagraphToken(LineBreakOutputToken):
+     def __init__(self, token, *args, **kwargs):
+-        LineBreakToken.__init__(self, token, *args, **kwargs)
++        LineBreakOutputToken.__init__(self, token, *args, **kwargs)
+         self.preference = 0
+         self.xhtml = Element('div')
+         
+@@ -286,11 +300,11 @@
+     
+     def close_matching(self, match):
+         return isinstance(match, ParagraphToken) \
+-               or LineBreakToken.close_matching(self, match)
++               or LineBreakOutputToken.close_matching(self, match)
+             
+     def close(self, match, new_token):
+-        if LineBreakToken.close_matching(self, match):
+-            LineBreakToken.close(self, match, new_token)
++        if LineBreakOutputToken.close_matching(self, match):
++            LineBreakOutputToken.close(self, match, new_token)
+         else:
+             if len(new_token.xhtml) != 0 or new_token.xhtml.text is not None \
+                                          or new_token.xhtml.tail is not None:
+@@ -304,15 +318,6 @@
+         
+     def render(self, new_token):
+         new_token.prepend_element_contents(self.xhtml)
+-        
+-    def evaluate(self, result, tokens, state):
+-        while type(tokens[0]) == LineBreakToken:
+-            next_token = tokens.pop(0)
+-            self.token += next_token.token
+-        while len(result) &gt;0 and type(result[-1]) == LineBreakToken:
+-            previous_result = result.pop()
+-            self.token = previous_result.token + self.token
+-        LineBreakToken.evaluate(self, result, tokens, state)
+             
+ class BetweenParagraphsToken(ParagraphToken):
+     def do_extended_close(self, inserted_token):
+@@ -327,6 +332,7 @@
+     def do_extended_close(self, inserted_token):
+         inserted_token.xhtml.append(self.xhtml)
+ 
++
+ class StructureModifyToken(Token): 
+ #modifiziert letzte geoeffnete struktur, wird dann wegfallen lassen =&gt; keine
+ # preference
+@@ -338,11 +344,11 @@
+ 
+ class PrefixToken(Token):
+     def evaluate(self, result, tokens, state):
+-        state[&quot;prefix_count&quot;] = state.get(&quot;prefix_count&quot;, 0) + 1
++        state[PREFIX_COUNT] = state.get(PREFIX_COUNT, 0) + 1
+         Token.evaluate(self, result, tokens, state)
+         
+     def render(self, new_token):
+-        self.state[&quot;prefix_count&quot;] = self.state.get(&quot;prefix_count&quot;, 0) - 1
++        self.state[PREFIX_COUNT] = self.state.get(PREFIX_COUNT, 0) - 1
+         Token.render(self, new_token)
+     
+     def prefix(self, new_token):
+@@ -353,9 +359,11 @@
+         new_token.xhtml.tag = 'h%i' % (len(self.token) - 1)
+         PrefixToken.prefix(self, BeetweenParagraphsXHTML(new_token.xhtml, 
+                                                          self.token))
+-    
++
++
+ class ListToken(Token): 
+     pass
++
+ class LinkToken(Token): 
+     pass
+ class EmbeddedLinkToken(LinkToken): 
+@@ -376,7 +384,7 @@
+                      cut_left=2, 
+                      cut_right=2, decode_backslash = True)),
+               # escaped text, preformatted:
+-              (10, r'\[@([^\\@\[]|\\.|@[^\\\]])*@\]', 
++              (10, r'\[@([^\\@]|@?\\.|@[^\\\]])*@\]', 
+                      token_factory(BetweenParagraphsToken,
+                      preference = 0, html_tag='pre',
+                      cut_left=2, cut_right=2, 
+@@ -384,8 +392,8 @@
+               # escaped single character:
+               (10, r'\\.', token_factory(TextToken, cut_left=1)),
+               # line break in output
+-              (20, r'([ \n\t]*\n%%%%%*[ \n\t]*)+\n',
+-                     token_factory(SingleToken, preference=10, html_tag='br')),
++              (20, r'^%%%%%+[ \t]*(\n%%%%%+[ \t]*)*$',
++                     token_factory(LineBreakOutputToken, preference=1)),
+               # line break in input (non-printable)
+               (40, r'[ \t]*\n[ \t]*', token_factory(LineBreakToken, preference=20)),
+               # include link start
+@@ -402,11 +410,11 @@
+               (20, r'[ \t]&gt;&gt;[ \t]', token_factory(LinkToken, type='_', 
+                      preference=20)),
+               # special enclosing markup
+-              (90, r'[/\*_=]', token_factory(SwitchMarkupToken, preference=40)),
++              (90, r'[/\*_=]', token_factory(SwitchMarkupToken, preference=90)),
+               (10, r'\[[/\*_=\'&quot;^,#~]', token_factory(EncapsulateMarkupToken, 
+-                    type='(', preference=40, cut_left=1)),
++                    type='(', preference=20, cut_left=1)),
+               (10, r'[/\*_=\'&quot;^,#~]\]', token_factory(EncapsulateMarkupToken, 
+-                    type=')', preference=40, cut_right=1)),
++                    type=')', preference=20, cut_right=1)),
+ 
+               # modifiers
+               (10, r'&lt;[:()^,]&gt;', token_factory(StructureModifyToken, 
+@@ -415,23 +423,24 @@
+               (10, r'^={1,6}[ \t]', token_factory(HeadlineToken, 
+                     preference=30)),
+               # lists
+-              (10, r'\n[#*-]+[ \t]', token_factory(ListToken, preference=10)),
++              (10, r'^[#*-]+[ \t]', token_factory(ListToken, preference=10)),
+               # tables
+-              (10, r'\n\|', token_factory(TableToken, type='(', preference=0)),
+-              (10, r'\|(?=\n)', token_factory(TableToken, type=')', 
++              (10, r'^\|', token_factory(TableToken, type='(', preference=0)),
++              (10, r'\|$', token_factory(TableToken, type=')', 
+                     preference=0)),
+               (90, r'\|', token_factory(TableToken, type='_', preference=0)),
+               # macros
+               (10, r'\{\{', token_factory(MacroToken, type='(', preference=20)),
+               (10, r'\}\}', token_factory(MacroToken, type=')', preference=20)),
+               # n-dash and m-dash
+-              (20, r'--', token_factory(TextToken, new_text=u'\u2013')),
+-              (20, r'---', token_factory(TextToken, new_text=u'\u2014')),
++              (20, r'----+', token_factory(TextToken)),
++              (21, r'---', token_factory(TextToken, new_text=u'\u2014')),
++              (22, r'--', token_factory(TextToken, new_text=u'\u2013')),
+               # horizontal rule
+-              (10, r'\n----(?=\n)', token_factory(SingleToken, preference=0, 
+-                     html_tag='hr')),
++              (10, r'^----$', token_factory(BetweenParagraphsToken,
++                     preference = 0, html_tag='hr',cut_left=4)),
+               # what's left 
+-              (90, r'[ \t]', token_factory(TextToken, preference=30)),
++              (90, r'[ \t]+', token_factory(WhitespaceToken)),
+               (99, r'.', token_factory(TextToken))
+               ]
+ 
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000007.html">[fellowiki-svncheckins] r9 - in trunk/fellowiki: tests/wiki/tests/simple_markup wiki
+</A></li>
+	<LI>Next message: <A HREF="000009.html">[fellowiki-svncheckins] r11 - in trunk/fellowiki/tests/wiki/tests: . known_issues simple_markup
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#8">[ date ]</a>
+              <a href="thread.html#8">[ thread ]</a>
+              <a href="subject.html#8">[ subject ]</a>
+              <a href="author.html#8">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,319 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r6 - trunk/fellowiki/tests/wiki
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-March/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r6%20-%20trunk/fellowiki/tests/wiki&In-Reply-To=%3C200603121151.k2CBpwUM019778%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000003.html">
+   <LINK REL="Next"  HREF="000005.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r6 - trunk/fellowiki/tests/wiki</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r6%20-%20trunk/fellowiki/tests/wiki&In-Reply-To=%3C200603121151.k2CBpwUM019778%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r6 - trunk/fellowiki/tests/wiki">fingerle at berlios.de
+       </A><BR>
+    <I>Sun Mar 12 12:51:58 CET 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000003.html">[fellowiki-svncheckins] r5 - trunk/fellowiki/tests/wiki
+</A></li>
+        <LI>Next message: <A HREF="000005.html">[fellowiki-svncheckins] r7 - pjm trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4">[ date ]</a>
+              <a href="thread.html#4">[ thread ]</a>
+              <a href="subject.html#4">[ subject ]</a>
+              <a href="author.html#4">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-03-12 12:51:39 +0100 (Sun, 12 Mar 2006)
+New Revision: 6
+
+Added:
+   trunk/fellowiki/tests/wiki/ut_parser.py
+Removed:
+   trunk/fellowiki/tests/wiki/ut_wikiparser.py
+Log:
+- moved ut_wikiparser to ut_parser
+
+
+Copied: trunk/fellowiki/tests/wiki/ut_parser.py (from rev 5, trunk/fellowiki/tests/wiki/ut_wikiparser.py)
+
+Deleted: trunk/fellowiki/tests/wiki/ut_wikiparser.py
+===================================================================
+--- trunk/fellowiki/tests/wiki/ut_wikiparser.py	2006-03-12 11:51:06 UTC (rev 5)
++++ trunk/fellowiki/tests/wiki/ut_wikiparser.py	2006-03-12 11:51:39 UTC (rev 6)
+@@ -1,238 +0,0 @@
+-# pylint: disable-msg=W0702,W0706
+-# W0702, W0706: allow exception handling scheme in new_test_func
+-
+-# Copyright (c) 2006 Jan Niklas Fingerle
+-# 
+-# Permission is hereby granted, free of charge, to any person obtaining a
+-# copy of this software and associated documentation files (the &quot;Software&quot;),
+-# to deal in the Software without restriction, including without limitation
+-# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+-# and/or sell copies of the Software, and to permit persons to whom the
+-# Software is furnished to do so, subject to the following conditions:
+-#
+-# The above copyright notice and this permission notice shall be included in
+-# all copies or substantial portions of the Software.
+-#
+-# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+-# DEALINGS IN THE SOFTWARE.
+-
+-# XHTML validating inspired by Cookbook, recipe 12.8 TODO: elaborate
+-
+-&quot;&quot;&quot;unit tests for the classmates wiki parser
+-
+-The unit test suite  for the classmates wiki parser is made available through 
+-the &quot;suite()&quot; function.
+-    
+-The function &quot;make_wiki_test_suite()&quot; may be used to implement unit test for 
+-extensions to the classmates wiki parser.
+-
+-&quot;&quot;&quot;
+-
+-__revision__ = &quot;$Revision:$&quot;
+-
+-import unittest
+-import codecs
+-import sys
+-
+-from os.path import dirname, isdir, splitext, join, abspath, basename
+-from os import listdir
+-from elementtree.ElementTree import tostring, fromstring, Element, SubElement
+-from xml.parsers.xmlproc import xmlval, utils, xmldtd
+-
+-from fellowiki.wiki.parser import WikiParser
+-
+-# Pre-load the xhtml DTD once, since reloading for each xmlproc
+-# would be a major performance hit.
+-_xhtml_dtd = xmldtd.load_dtd(join(dirname(abspath(__file__)), '..', '..',
+-                                  'third_party', 'w3c', 'xhtml1-strict.dtd'))
+-    
+-def _make_new_test_func(fname, tc_extension):
+-    &quot;&quot;&quot;generate a new test function to be used in our unit tests
+-    
+-    parameters: fname:        fully qualified filename, but without file 
+-                              extension, to generate the test case from
+-                tc_extension: extension name of the test case, refer to 
+-                              new_test_func for exact desciption
+-    returns: test function for the new test case. The test funcion takes
+-             one argument, self, and is to be used as a method of WikiTestCase.
+-    throws: nothing to be expected
+-
+-    The returned test function is always &quot;the same&quot;, with the one exception
+-    that it uses different &quot;fname&quot; and &quot;tc_extension&quot; values (i.e. it's a
+-    closure).
+-
+-    &quot;&quot;&quot;
+-
+-    def new_test_func(self):
+-        &quot;&quot;&quot;test translation of one wiki markup string
+-        
+-        parameters: self: instance of WikiTestCase
+-        returns: nothing
+-        throws: whatever exceptions occur during parsing of the wiki text
+-                and exceptions used by the unittest framework to signal 
+-                test failure
+-        bound to (closure): &quot;fname&quot; and &quot;tc_extension&quot; from the surrounding 
+-                            scope
+-        
+-        The function parses the file &lt;fname&gt;.wiki and compares the result to 
+-        the content of &lt;fname&gt;.&lt;tc_extension&gt;.xml. 
+-        
+-        If the unit test fails (but not in case of errors), an attempt is 
+-        made, to write &lt;fname&gt;.&lt;tc_extension&gt;.generated.xml. If this write 
+-        attempt fails, it does so silently. 
+-        In any case the original fail or error (that occured before the 
+-        writing attempt) will be raised to the caller (i.e. the unit test 
+-        &quot;test runner&quot;).
+-        
+-        &quot;&quot;&quot;
+-        
+-        try:
+-            # parse wiki text to XML tree
+-            wiki_file = codecs.open('%s.wiki' % fname, 'r', 'utf8')
+-            wiki_text = wiki_file.read()
+-            wiki_file.close()
+-            xhtml_tree_wiki = self.parser.parse(wiki_text)
+-            
+-            # 'extend' tree to a complete XML tree
+-            xhtml_tree_wiki_ext = Element('html', 
+-                                          xmlns='<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>')
+-            head = SubElement(xhtml_tree_wiki_ext,'head')
+-            SubElement(head,'title')
+-            body = SubElement(xhtml_tree_wiki_ext,'body')
+-            body.append(xhtml_tree_wiki)
+-            
+-            # do one 'round trip' to get a canonical form
+-            xhtml_text_wiki_ext = tostring(xhtml_tree_wiki_ext)
+-            xhtml_tree_wiki_ext_cononical = fromstring(xhtml_text_wiki_ext)
+-            
+-            # read expected XML tree from file
+-            try:
+-                xhtml_fn = '%s.%s.xml' % (fname, tc_extension)
+-                xhtml_file = codecs.open(xhtml_fn, 'r', 'utf8')
+-                xhtml_text = xhtml_file.read()
+-                xhtml_file.close()
+-            except IOError:
+-                self.fail('Could not open XML file &quot;%s&quot;' % xhtml_fn)
+-            xhtml_tree = fromstring(xhtml_text)
+-            
+-            # and now for the tests
+-            self._assert_etrees(xhtml_tree, xhtml_tree_wiki_ext_cononical)
+-            self.xhtml_validator.parse_resource(xhtml_fn) # validate as XHTML
+-            
+-        except self.failureException, ex_val:
+-            # I want to re-raise *this* exception with full traceback, even if I
+-            # get another one inbetween
+-            ex_tb = sys.exc_info()[-1]
+-            try:
+-                gen_file = codecs.open('%s.%s.generated.xml' % 
+-                             (fname, tc_extension), 'w+','utf8')
+-                gen_file.write(xhtml_text_wiki_ext)
+-                gen_file.close
+-            except:
+-                pass # it's only debug output after all
+-            raise self.failureException, ex_val, ex_tb 
+-    return new_test_func
+-    
+-def make_wiki_test_suite(tc_extension, 
+-                         tc_name = None, tc_path = 
+-                         join(dirname(abspath(__file__)),'tests'), **kwargs):
+-    &quot;&quot;&quot;generate a new wiki test suite for unit testing
+-    
+-    parameters: tc_extension: extension for XML file names (&quot;&lt;fname&gt;.wiki&quot; will
+-                              be compared to &lt;fname&gt;.&lt;tc_extension&gt;.xml)
+-                tc_name:      suffix for the test case classes name (will be
+-                              &quot;WikiTestCase_&lt;tc_name&gt;&quot;). If None (default), 
+-                              tc_extension will be used.
+-                tc_path:      directory, where to look for *.wiki and *.xml 
+-                              files. Defaults to subdirectory &quot;tests&quot; of the 
+-                              directory where this file is located.
+-                **kwargs:     Any additional keyword arguments are passed to 
+-                              the wiki parser's __init__() method.
+-    returns: an instance of unittest.TestSuite
+-    throws: nothing to be expected
+-     
+-    Test cases and test suites are generated &quot;the normal way&quot; from classes. 
+-    Therefore the test case classes must be generated dynamically. In the end
+-    the internal structure of the test suites is more like normal test cases
+-    than if we had built the suites ourselves.
+-       
+-    &quot;&quot;&quot;
+-    
+-    if tc_name == None:
+-        tc_name = tc_extension        
+-    
+-    class WikiTestCase(unittest.TestCase):
+-        &quot;&quot;&quot;test case for the wiki parser&quot;&quot;&quot;
+-        
+-        def _assert_etrees(self, etree_1, etree_2):
+-            &quot;&quot;&quot;assert that two ElementTrees are equal
+-            
+-            parameters: self:    instance of subclass of unittest.TestCase
+-                        etree_1, 
+-                        etree2:  two ElementTrees
+-            
+-            &quot;&quot;&quot;
+-            
+-            self.assertEqual(etree_1.tag, etree_2.tag)
+-            self.assertEqual(etree_1.text, etree_2.text)
+-            self.assertEqual(etree_1.tail, etree_2.tail)
+-            self.assertEqual(etree_1.attrib, etree_2.attrib)
+-            
+-            children_1 = etree_1.getchildren()
+-            children_2 = etree_2.getchildren()
+-            
+-            self.assertEqual(len(children_1), len(children_2))
+-            for (child_1, child_2) in zip(children_1, children_2):
+-                self._assert_etrees(child_1, child_2)
+-                
+-        def setUp(self): 
+-            &quot;&quot;&quot;set up wiki parser and xhtml validator&quot;&quot;&quot;
+-            self.parser = WikiParser(**kwargs)
+-            # unfortunately I need a new validator each time around (Bug in 
+-            # xmlval: part of the old file remains in the buffer)
+-            self.xhtml_validator = xmlval.XMLValidator()
+-            self.xhtml_validator.set_error_handler(utils.ErrorRaiser(
+-                                                          self.xhtml_validator))
+-            self.xhtml_validator.val.dtd = self.xhtml_validator.dtd = \
+-                                           self.xhtml_validator.ent = _xhtml_dtd
+-        
+-    WikiTestCase.__name__ = 'WikiTestCase_%s' % tc_name
+-    
+-    # find test files and subdirectories
+-    fnames = listdir(tc_path)
+-    fnames = [file_ for file_ in fnames if file_[0:1] != '.'] # no hidden files
+-    fnames = [join(tc_path, file_) for file_ in fnames] 
+-    files = [splitext(file_)[0] for file_ in fnames 
+-                                               if splitext(file_)[1] == '.wiki']
+-    dirs = [file_ for file_ in fnames if isdir(file_)]
+-    
+-    # for every *.wiki file generate a test method
+-    for file_ in files:
+-        new_test_func = _make_new_test_func(file_, tc_extension)
+-        new_test_func.__doc__ = &quot;wiki parser: %s - %s&quot; % \
+-                                                      (tc_name, basename(file_))
+-        new_test_func.__name__ = tf_name = &quot;test_%s&quot; % basename(file_)
+-        setattr(WikiTestCase, tf_name, new_test_func)
+-    
+-    # generate test suite and add sub-test-suites
+-    suite_ = unittest.makeSuite(WikiTestCase)
+-    for dir_ in dirs:
+-        suite_.addTest(make_wiki_test_suite(tc_extension, 
+-                                           tc_name = '%s_%s' %
+-                                                      (tc_name, basename(dir_)),
+-                                           tc_path = dir_, 
+-                                           **kwargs))
+-    
+-    return suite_
+-    
+-def suite():
+-    &quot;&quot;&quot;return default unit test suite for this module&quot;&quot;&quot;
+-    return make_wiki_test_suite('complete')
+-
+-if __name__ == '__main__':
+-    unittest.TextTestRunner(verbosity=2).run(suite())
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000003.html">[fellowiki-svncheckins] r5 - trunk/fellowiki/tests/wiki
+</A></li>
+	<LI>Next message: <A HREF="000005.html">[fellowiki-svncheckins] r7 - pjm trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#4">[ date ]</a>
+              <a href="thread.html#4">[ thread ]</a>
+              <a href="subject.html#4">[ subject ]</a>
+              <a href="author.html#4">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

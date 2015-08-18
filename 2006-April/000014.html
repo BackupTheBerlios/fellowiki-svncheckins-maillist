@@ -1,0 +1,990 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r16 - pjm trunk/fellowiki/tests/wiki/tests/mixed_markup trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/wiki
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-April/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r16%20-%20pjm%20trunk/fellowiki/tests/wiki/tests/mixed_markup%20trunk/fellowiki/tests/wiki/tests/simple_markup%20trunk/fellowiki/wiki&In-Reply-To=%3C200604022244.k32Mi2OR025739%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="000015.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r16 - pjm trunk/fellowiki/tests/wiki/tests/mixed_markup trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/wiki</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r16%20-%20pjm%20trunk/fellowiki/tests/wiki/tests/mixed_markup%20trunk/fellowiki/tests/wiki/tests/simple_markup%20trunk/fellowiki/wiki&In-Reply-To=%3C200604022244.k32Mi2OR025739%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r16 - pjm trunk/fellowiki/tests/wiki/tests/mixed_markup trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/wiki">fingerle at berlios.de
+       </A><BR>
+    <I>Mon Apr  3 00:44:02 CEST 2006</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="000015.html">[fellowiki-svncheckins] r17 - trunk/fellowiki/wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#14">[ date ]</a>
+              <a href="thread.html#14">[ thread ]</a>
+              <a href="subject.html#14">[ subject ]</a>
+              <a href="author.html#14">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-04-03 00:44:00 +0200 (Mon, 03 Apr 2006)
+New Revision: 16
+
+Added:
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/lists_combined.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/lists_combined.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/headlines_with_text.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/headlines_with_text.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/lists_invalid.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_list_simple.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_lists_hierarchical.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_list_simple.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_lists_hierarchical.complete.xml
+Removed:
+   trunk/fellowiki/tests/wiki/tests/simple_markup/lists_combined.wiki
+Modified:
+   pjm/milestones.txt
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_list_simple.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_lists_hierarchical.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_list_simple.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_lists_hierarchical.wiki
+   trunk/fellowiki/wiki/parser.py
+Log:
+- removed executable property from milestones.txt
+- wiki parser: refactoring for prefix items and for performance issues
+- wiki parser: fixed lists
+- wiki parser: added another test for headlines
+
+
+
+Property changes on: pjm/milestones.txt
+___________________________________________________________________
+Name: svn:executable
+   - *
+
+Modified: trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.complete.xml	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.complete.xml	2006-04-02 22:44:00 UTC (rev 16)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold&lt;span class=&quot;bold-embedded&quot;&gt;bold&lt;/span&gt;bold&lt;/b&gt;non-bold&lt;/p&gt;&lt;p&gt;non-bold*non-bold&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;non-bold*non-bold&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;boldboldbold&lt;/b&gt;non-bold&lt;/p&gt;&lt;p&gt;non-bold*non-bold&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;non-bold*non-bold&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Modified: trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.complete.xml	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.complete.xml	2006-04-02 22:44:00 UTC (rev 16)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic&lt;span class=&quot;italic-embedded&quot;&gt;italic&lt;/span&gt;italic&lt;/em&gt;non-italic&lt;/p&gt;&lt;p&gt;non-italic/non-italic&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;non-italic/non-italic&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italicitalicitalic&lt;/em&gt;non-italic&lt;/p&gt;&lt;p&gt;non-italic/non-italic&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;non-italic/non-italic&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/mixed_markup/lists_combined.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/lists_combined.complete.xml	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/lists_combined.complete.xml	2006-04-02 22:44:00 UTC (rev 16)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1.*&lt;/li&gt;&lt;li&gt;item 1.*&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1.*.-&lt;/li&gt;&lt;li&gt;item 1.*.-&lt;/li&gt;&lt;li&gt;item 1.*.-&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item 2&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 2.-&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 2.-.*&lt;/li&gt;&lt;li&gt;item 2.-.*&lt;/li&gt;&lt;li&gt;item 2.-.*&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item 2.-&lt;/li&gt;&lt;li&gt;item 2.-&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;/ol&gt;&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item *&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item *.1&lt;/li&gt;&lt;li&gt;item *.2&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item *.2.-&lt;/li&gt;&lt;li&gt;item *.2.-&lt;/li&gt;&lt;li&gt;item *.2.-&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;li&gt;item *&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item *.1&lt;/li&gt;&lt;li&gt;item *.2&lt;/li&gt;&lt;/ol&gt;&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item *.-&lt;/li&gt;&lt;li&gt;item *.-&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item *.-.1&lt;/li&gt;&lt;li&gt;item *.-.2&lt;/li&gt;&lt;li&gt;item *.-.3&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;li&gt;item *.-&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item *.-.1&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item -&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item -.1&lt;/li&gt;&lt;li&gt;item !
+ -.2&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item -.2.*&lt;/li&gt;&lt;li&gt;item -.2.*&lt;/li&gt;&lt;li&gt;item -.2.*&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;li&gt;item -&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item -.1&lt;/li&gt;&lt;li&gt;item -.2&lt;/li&gt;&lt;/ol&gt;&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item -.*&lt;/li&gt;&lt;li&gt;item -.*&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item -.*.1&lt;/li&gt;&lt;li&gt;item -.*.2&lt;/li&gt;&lt;li&gt;item -.*.3&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;li&gt;item -.*&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item -.*.1&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item -&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Copied: trunk/fellowiki/tests/wiki/tests/mixed_markup/lists_combined.wiki (from rev 14, trunk/fellowiki/tests/wiki/tests/simple_markup/lists_combined.wiki)
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/lists_combined.wiki	2006-03-26 21:25:01 UTC (rev 14)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/lists_combined.wiki	2006-04-02 22:44:00 UTC (rev 16)
+@@ -0,0 +1,49 @@
++# item 1
++#* item 1.*
++#* item 1.*
++#*- item 1.*.-
++#*- item 1.*.-
++#*- item 1.*.-
++# item 2
++#- item 2.-
++#-* item 2.-.*
++#-* item 2.-.*
++#-* item 2.-.*
++#- item 2.-
++#- item 2.-
++# item 3
++
++* item *
++*# item *.1
++*# item *.2
++*#- item *.2.-
++*#- item *.2.-
++*#- item *.2.-
++* item *
++*# item *.1
++*# item *.2
++*- item *.-
++*- item *.-
++*-# item *.-.1
++*-# item *.-.2
++*-# item *.-.3
++*- item *.-
++*-# item *.-.1
++
++- item -
++-# item -.1
++-# item -.2
++-#* item -.2.*
++-#* item -.2.*
++-#* item -.2.*
++- item -
++-# item -.1
++-# item -.2
++-* item -.*
++-* item -.*
++-*# item -.*.1
++-*# item -.*.2
++-*# item -.*.3
++-* item -.*
++-*# item -.*.1
++- item -
+
+Modified: trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.complete.xml	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.complete.xml	2006-04-02 22:44:00 UTC (rev 16)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;span class=&quot;typewriter-embedded&quot;&gt;typewriter&lt;/span&gt;typewriter&lt;/tt&gt;non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter=non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;non-typewriter=non-typewriter&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewritertypewritertypewriter&lt;/tt&gt;non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter=non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;non-typewriter=non-typewriter&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Modified: trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.complete.xml	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.complete.xml	2006-04-02 22:44:00 UTC (rev 16)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined&lt;span class=&quot;underlined-embedded&quot;&gt;underlined&lt;/span&gt;underlined&lt;/span&gt;non-underlined&lt;/p&gt;&lt;p&gt;non-underlined_non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;non-underlined_non-underlined&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlinedunderlinedunderlined&lt;/span&gt;non-underlined&lt;/p&gt;&lt;p&gt;non-underlined_non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;non-underlined_non-underlined&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/headlines_with_text.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/headlines_with_text.complete.xml	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/headlines_with_text.complete.xml	2006-04-02 22:44:00 UTC (rev 16)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;Hello World!&lt;/p&gt;&lt;h1&gt;Headline 1&lt;/h1&gt;&lt;p&gt;Hello World!&lt;/p&gt;&lt;h2&gt;Headline 2&lt;/h2&gt;&lt;p&gt;Hello World!&lt;/p&gt;&lt;h3&gt;Headline 3&lt;/h3&gt;&lt;p&gt;Hello World!&lt;/p&gt;&lt;h4&gt;Headline 4&lt;/h4&gt;&lt;p&gt;Hello World! Hello World!&lt;/p&gt;&lt;h5&gt;Headline 5&lt;/h5&gt;&lt;p&gt;Hello World!&lt;/p&gt;&lt;h6&gt;Headline 6&lt;/h6&gt;&lt;p&gt;Hello World!&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/headlines_with_text.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/headlines_with_text.wiki	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/headlines_with_text.wiki	2006-04-02 22:44:00 UTC (rev 16)
+@@ -0,0 +1,21 @@
++Hello World!
++
++= Headline 1
++Hello World!
++
++== Headline 2
++
++Hello World!
++
++=== Headline 3
++
++Hello World!
++==== Headline 4
++ 
++Hello World!
++Hello World!
++ 
++===== Headline 5
++   Hello World!
++====== Headline 6
++Hello World!     
+
+Modified: trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.complete.xml	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.complete.xml	2006-04-02 22:44:00 UTC (rev 16)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;text&lt;/p&gt;&lt;hr /&gt;&lt;p&gt;text ---- text ----  text ---- text &#8212; text ----- text&lt;/p&gt;&lt;hr /&gt;&lt;p&gt;text&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;text&lt;/p&gt;&lt;hr /&gt;&lt;p&gt;text ---- text ---- text ---- text &#8212; text ----- text&lt;/p&gt;&lt;hr /&gt;&lt;p&gt;text&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Deleted: trunk/fellowiki/tests/wiki/tests/simple_markup/lists_combined.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/lists_combined.wiki	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/lists_combined.wiki	2006-04-02 22:44:00 UTC (rev 16)
+@@ -1,61 +0,0 @@
+-# item 1
+-#* item 1.*
+-#* item 1.*
+-#*- item 1.*.-
+-#*- item 1.*.-
+-#*- item 1.*.-
+-# item 2
+-#- item 2.-
+-#-* item 2.-.*
+-#-* item 2.-.*
+-#-* item 2.-.*
+-#- item 2.-
+-#- item 2.-
+-# item 3
+-
+-* item *
+-*# item *.1
+-*# item *.2
+-*#- item *.2.-
+-*#- item *.2.-
+-*#- item *.2.-
+-* item *
+-*# item *.1
+-*# item *.2
+-*- item *.-
+-*- item *.-
+-*-# item *.-.1
+-*-# item *.-.2
+-*-# item *.-.3
+-*- item *.-
+-*-# item *.-.1
+-
+-- item -
+--# item -.1
+--# item -.2
+--#* item -.2.*
+--#* item -.2.*
+--#* item -.2.*
+-- item -
+--# item -.1
+--# item -.2
+--* item -.*
+--* item -.*
+--*# item -.*.1
+--*# item -.*.2
+--*# item -.*.3
+--* item -.*
+--*# item -.*.1
+-- item -
+-
+-before
+-* list-item
+-after
+-
+-before
+-# list-item
+-after
+-
+-before
+-- list-item
+-after
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/lists_invalid.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/lists_invalid.complete.xml	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/lists_invalid.complete.xml	2006-04-02 22:44:00 UTC (rev 16)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;*text&lt;/p&gt;&lt;p&gt;-text&lt;/p&gt;&lt;p&gt;#text&lt;/p&gt;&lt;p&gt;*-text&lt;/p&gt;&lt;p&gt;**text&lt;/p&gt;&lt;p&gt;*#text&lt;/p&gt;&lt;p&gt;&#8211;text&lt;/p&gt;&lt;p&gt;-*text&lt;/p&gt;&lt;p&gt;-#text&lt;/p&gt;&lt;p&gt;#-text&lt;/p&gt;&lt;p&gt;#*text&lt;/p&gt;&lt;p&gt;##text&lt;/p&gt;&lt;p&gt;before *text after&lt;/p&gt;&lt;p&gt;before -text after&lt;/p&gt;&lt;p&gt;before #text after&lt;/p&gt;&lt;p&gt;before *-text after&lt;/p&gt;&lt;p&gt;before **text after&lt;/p&gt;&lt;p&gt;before *#text after&lt;/p&gt;&lt;p&gt;before &#8211;text after&lt;/p&gt;&lt;p&gt;before -*text after&lt;/p&gt;&lt;p&gt;before -#text after&lt;/p&gt;&lt;p&gt;before #-text after&lt;/p&gt;&lt;p&gt;before #*text after&lt;/p&gt;&lt;p&gt;before ##text after&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_list_simple.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_list_simple.complete.xml	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_list_simple.complete.xml	2006-04-02 22:44:00 UTC (rev 16)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;text1&lt;/p&gt;&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;li&gt;item 4&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;text2&lt;/p&gt;&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;li&gt;item 4&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;text3&lt;/p&gt;&lt;p&gt;text4&lt;/p&gt;&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;li&gt;item 4&lt;/li&gt;&lt;/ol&gt;&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;li&gt;item 4&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;text5&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_list_simple.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_list_simple.wiki	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_list_simple.wiki	2006-04-02 22:44:00 UTC (rev 16)
+@@ -1,3 +1,5 @@
++text1
++
+ # item 1
+ # item 2
+ # item 3
+@@ -3,6 +5,22 @@
+ # item 4
+ 
++text2
++
+ # item 1
+ # item 2
+ # item 3
+ # item 4
++text3
++
++text4
++# item 1
++# item 2
++# item 3
++# item 4
++
++# item 1
++# item 2
++# item 3
++# item 4
++
++text5
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_lists_hierarchical.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_lists_hierarchical.complete.xml	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_lists_hierarchical.complete.xml	2006-04-02 22:44:00 UTC (rev 16)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;text1&lt;/p&gt;&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1.1&lt;/li&gt;&lt;li&gt;item 1.2&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1.2.1&lt;/li&gt;&lt;li&gt;item 1.2.2&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;text2&lt;/p&gt;&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1.1&lt;/li&gt;&lt;li&gt;item 1.2&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1.2.1&lt;/li&gt;&lt;li&gt;item 1.2.2&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;text3&lt;/p&gt;&lt;p&gt;text4&lt;/p&gt;&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1.1&lt;/li&gt;&lt;li&gt;item 1.2&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1.2.1&lt;/li&gt;&lt;li&gt;item 1.2.2&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;/ol&gt;&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1.1&lt;/li&gt;&lt;li&gt;item 1.2&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1.2.1&lt;/li&gt;&lt;li&gt;item 1.2.2&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;text5&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Modified: trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_lists_hierarchical.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_lists_hierarchical.wiki	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_lists_hierarchical.wiki	2006-04-02 22:44:00 UTC (rev 16)
+@@ -1,3 +1,5 @@
++text1
++
+ # item 1
+ ## item 1.1
+ ## item 1.2
+@@ -6,6 +8,8 @@
+ # item 2
+ # item 3
+ 
++text2
++
+ # item 1
+ ## item 1.1
+ ## item 1.2
+@@ -13,3 +17,23 @@
+ ### item 1.2.2
+ # item 2
+ # item 3
++text3
++
++text4
++# item 1
++## item 1.1
++## item 1.2
++### item 1.2.1
++### item 1.2.2
++# item 2
++# item 3
++
++# item 1
++## item 1.1
++## item 1.2
++### item 1.2.1
++### item 1.2.2
++# item 2
++# item 3
++
++text5
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_list_simple.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_list_simple.complete.xml	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_list_simple.complete.xml	2006-04-02 22:44:00 UTC (rev 16)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;text1&lt;/p&gt;&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;li&gt;item 4&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;text2&lt;/p&gt;&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;li&gt;item 4&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;text3&lt;/p&gt;&lt;p&gt;text4&lt;/p&gt;&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;li&gt;item 4&lt;/li&gt;&lt;/ul&gt;&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;li&gt;item 4&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;text5&lt;/p&gt;&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;li&gt;item 4&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;text6&lt;/p&gt;&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;li&gt;item 4&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;text7&lt;/p&gt;&lt;p&gt;text8&lt;/p&gt;&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;li&gt;item 4&lt;/li&gt;&lt;/ul&gt;&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;li&gt;item 4&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;text9&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_list_simple.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_list_simple.wiki	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_list_simple.wiki	2006-04-02 22:44:00 UTC (rev 16)
+@@ -1,3 +1,5 @@
++text1
++
+ * item 1
+ * item 2
+ * item 3
+@@ -3,6 +5,48 @@
+ * item 4
+ 
++text2
++
++* item 1
++* item 2
++* item 3
++* item 4
++text3
++
++text4
++* item 1
++* item 2
++* item 3
++* item 4
++
++* item 1
++* item 2
++* item 3
++* item 4
++
++text5
++
+ - item 1
+ - item 2
+ - item 3
+ - item 4
++
++text6
++
++- item 1
++- item 2
++- item 3
++- item 4
++text7
++
++text8
++- item 1
++- item 2
++- item 3
++- item 4
++
++- item 1
++- item 2
++- item 3
++- item 4
++
++text9
+
+Added: trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_lists_hierarchical.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_lists_hierarchical.complete.xml	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_lists_hierarchical.complete.xml	2006-04-02 22:44:00 UTC (rev 16)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;text1&lt;/p&gt;&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1.1&lt;/li&gt;&lt;li&gt;item 1.2&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1.2.1&lt;/li&gt;&lt;li&gt;item 1.2.2&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;text2&lt;/p&gt;&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1.1&lt;/li&gt;&lt;li&gt;item 1.2&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1.2.1&lt;/li&gt;&lt;li&gt;item 1.2.2&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;text3&lt;/p&gt;&lt;p&gt;text4&lt;/p&gt;&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1.1&lt;/li&gt;&lt;li&gt;item 1.2&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1.2.1&lt;/li&gt;&lt;li&gt;item 1.2.2&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;/ul&gt;&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1.1&lt;/li&gt;&lt;li&gt;item 1.2&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1.2.1&lt;/li&gt;&lt;li&gt;item 1.2.2&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;text5&lt;/p&gt;&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1.1&lt;/li&gt;&lt;li&gt;item 1.2&lt;ul class=&quot;bull!
+ et&quot;&gt;&lt;li&gt;item 1.2.1&lt;/li&gt;&lt;li&gt;item 1.2.2&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;text6&lt;/p&gt;&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1.1&lt;/li&gt;&lt;li&gt;item 1.2&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1.2.1&lt;/li&gt;&lt;li&gt;item 1.2.2&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;text7&lt;/p&gt;&lt;p&gt;text8&lt;/p&gt;&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1.1&lt;/li&gt;&lt;li&gt;item 1.2&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1.2.1&lt;/li&gt;&lt;li&gt;item 1.2.2&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;/ul&gt;&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1.1&lt;/li&gt;&lt;li&gt;item 1.2&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1.2.1&lt;/li&gt;&lt;li&gt;item 1.2.2&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item 2&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;text9&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Modified: trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_lists_hierarchical.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_lists_hierarchical.wiki	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_lists_hierarchical.wiki	2006-04-02 22:44:00 UTC (rev 16)
+@@ -1,3 +1,5 @@
++text1
++
+ - item 1
+ -- item 1.1
+ -- item 1.2
+@@ -6,6 +8,36 @@
+ - item 2
+ - item 3
+ 
++text2
++
++- item 1
++-- item 1.1
++-- item 1.2
++--- item 1.2.1
++--- item 1.2.2
++- item 2
++- item 3
++text3
++
++text4
++- item 1
++-- item 1.1
++-- item 1.2
++--- item 1.2.1
++--- item 1.2.2
++- item 2
++- item 3
++
++- item 1
++-- item 1.1
++-- item 1.2
++--- item 1.2.1
++--- item 1.2.2
++- item 2
++- item 3
++
++text5
++
+ * item 1
+ ** item 1.1
+ ** item 1.2
+@@ -13,3 +45,33 @@
+ *** item 1.2.2
+ * item 2
+ * item 3
++
++text6
++
++* item 1
++** item 1.1
++** item 1.2
++*** item 1.2.1
++*** item 1.2.2
++* item 2
++* item 3
++text7
++
++text8
++* item 1
++** item 1.1
++** item 1.2
++*** item 1.2.1
++*** item 1.2.2
++* item 2
++* item 3
++
++* item 1
++** item 1.1
++** item 1.2
++*** item 1.2.1
++*** item 1.2.2
++* item 2
++* item 3
++
++text9
+
+Modified: trunk/fellowiki/wiki/parser.py
+===================================================================
+--- trunk/fellowiki/wiki/parser.py	2006-03-26 21:33:54 UTC (rev 15)
++++ trunk/fellowiki/wiki/parser.py	2006-04-02 22:44:00 UTC (rev 16)
+@@ -27,12 +27,13 @@
+     
+ &quot;&quot;&quot;
+ 
+-from elementtree.ElementTree import Element, SubElement, tostring
++import elementtree.ElementTree as ElementTree
+ from fellowiki.util.assorted import attributes_from_dict, \
+-      remove_escaping_backslashes, add_element_contents, save_add
++      remove_escaping_backslashes
+       
+ import sre
+ import re
++from copy import copy
+ 
+ PREFIX_COUNT = &quot;prefix count&quot;
+ ENCAPSULATE_MARKUP = &quot;encapsulate markup&quot;
+@@ -51,6 +52,62 @@
+                   '#': ('span', 'large'),
+                   '~': ('span', 'small')}
+ 
++LIST_TAGS = {'*': ('ul', 'bullet'),
++             '-': ('ul', 'dash'),
++             '#': ('ol', 'ordered')}
++
++class XMLElement(object):
++    def __init__(self, tag = None):
++        self.tag = tag
++        self.content = []
++        self.attributes = {}
++        self.callback = []
++        
++    def to_element_tree(self): 
++        xhtml = ElementTree.Element(self.tag)
++        sub_xhtml = None
++        xhtml.attrib = copy(self.attributes)
++        current_textlist = []
++        content = copy(self.content)
++        
++        # I want to modify the list, therefore I write this a bit 
++        # more explicitly:
++        while len(content) &gt; 0:
++            item = content.pop(0) 
++            try: # should work, if it's a text list
++                current_textlist.extend(item)
++            except TypeError: # should be an XMLElement
++                if item.tag is None:
++                    content = item.content + content
++                else:
++                    current_text = ''.join(current_textlist)
++                    current_textlist = []
++                    if sub_xhtml is None:
++                        xhtml.text = current_text
++                    else:
++                        sub_xhtml.tail = current_text
++                    sub_xhtml = item.to_element_tree()
++                    xhtml.append(sub_xhtml)
++        current_text = ''.join(current_textlist)
++        if sub_xhtml is None:
++            xhtml.text = current_text
++        else:
++            sub_xhtml.tail = current_text
++        return xhtml
++        
++    def is_empty(self):
++        return len(self.content) == 0
++        
++    def is_not_empty(self):
++        return len(self.content) &gt; 0
++            
++    def append(self, *appendee):
++        self.content.extend(appendee)
++    
++    def prepend(self, *prependee):
++        self.content = list(prependee) + self.content
++        
++
+ class WikiError(StandardError):
+     pass
+ 
+@@ -74,9 +131,7 @@
+             self.text = remove_escaping_backslashes(self.text)
+             
+     def render(self, new_token):
+-        xhtml = Element('div')
+-        xhtml.text = self.token
+-        new_token.prepend_element_contents(xhtml)
++        new_token.prepend(self.token)
+         
+     def match_is_open(self):
+         return False
+@@ -100,9 +155,7 @@
+                         or len(result) &gt; 1 and result[-1].preference is None 
+                             and (result[-2].preference is None 
+                                 or result[-2].preference &gt; self.preference)
+-                        or self.match_is_open() 
+-                            and (result[-1].preference is None 
+-                                or result[-1].preference &gt;= self.preference)) 
++                        or self.match_is_open()) 
+                 or self.preference is None 
+                     and result[-1].preference is None):
+             res = result.pop()
+@@ -113,8 +166,8 @@
+                 return
+             else:
+                 res.render(new_token)
+-                
+-        result.append(new_token)
++        if new_token.xhtml.is_not_empty(): 
++            result.append(new_token)
+         if not isinstance(self, EndToken):
+             result.append(self)
+ 
+@@ -122,13 +175,22 @@
+     def __init__(self):
+         attributes_from_dict(locals())
+         self.preference = None
+-        self.xhtml = Element('div')
++        self.xhtml = XMLElement('div')
+         
+     def render(self, new_token):
+         new_token.prepend_element_contents(self.xhtml)
++    
++    def prepend(self, *prependee):
++        self.xhtml.prepend(*prependee)
+         
++    def append(self, *appendee):
++        self.xhtml.append(*appendee)
++    
+     def prepend_element_contents(self, element): 
+-        self.xhtml = add_element_contents(element, self.xhtml, 'div')
++        self.xhtml.prepend(*element.content)
++        
++    def append_element_contents(self, element): 
++        self.xhtml.append(*element.content)
+ 
+ class EndToken(Token):
+     def __init__(self):
+@@ -136,8 +198,7 @@
+         self.preference = -1
+         
+     def render(self, new_token):
+-        xhtml = Element('div')
+-        new_token.prepend_element_contents(xhtml)
++        pass
+         
+     def match_is_open(self):
+         return True
+@@ -147,12 +208,11 @@
+         Token.__init__(self, token, new_text = new_text, **attr_dict)
+         
+     def render(self, new_token):
+-        xhtml = Element('div')
+         if self.new_text is None:
+-            xhtml.text = re.sub('[ \n\t]+', ' ', self.text)
++            text = re.sub('[ \n\t]+', ' ', self.text)
+         else:
+-            xhtml.text = re.sub('[ \n\t]+', ' ', self.new_text)
+-        new_token.prepend_element_contents(xhtml)
++            text = re.sub('[ \n\t]+', ' ', self.new_text)
++        new_token.prepend(text)
+ 
+ class WhitespaceToken(TextToken):
+     def evaluate(self, result, tokens, state):
+@@ -167,7 +227,6 @@
+         Token.render(self, new_token)
+     
+     def evaluate(self, result, tokens, state):
+-        self.second_content = None
+         Token.evaluate(self, result, tokens, state)
+         if self.type == '(':
+            state[self.STATE] = state.get(self.STATE, 0) + 1
+@@ -195,18 +254,17 @@
+ 
+     def close(self, match, new_token):
+         EncapsulateToken.close(self, match, new_token)
+-        if new_token.xhtml.text is not None or len(new_token.xhtml) &gt; 0:
++        if new_token.xhtml.is_not_empty():
+             new_token.xhtml.tag = SPECIAL_MARKUP[self.text][0]
+-            new_token.xhtml.set('class',SPECIAL_MARKUP[self.text][1])
+-            xhtml = Element('div')
++            new_token.xhtml.attributes['class'] =SPECIAL_MARKUP[self.text][1]
++            xhtml = XMLElement('div')
+             xhtml.append(new_token.xhtml)
+             new_token.xhtml = xhtml
+             for xhtml_purge in self.state.pop(self.EMBED,()):
+-                xhtml_purge.tag = 'span'
+-                xhtml_purge.set('class', xhtml_purge.get('class') + '-embedded')
++                xhtml_purge.tag = None
+         else:
+-            new_token.xhtml.text = save_add(match.token+self.token, 
+-                                            new_token.xhtml.text)
++            new_token.prepend(match.token)
++            new_token.append(self.token)
+             
+ class SwitchMarkupToken(Token):
+     def __init__(self, token, *args, **kwargs):
+@@ -227,32 +285,29 @@
+         
+     def close(self, match, new_token):
+         self.state[self.STATE] = self.state.get(self.STATE, 0) - 2
+-        if new_token.xhtml.text is not None or len(new_token.xhtml) &gt; 0:
++        if new_token.xhtml.is_not_empty():
+             new_token.xhtml.tag = SPECIAL_MARKUP[self.text][0]
+-            new_token.xhtml.set('class', SPECIAL_MARKUP[self.text][1])
++            new_token.xhtml.attributes['class'] = SPECIAL_MARKUP[self.text][1]
+             if self.state.get(ENCAPSULATE_MARKUP + self.text, 0) &gt; 0:
+                 if not self.state.has_key(self.EMBED):
+                     self.state[self.EMBED] = []
+                 self.state[self.EMBED].append(new_token.xhtml)
+-            xhtml = Element('div')
++            xhtml = XMLElement('div')
+             xhtml.append(new_token.xhtml)
+             new_token.xhtml = xhtml
+         else:
+-            new_token.xhtml.text = save_add(match.token+self.token, 
+-                                            new_token.xhtml.text)
++            new_token.prepend(match.token)
++            new_token.append(self.token)
++            
+         self.tokens.insert(0, new_token)
+ 
+     def render(self, new_token):
+         self.state[self.STATE] = self.state.get(self.STATE, 0) - 1
+         Token.render(self, new_token)
+ 
+-
+-        
+ class LineBreakToken(Token):
+     def render(self, new_token):
+-        xhtml = Element('div')
+-        xhtml.text = ' '
+-        new_token.prepend_element_contents(xhtml)
++        new_token.prepend(' ')
+         
+     def evaluate(self, result, tokens, state):
+         if type(self) == type(tokens[0]) == LineBreakToken:
+@@ -265,18 +320,18 @@
+         return self.state.get(PREFIX_COUNT, 0) &gt; 0
+     
+     def close_matching(self, match):
+-        return isinstance(match, PrefixToken)
++        return isinstance(match, PrefixToken) and not match.has_been_prefixed
+         
+     def close(self, match, new_token):
+         self.state[PREFIX_COUNT] = self.state.get(PREFIX_COUNT, 0) - 1
++        if self.state[PREFIX_COUNT] &gt; 0 or type(self) &lt;&gt; LineBreakToken:
++            self.tokens.insert(0, self)
+         match.prefix(new_token)
+-        self.tokens.insert(0, self)
+             
+ class LineBreakOutputToken(LineBreakToken):
+     def render(self, new_token):
+-        xhtml = Element('div')
+-        SubElement(xhtml, 'br')
+-        new_token.prepend_element_contents(xhtml)
++        xhtml = XMLElement('br')
++        new_token.prepend(xhtml)
+     def evaluate(self, result, tokens, state):
+         while type(tokens[0]) == LineBreakToken:
+             next_token = tokens.pop(0)
+@@ -290,21 +345,20 @@
+     def __init__(self, token, *args, **kwargs):
+         LineBreakOutputToken.__init__(self, token, *args, **kwargs)
+         self.preference = 0
+-        self.xhtml = Element('div')
++        self.xhtml = XMLElement('div')
+         
+     def match_is_open(self):
+         return True
+     
+     def close_matching(self, match):
+         return isinstance(match, ParagraphToken) \
+-               or LineBreakOutputToken.close_matching(self, match)
++            or LineBreakOutputToken.close_matching(self, match) 
+             
+     def close(self, match, new_token):
+         if LineBreakOutputToken.close_matching(self, match):
+             LineBreakOutputToken.close(self, match, new_token)
+         else:
+-            if len(new_token.xhtml) != 0 or new_token.xhtml.text is not None \
+-                                         or new_token.xhtml.tail is not None:
++            if new_token.xhtml.is_not_empty():
+                new_token.xhtml.tag = 'p'
+                match.xhtml.append(new_token.xhtml)
+             self.tokens.insert(0, match)
+@@ -318,18 +372,18 @@
+             
+ class BetweenParagraphsToken(ParagraphToken):
+     def do_extended_close(self, inserted_token):
+-        embed = SubElement(inserted_token.xhtml, self.html_tag)
+-        embed.text = self.text
++        embed = XMLElement(self.html_tag)
++        embed.append(self.text)
++        inserted_token.xhtml.append(embed)
+ 
+ class BeetweenParagraphsXHTML(ParagraphToken):
+     def __init__(self, xhtml, token):
+         ParagraphToken.__init__(self, token)
+-        self.xhtml = xhtml
++        self._xhtml = xhtml
+     
+     def do_extended_close(self, inserted_token):
+-        inserted_token.xhtml.append(self.xhtml)
++        inserted_token.xhtml.append(self._xhtml)
+ 
+-
+ class StructureModifyToken(Token): 
+ #modifiziert letzte geoeffnete struktur, wird dann wegfallen lassen =&gt; keine
+ # preference
+@@ -340,6 +394,10 @@
+                                   ',': ('valign', 'down')}
+ 
+ class PrefixToken(Token):
++    def __init__(self, token, *args, **kwargs):
++        self.has_been_prefixed = False
++        Token.__init__(self, token, *args, **kwargs)
++        
+     def evaluate(self, result, tokens, state):
+         state[PREFIX_COUNT] = state.get(PREFIX_COUNT, 0) + 1
+         Token.evaluate(self, result, tokens, state)
+@@ -349,18 +407,74 @@
+         Token.render(self, new_token)
+     
+     def prefix(self, new_token):
+-        self.tokens.insert(0, new_token)
++        self.has_been_prefixed = True
++        if new_token.xhtml.is_empty():
++            self.tokens.insert(0, new_token)
++            self.tokens.insert(0, self)
++        else:
++            self.do_prefix(new_token)
+ 
+ class HeadlineToken(PrefixToken): 
+-    def prefix(self, new_token):
++    def do_prefix(self, new_token):
+         new_token.xhtml.tag = 'h%i' % (len(self.token) - 1)
+-        PrefixToken.prefix(self, BeetweenParagraphsXHTML(new_token.xhtml, 
+-                                                         self.token))
++        self.tokens.insert(0, BeetweenParagraphsXHTML(new_token.xhtml, 
++                                                      self.token))
+ 
++class ListResultToken(ParagraphToken):
++    def __init__(self, lists, token):
++        ParagraphToken.__init__(self, token)
++        self._list = XMLElement()
++        self.xhtml.append(self._list)
++        self.lists = lists
++    
++    def do_extended_close(self, inserted_token):
++        self._list.content = self._list_to_xhtml(self.lists).content
++        inserted_token.xhtml.append(*self.xhtml.content)
++            
++    def _list_to_xhtml(self, list, is_sublist = False):
++        xhtml = XMLElement('div')
++        if is_sublist:
++            container = None
++        else:
++            container = xhtml
++        for (type, value) in list:
++            if type == '':
++                value.xhtml.tag = 'li'
++                container = value.xhtml
++                xhtml.append(value.xhtml)
++            else:
++                sublist = self._list_to_xhtml(value, True)
++                sublist.tag = LIST_TAGS[type][0]
++                sublist.attributes['class'] = LIST_TAGS[type][1]
++                if container is None:
++                    container = XMLElement('li')
++                    xhtml.append(container)
++                container.append(sublist)
++        return xhtml
+ 
+-class ListToken(Token): 
+-    pass
+-
++class ListToken(PrefixToken): 
++    def __init__(self, token, *args, **kwargs):
++        PrefixToken.__init__(self, token, *args, **kwargs)
++        self.lists = []
++    def do_prefix(self, new_token):
++        assert(len(self.lists) == 0)
++        if len(self.result) &gt; 0 and isinstance(self.result[-1], ListResultToken):
++            self.lists = self.result.pop().lists
++        current_list = self.lists
++        for list_type in self.token[:-1]:
++            if len(current_list) == 0 or current_list[-1][0] != list_type:
++                new_list = []
++                current_list.append((list_type, new_list))
++                current_list = new_list
++            else:
++                current_list = current_list[-1][1]
++        current_list.append(('', new_token))
++        
++        self.result.append(ListResultToken(self.lists,self.token))
++        
++    def render(self, new_token):
++        PrefixToken.render(self, new_token)
++        
+ class LinkToken(Token): 
+     pass
+ class EmbeddedLinkToken(LinkToken): 
+@@ -420,7 +534,7 @@
+               (10, r'^={1,6}[ \t]', token_factory(HeadlineToken, 
+                     preference=30)),
+               # lists
+-              (10, r'^[#*-]+[ \t]', token_factory(ListToken, preference=10)),
++              (10, r'^[#*-]+[ \t]', token_factory(ListToken, preference=30)),
+               # tables
+               (10, r'^\|', token_factory(TableToken, type='(', preference=0)),
+               (10, r'\|$', token_factory(TableToken, type=')', 
+@@ -467,7 +581,7 @@
+         if len(result) != 1:
+             raise WikiParserError('WikiParser error in &quot;%s&quot;' % text)
+             
+-        xhtml_tree = result[0].xhtml
++        xhtml_tree = result[0].xhtml.to_element_tree()
+         
+         xhtml_tree.set('class','parsed-wiki-content')
+         
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="000015.html">[fellowiki-svncheckins] r17 - trunk/fellowiki/wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#14">[ date ]</a>
+              <a href="thread.html#14">[ thread ]</a>
+              <a href="subject.html#14">[ subject ]</a>
+              <a href="author.html#14">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

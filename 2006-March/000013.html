@@ -1,0 +1,396 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r15 - / branches pjm pjm/tools tags trunk trunk/fellowiki trunk/fellowiki/tests trunk/fellowiki/tests/wiki trunk/fellowiki/tests/wiki/tests trunk/fellowiki/tests/wiki/tests/known_issues trunk/fellowiki/tests/wiki/tests/known_issues/stress_test trunk/fellowiki/tests/wiki/tests/mixed_markup trunk/fellowiki/tests/wiki/tests/real_world trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/util trunk/fellowiki/wiki
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-March/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r15%20-%20/%20branches%20pjm%20pjm/tools%20tags%20trunk%20trunk/fellowiki%20trunk/fellowiki/tests%20trunk/fellowiki/tests/wiki%20trunk/fellowiki/tests/wiki/tests%20trunk/fellowiki/tests/wiki/tests/known_issues%20trunk/fellowiki/tests/wiki/tests/known_issues/stress_test%20trunk/fellowiki/tests/wiki/tests/mixed_markup%20trunk/fellowiki/tests/wiki/tests/real_world%20trunk/fellowiki/tests/wiki/tests/simple_markup%20trunk/fellowiki/util%20trunk/fellowiki/wiki&In-Reply-To=%3C200603262133.k2QLXtRK015839%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000012.html">
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r15 - / branches pjm pjm/tools tags trunk trunk/fellowiki trunk/fellowiki/tests trunk/fellowiki/tests/wiki trunk/fellowiki/tests/wiki/tests trunk/fellowiki/tests/wiki/tests/known_issues trunk/fellowiki/tests/wiki/tests/known_issues/stress_test trunk/fellowiki/tests/wiki/tests/mixed_markup trunk/fellowiki/tests/wiki/tests/real_world trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/util trunk/fellowiki/wiki</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r15%20-%20/%20branches%20pjm%20pjm/tools%20tags%20trunk%20trunk/fellowiki%20trunk/fellowiki/tests%20trunk/fellowiki/tests/wiki%20trunk/fellowiki/tests/wiki/tests%20trunk/fellowiki/tests/wiki/tests/known_issues%20trunk/fellowiki/tests/wiki/tests/known_issues/stress_test%20trunk/fellowiki/tests/wiki/tests/mixed_markup%20trunk/fellowiki/tests/wiki/tests/real_world%20trunk/fellowiki/tests/wiki/tests/simple_markup%20trunk/fellowiki/util%20trunk/fellowiki/wiki&In-Reply-To=%3C200603262133.k2QLXtRK015839%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r15 - / branches pjm pjm/tools tags trunk trunk/fellowiki trunk/fellowiki/tests trunk/fellowiki/tests/wiki trunk/fellowiki/tests/wiki/tests trunk/fellowiki/tests/wiki/tests/known_issues trunk/fellowiki/tests/wiki/tests/known_issues/stress_test trunk/fellowiki/tests/wiki/tests/mixed_markup trunk/fellowiki/tests/wiki/tests/real_world trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/util trunk/fellowiki/wiki">fingerle at berlios.de
+       </A><BR>
+    <I>Sun Mar 26 23:33:55 CEST 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000012.html">[fellowiki-svncheckins] r14 - pjm pjm/planning trunk/fellowiki/tests trunk/fellowiki/tests/wiki/tests/mixed_markup trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/third_party trunk/fellowiki/third_party/w3c
+</A></li>
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#13">[ date ]</a>
+              <a href="thread.html#13">[ thread ]</a>
+              <a href="subject.html#13">[ subject ]</a>
+              <a href="author.html#13">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-03-26 23:33:54 +0200 (Sun, 26 Mar 2006)
+New Revision: 15
+
+Modified:
+   /
+   branches/
+   pjm/milestones.txt
+   pjm/pointers
+   pjm/tasks.txt
+   pjm/tools/
+   tags/
+   trunk/
+   trunk/fellowiki/
+   trunk/fellowiki/__init__.py
+   trunk/fellowiki/tests/
+   trunk/fellowiki/tests/README
+   trunk/fellowiki/tests/__init__.py
+   trunk/fellowiki/tests/pylintrc
+   trunk/fellowiki/tests/wiki/
+   trunk/fellowiki/tests/wiki/__init__.py
+   trunk/fellowiki/tests/wiki/tests/
+   trunk/fellowiki/tests/wiki/tests/known_issues/
+   trunk/fellowiki/tests/wiki/tests/known_issues/stress_test/
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/
+   trunk/fellowiki/tests/wiki/tests/real_world/
+   trunk/fellowiki/tests/wiki/tests/simple_markup/
+   trunk/fellowiki/tests/wiki/ut_parser.py
+   trunk/fellowiki/util/
+   trunk/fellowiki/util/__init__.py
+   trunk/fellowiki/util/assorted.py
+   trunk/fellowiki/wiki/
+   trunk/fellowiki/wiki/__init__.py
+   trunk/fellowiki/wiki/parser.py
+Log:
+- decision - after testing - not to use properties
+- removing revision attributes
+
+
+
+Property changes on: 
+___________________________________________________________________
+Name: svn:ignore
+   - *.pyc
+
+
+
+Property changes on: branches
+___________________________________________________________________
+Name: svn:ignore
+   - *.pyc
+
+
+
+Property changes on: pjm/milestones.txt
+___________________________________________________________________
+Name: svn:keywords
+   - Revision
+
+
+Property changes on: pjm/pointers
+___________________________________________________________________
+Name: svn:keywords
+   - Revision
+
+
+Property changes on: pjm/tasks.txt
+___________________________________________________________________
+Name: svn:keywords
+   - Revision
+
+
+Property changes on: pjm/tools
+___________________________________________________________________
+Name: svn:ignore
+   - *.pyc
+
+
+
+Property changes on: tags
+___________________________________________________________________
+Name: svn:ignore
+   - *.pyc
+
+
+
+Property changes on: trunk
+___________________________________________________________________
+Name: svn:ignore
+   - *.pyc
+
+
+
+Property changes on: trunk/fellowiki
+___________________________________________________________________
+Name: svn:ignore
+   - *.pyc
+
+
+Modified: trunk/fellowiki/__init__.py
+===================================================================
+--- trunk/fellowiki/__init__.py	2006-03-26 21:25:01 UTC (rev 14)
++++ trunk/fellowiki/__init__.py	2006-03-26 21:33:54 UTC (rev 15)
+@@ -28,5 +28,3 @@
+     - tests: tests (mainly unit tests) for the fellowiki package
+     
+ &quot;&quot;&quot;
+-
+-__revision__ = &quot;$Revision:$&quot;
+
+
+Property changes on: trunk/fellowiki/__init__.py
+___________________________________________________________________
+Name: svn:keywords
+   - Revision
+
+
+Property changes on: trunk/fellowiki/tests
+___________________________________________________________________
+Name: svn:ignore
+   - *.pyc
+
+
+
+Property changes on: trunk/fellowiki/tests/README
+___________________________________________________________________
+Name: svn:keywords
+   - Revision
+
+Modified: trunk/fellowiki/tests/__init__.py
+===================================================================
+--- trunk/fellowiki/tests/__init__.py	2006-03-26 21:25:01 UTC (rev 14)
++++ trunk/fellowiki/tests/__init__.py	2006-03-26 21:33:54 UTC (rev 15)
+@@ -26,5 +26,3 @@
+     - wiki:  tests for the wiki engine
+     
+ &quot;&quot;&quot;
+-
+-__revision__ = &quot;$Revision:$&quot;
+
+
+Property changes on: trunk/fellowiki/tests/__init__.py
+___________________________________________________________________
+Name: svn:keywords
+   - Revision
+
+Modified: trunk/fellowiki/tests/pylintrc
+===================================================================
+--- trunk/fellowiki/tests/pylintrc	2006-03-26 21:25:01 UTC (rev 14)
++++ trunk/fellowiki/tests/pylintrc	2006-03-26 21:33:54 UTC (rev 15)
+@@ -2,7 +2,7 @@
+ # Include message's id in output
+ include-ids=yes
+ 
+-disable-msg=I0011, W0142, W0704, W0231, W0201
++disable-msg=I0011, W0142, W0704, W0231, W0201, W0103
+ 
+ [VARIABLES]
+ # List of variable names used for dummy variables (i.e. not used).
+
+
+Property changes on: trunk/fellowiki/tests/wiki
+___________________________________________________________________
+Name: svn:ignore
+   - *.pyc
+
+
+Modified: trunk/fellowiki/tests/wiki/__init__.py
+===================================================================
+--- trunk/fellowiki/tests/wiki/__init__.py	2006-03-26 21:25:01 UTC (rev 14)
++++ trunk/fellowiki/tests/wiki/__init__.py	2006-03-26 21:33:54 UTC (rev 15)
+@@ -26,7 +26,3 @@
+     - ut_wikiparser: unit tests for the wiki parser
+     
+ &quot;&quot;&quot;
+-
+-__revision__ = &quot;$Revision:$&quot;
+-
+-# TODO: move Wiki package to wiki
+
+
+Property changes on: trunk/fellowiki/tests/wiki/__init__.py
+___________________________________________________________________
+Name: svn:keywords
+   - Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests
+___________________________________________________________________
+Name: svn:ignore
+   - *.generated.*
+
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/known_issues
+___________________________________________________________________
+Name: svn:ignore
+   - *.generated.*
+
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/known_issues/stress_test
+___________________________________________________________________
+Name: svn:ignore
+   - *.generated.*
+
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup
+___________________________________________________________________
+Name: svn:ignore
+   - *.generated.*
+
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/real_world
+___________________________________________________________________
+Name: svn:ignore
+   - *.generated.*
+
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup
+___________________________________________________________________
+Name: svn:ignore
+   - *.generated.*
+
+
+Modified: trunk/fellowiki/tests/wiki/ut_parser.py
+===================================================================
+--- trunk/fellowiki/tests/wiki/ut_parser.py	2006-03-26 21:25:01 UTC (rev 14)
++++ trunk/fellowiki/tests/wiki/ut_parser.py	2006-03-26 21:33:54 UTC (rev 15)
+@@ -33,8 +33,6 @@
+ 
+ &quot;&quot;&quot;
+ 
+-__revision__ = &quot;$Revision:$&quot;
+-
+ import unittest
+ import codecs
+ import sys
+
+
+Property changes on: trunk/fellowiki/tests/wiki/ut_parser.py
+___________________________________________________________________
+Name: svn:keywords
+   - Revision
+
+
+Property changes on: trunk/fellowiki/util
+___________________________________________________________________
+Name: svn:ignore
+   - *.pyc
+
+
+Modified: trunk/fellowiki/util/__init__.py
+===================================================================
+--- trunk/fellowiki/util/__init__.py	2006-03-26 21:25:01 UTC (rev 14)
++++ trunk/fellowiki/util/__init__.py	2006-03-26 21:33:54 UTC (rev 15)
+@@ -26,5 +26,3 @@
+     - assorted: should read &quot;unsorted&quot; ;-) TODO: Sort. Sort of. Ish. 
+     
+ &quot;&quot;&quot;
+-
+-__revision__ = &quot;$Revision:$&quot;
+
+
+Property changes on: trunk/fellowiki/util/__init__.py
+___________________________________________________________________
+Name: svn:keywords
+   - Revision
+
+Modified: trunk/fellowiki/util/assorted.py
+===================================================================
+--- trunk/fellowiki/util/assorted.py	2006-03-26 21:25:01 UTC (rev 14)
++++ trunk/fellowiki/util/assorted.py	2006-03-26 21:33:54 UTC (rev 15)
+@@ -26,8 +26,6 @@
+     
+ &quot;&quot;&quot;
+ 
+-__revision__ = &quot;$Revision:$&quot;
+-
+ import re
+ 
+ # TODO: howto support CElementTree (portably!, utf8-support?)
+
+
+Property changes on: trunk/fellowiki/util/assorted.py
+___________________________________________________________________
+Name: svn:keywords
+   - Revision
+
+
+Property changes on: trunk/fellowiki/wiki
+___________________________________________________________________
+Name: svn:ignore
+   - *.pyc
+
+
+Modified: trunk/fellowiki/wiki/__init__.py
+===================================================================
+--- trunk/fellowiki/wiki/__init__.py	2006-03-26 21:25:01 UTC (rev 14)
++++ trunk/fellowiki/wiki/__init__.py	2006-03-26 21:33:54 UTC (rev 15)
+@@ -26,5 +26,3 @@
+     - assorted: should read &quot;unsorted&quot; ;-) TODO: Sort. Sort of. Ish. 
+     
+ &quot;&quot;&quot;
+-
+-__revision__ = &quot;$Revision:$&quot;
+
+
+Property changes on: trunk/fellowiki/wiki/__init__.py
+___________________________________________________________________
+Name: svn:keywords
+   - Revision
+
+Modified: trunk/fellowiki/wiki/parser.py
+===================================================================
+--- trunk/fellowiki/wiki/parser.py	2006-03-26 21:25:01 UTC (rev 14)
++++ trunk/fellowiki/wiki/parser.py	2006-03-26 21:33:54 UTC (rev 15)
+@@ -27,9 +27,6 @@
+     
+ &quot;&quot;&quot;
+ 
+-__revision__ = &quot;$Revision:$&quot;
+-
+-
+ from elementtree.ElementTree import Element, SubElement, tostring
+ from fellowiki.util.assorted import attributes_from_dict, \
+       remove_escaping_backslashes, add_element_contents, save_add
+
+
+Property changes on: trunk/fellowiki/wiki/parser.py
+___________________________________________________________________
+Name: svn:keywords
+   - Revision
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000012.html">[fellowiki-svncheckins] r14 - pjm pjm/planning trunk/fellowiki/tests trunk/fellowiki/tests/wiki/tests/mixed_markup trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/third_party trunk/fellowiki/third_party/w3c
+</A></li>
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#13">[ date ]</a>
+              <a href="thread.html#13">[ thread ]</a>
+              <a href="subject.html#13">[ subject ]</a>
+              <a href="author.html#13">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

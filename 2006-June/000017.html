@@ -1,0 +1,472 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r19 - in trunk/fellowiki: tests util wiki wiki/tests/tests/simple_markup
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-June/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r19%20-%20in%20trunk/fellowiki%3A%20tests%20util%20wiki%20wiki/tests/tests/simple_markup&In-Reply-To=%3C200606091802.k59I2KEl028154%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="000018.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r19 - in trunk/fellowiki: tests util wiki wiki/tests/tests/simple_markup</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r19%20-%20in%20trunk/fellowiki%3A%20tests%20util%20wiki%20wiki/tests/tests/simple_markup&In-Reply-To=%3C200606091802.k59I2KEl028154%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r19 - in trunk/fellowiki: tests util wiki wiki/tests/tests/simple_markup">fingerle at berlios.de
+       </A><BR>
+    <I>Fri Jun  9 20:02:20 CEST 2006</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="000018.html">[fellowiki-svncheckins] r20 - trunk/fellowiki/wiki/tests
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#17">[ date ]</a>
+              <a href="thread.html#17">[ thread ]</a>
+              <a href="subject.html#17">[ subject ]</a>
+              <a href="author.html#17">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-06-09 20:02:06 +0200 (Fri, 09 Jun 2006)
+New Revision: 19
+
+Added:
+   trunk/fellowiki/wiki/tests/
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_different_configs.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_invalid.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_simple.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_escapes.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_parms.wiki
+Removed:
+   trunk/fellowiki/tests/wiki/
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros.wiki
+Modified:
+   trunk/fellowiki/util/assorted.py
+   trunk/fellowiki/wiki/parser.py
+Log:
+- moved wiki tests to wiki directory
+- switched unit tests to nosetests
+- wiki parser: much work on macros, but unfinished
+
+
+Modified: trunk/fellowiki/util/assorted.py
+===================================================================
+--- trunk/fellowiki/util/assorted.py	2006-04-02 23:03:18 UTC (rev 18)
++++ trunk/fellowiki/util/assorted.py	2006-06-09 18:02:06 UTC (rev 19)
+@@ -59,6 +59,38 @@
+     pattern = re.compile(r'\\(.)') # TODO: don't recompile everytime around
+     return pattern.sub(r'\1', string)
+     
++    
++def remove_backslashes_and_whitespace(string):
++    &quot;&quot;&quot;remove escaping backslashes and enclosing whitespace
++    
++    parameters: string: escaped string, may be unicode as well
++    returns: unescaped version of the string
++    
++    This function looks for any occurence of &quot;\.&quot; where &quot;.&quot; can be any
++    single character and replaces it by the character &quot;.&quot; itself.
++    
++    Additionally it removes all enclosing whitespace (i.e. blank and
++    tab) which hadn't been escaped before.
++    
++    &quot;&quot;&quot;
++    
++    string = string.lstrip(' \t')
++    
++    pattern = re.compile(r'(\\)(?=[ \t]*$)') # TODO: don't recompile everytime around
++    string2 = pattern.sub(r'\\\\', string)
++    
++    if len(string) == len(string2):
++        return remove_escaping_backslashes(string).rstrip(' \t')
++    
++    string = remove_escaping_backslashes(string)
++    string2 = remove_escaping_backslashes(string2)
++    
++    if len(string) == len(string2):
++        return string.rstrip(' \t')
++    else:
++        pattern = re.compile(r'([ \t])[ \t]*$') # TODO: don't recompile everytime around
++        return pattern.sub(r'\1', string)
++    
+ def save_add(val_1, val_2):
+     &quot;&quot;&quot;add to values, None being a neutral element to the addition
+     
+
+Modified: trunk/fellowiki/wiki/parser.py
+===================================================================
+--- trunk/fellowiki/wiki/parser.py	2006-04-02 23:03:18 UTC (rev 18)
++++ trunk/fellowiki/wiki/parser.py	2006-06-09 18:02:06 UTC (rev 19)
+@@ -29,18 +29,25 @@
+ 
+ import elementtree.ElementTree as ElementTree
+ from fellowiki.util.assorted import attributes_from_dict, \
+-      remove_escaping_backslashes
++      remove_escaping_backslashes, remove_backslashes_and_whitespace
+       
+ import sre
+ import re
+-from copy import copy
++from copy import copy, deepcopy
+ 
+ PREFIX_COUNT = &quot;prefix count&quot;
+ ENCAPSULATE_MARKUP = &quot;encapsulate markup&quot;
+ SWITCH_MARKUP = &quot;switch markup&quot;
+ EMBED_MARKUP = &quot;embed markup&quot;
+ 
++SPLIT = 'split'
++ESCAPE = 'escape'
++DEFERRED = 'deferred'
++BLOCK_LEVEL = 'block level'
++PROC = 'procedure'
++MACRO = 'macro:'
+ 
++
+ SPECIAL_MARKUP = {'/': ('em', 'italic'),
+                   '*': ('b' , 'bold'),
+                   '_': ('span', 'underlined'),
+@@ -62,6 +69,7 @@
+         self.content = []
+         self.attributes = {}
+         self.callback = []
++        self.translation = None
+         
+     def to_element_tree(self): 
+         xhtml = ElementTree.Element(self.tag)
+@@ -69,6 +77,7 @@
+         xhtml.attrib = copy(self.attributes)
+         current_textlist = []
+         content = copy(self.content)
++        translations = []
+         
+         # I want to modify the list, therefore I write this a bit 
+         # more explicitly:
+@@ -86,14 +95,17 @@
+                         xhtml.text = current_text
+                     else:
+                         sub_xhtml.tail = current_text
+-                    sub_xhtml = item.to_element_tree()
++                    sub_xhtml, sub_translations = item.to_element_tree()
+                     xhtml.append(sub_xhtml)
++                    translations.extend(sub_translations)
+         current_text = ''.join(current_textlist)
+         if sub_xhtml is None:
+             xhtml.text = current_text
+         else:
+             sub_xhtml.tail = current_text
+-        return xhtml
++        if self.translation is not None:
++            translations.append((xhtml, self.translation[0], self.translation[1]))
++        return xhtml, translations
+         
+     def is_empty(self):
+         return len(self.content) == 0
+@@ -139,7 +151,7 @@
+     def close_matching(self, match):
+         return False
+     
+-    def evaluate(self, result, tokens, state):
++    def evaluate(self, result, tokens, state, procs):
+         self.result = result
+         self.tokens = tokens
+         self.state = state
+@@ -186,7 +198,7 @@
+     def append(self, *appendee):
+         self.xhtml.append(*appendee)
+     
+-    def prepend_element_contents(self, element): 
++    def prepend_element_contents(self, element):
+         self.xhtml.prepend(*element.content)
+         
+     def append_element_contents(self, element): 
+@@ -215,8 +227,8 @@
+         new_token.prepend(text)
+ 
+ class WhitespaceToken(TextToken):
+-    def evaluate(self, result, tokens, state):
+-        TextToken.evaluate(self, result, tokens, state)
++    def evaluate(self, result, tokens, state, procs):
++        TextToken.evaluate(self, result, tokens, state, procs)
+         for key in SPECIAL_MARKUP.keys():
+             state[SWITCH_MARKUP + key] = 0
+         
+@@ -226,8 +238,8 @@
+             self.state[self.STATE] = self.state.get(self.STATE, 0) - 1
+         Token.render(self, new_token)
+     
+-    def evaluate(self, result, tokens, state):
+-        Token.evaluate(self, result, tokens, state)
++    def evaluate(self, result, tokens, state, procs):
++        Token.evaluate(self, result, tokens, state, procs)
+         if self.type == '(':
+            state[self.STATE] = state.get(self.STATE, 0) + 1
+         
+@@ -272,8 +284,8 @@
+         self.STATE = SWITCH_MARKUP + self.text
+         self.EMBED = EMBED_MARKUP + self.text
+     
+-    def evaluate(self, result, tokens, state):
+-        Token.evaluate(self, result, tokens, state)
++    def evaluate(self, result, tokens, state, procs):
++        Token.evaluate(self, result, tokens, state, procs)
+         state[self.STATE] = state.get(self.STATE, 0) + 1
+ 
+     def match_is_open(self):
+@@ -309,12 +321,12 @@
+     def render(self, new_token):
+         new_token.prepend(' ')
+         
+-    def evaluate(self, result, tokens, state):
++    def evaluate(self, result, tokens, state, procs):
+         if type(self) == type(tokens[0]) == LineBreakToken:
+             next_token = tokens.pop(0)
+             tokens.insert(0, ParagraphToken(self.token + next_token.token))
+         else:
+-            Token.evaluate(self, result, tokens, state)
++            Token.evaluate(self, result, tokens, state, procs)
+     
+     def match_is_open(self):
+         return self.state.get(PREFIX_COUNT, 0) &gt; 0
+@@ -332,14 +344,14 @@
+     def render(self, new_token):
+         xhtml = XMLElement('br')
+         new_token.prepend(xhtml)
+-    def evaluate(self, result, tokens, state):
++    def evaluate(self, result, tokens, state, procs):
+         while type(tokens[0]) == LineBreakToken:
+             next_token = tokens.pop(0)
+             self.token += next_token.token
+         while len(result) &gt;0 and type(result[-1]) == LineBreakToken:
+             previous_result = result.pop()
+             self.token = previous_result.token + self.token
+-        LineBreakToken.evaluate(self, result, tokens, state)
++        LineBreakToken.evaluate(self, result, tokens, state, procs)
+         
+ class ParagraphToken(LineBreakOutputToken):
+     def __init__(self, token, *args, **kwargs):
+@@ -398,9 +410,9 @@
+         self.has_been_prefixed = False
+         Token.__init__(self, token, *args, **kwargs)
+         
+-    def evaluate(self, result, tokens, state):
++    def evaluate(self, result, tokens, state, procs):
+         state[PREFIX_COUNT] = state.get(PREFIX_COUNT, 0) + 1
+-        Token.evaluate(self, result, tokens, state)
++        Token.evaluate(self, result, tokens, state, procs)
+         
+     def render(self, new_token):
+         self.state[PREFIX_COUNT] = self.state.get(PREFIX_COUNT, 0) - 1
+@@ -475,12 +487,64 @@
+     def render(self, new_token):
+         PrefixToken.render(self, new_token)
+         
++class MacroToken(Token): 
++    def render(self, new_token):
++        xhtml = XMLElement('span')
++        xhtml.append(self.text)
++        
++        if self.proc is not None:
++            xhtml.translation = (self.proc, self.parameter)
++            xhtml.attributes['class'] = 'macro_resolved'
++            xhtml.append(' --&gt; &quot;%s(%s)&quot;' % (self.proc, unicode(self.parameter)))
++        else:
++            xhtml.attributes['class'] = 'macro_unresolved'
++            
++        new_token.prepend(xhtml)
++        
++    def evaluate(self, result, tokens, state, procs):
++        Token.evaluate(self, result, tokens, state, procs)
++        
++        self.proc = None
++        self.parameter = []
++        
++        match_obj = re.match(r'\{\{(([^\\\}\n\|]|\\.|\}[^\\\}\n\|]|\}\\.)*)' \
++                             r'\|(([^\\\}\n]|\\.|\}[^\\\}\n]|\}\\.)*)\}\}', 
++                             self.text)
++                             
++        
++        if match_obj:
++            command, _, parms, _ = match_obj.groups()
++        else:
++            command = self.text[2:-2]
++            parms = None
++             
++        command = '%s%s' % (MACRO, remove_backslashes_and_whitespace(command))
++        
++        try:
++            this_proc = procs[command]
++        except KeyError:
++            return
++        
++        self.proc = command
++        
++        if parms is not None:
++            if this_proc.get(SPLIT) is True:
++                if this_proc.get(ESCAPE) is True:
++                    self.parameter = [remove_backslashes_and_whitespace(par[0]) for 
++                            par in re.findall(r'(([^\\,]|\\.)+)(?=|,)', parms)]
++                else:
++                    self.parameter = [par[0] for 
++                            par in re.findall(r'(([^\\,]|\\.)+)(?=|,)', parms)]
++            else:
++                if this_proc.get(ESCAPE) is True:
++                    self.parameter = [remove_backslashes_and_whitespace(parms)]
++                else:
++                    self.parameter = [parms]
++            
+ class LinkToken(Token): 
+     pass
+ class EmbeddedLinkToken(LinkToken): 
+     pass
+-class MacroToken(LinkToken): 
+-    pass
+ class TableToken(Token): 
+     pass
+ 
+@@ -541,8 +605,8 @@
+                     preference=0)),
+               (90, r'\|', token_factory(TableToken, type='_', preference=0)),
+               # macros
+-              (10, r'\{\{', token_factory(MacroToken, type='(', preference=20)),
+-              (10, r'\}\}', token_factory(MacroToken, type=')', preference=20)),
++              (10, r'\{\{([^\\\}\n]|\\.|\}[^\\\}\n]|\}\\.)*\}\}', 
++                    token_factory(MacroToken, preference=20)),
+               # n-dash and m-dash
+               (20, r'----+', token_factory(TextToken)),
+               (21, r'---', token_factory(TextToken, new_text=u'\u2014')),
+@@ -555,11 +619,12 @@
+               (99, r'.', token_factory(TextToken))
+               ]
+ 
+-    def __init__(self):
++    def __init__(self, procs):
+         regexes = self.regexes[:]
+         regexes.sort()
+         regexes = [(rex, callback) for (_, rex, callback) in regexes]
+         self.scanner = sre.Scanner(regexes, sre.M)
++        self.procs = procs
+ 
+     def parse(self, text):
+         tokens = self.scanner.scan(''.join(['\n\n', text, '\n\n']))
+@@ -574,7 +639,7 @@
+         
+         while len(tokens) &gt; 0:
+             token = tokens.pop(0)
+-            token.evaluate(result, tokens, state)
++            token.evaluate(result, tokens, state, self.procs)
+         
+         if len(tokens) != 0:
+             raise WikiParserError('WikiParser error in &quot;%s&quot;' % text)
+@@ -582,10 +647,18 @@
+             raise WikiParserError('WikiParser error in &quot;%s&quot;' % text)
+             
+         if len(result) == 1:    
+-            xhtml_tree = result[0].xhtml.to_element_tree()
++            xhtml_tree, translations = result[0].xhtml.to_element_tree()
++            
+         else:
+             xhtml_tree = ElementTree.Element('div')
++            translations = []
+         
+         xhtml_tree.set('class','parsed-wiki-content')
+         
+-        return xhtml_tree
++        return (xhtml_tree, translations)
++        
++    def evaluate(self, tree):
++        tree_  = deepcopy(tree)
++        for trans in tree_[1]:
++            self.procs[trans[1]][PROC](trans[0], *trans[2])
++        return tree[0]
+
+Copied: trunk/fellowiki/wiki/tests (from rev 18, trunk/fellowiki/tests/wiki)
+
+Deleted: trunk/fellowiki/wiki/tests/tests/simple_markup/macros.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/macros.wiki	2006-04-02 23:03:18 UTC (rev 18)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros.wiki	2006-06-09 18:02:06 UTC (rev 19)
+@@ -1 +0,0 @@
+-TODO
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_different_configs.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/macros_different_configs.wiki	2006-04-02 23:03:18 UTC (rev 18)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_different_configs.wiki	2006-06-09 18:02:06 UTC (rev 19)
+@@ -0,0 +1,9 @@
++{{ testmacro | 12\ , ab\,cd,ef , \ gh }}
++
++{{ macro ohne split | 12\ , ab\,cd,ef , \ gh }}
++
++{{ macro ohne escape | 12\ , ab\,cd,ef , \ gh }}
++
++{{ macro ohne s/e | 12\ , ab\,cd,ef , \ gh }}
++
++TODO: weitere Configs: block level und deferred
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_invalid.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/macros_invalid.wiki	2006-04-02 23:03:18 UTC (rev 18)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_invalid.wiki	2006-06-09 18:02:06 UTC (rev 19)
+@@ -0,0 +1,7 @@
++{testmacro}
++{{no macro}}
++{{ no macro | 1, 2, 3 }}
++\{{testmacro}}
++{\{testmacro}}
++{{testmacro\}}
++{{testmacro}\}
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_simple.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/macros_simple.wiki	2006-04-02 23:03:18 UTC (rev 18)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_simple.wiki	2006-06-09 18:02:06 UTC (rev 19)
+@@ -0,0 +1,2 @@
++{{testmacro}} {{ test macro2 }} {{Test: -Macro3-}} 
++{{{testmacro}}}
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_escapes.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/macros_with_escapes.wiki	2006-04-02 23:03:18 UTC (rev 18)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_escapes.wiki	2006-06-09 18:02:06 UTC (rev 19)
+@@ -0,0 +1,2 @@
++{{ test macro \| 11\ | 12 | 13 | 14, 15\, 16,\ 17}} {{ test macro \\ }} {{ test macro \\\ }} {{ test macro \\\\ }} {{ test macro \\\\\ }} {{testmacro | a\ }} {{testmacro | a\\ }} {{testmacro | a\\\ }} {{testmacro | a\\\\ }} {{testmacro | a\\\\\ }}
++{{\{testmacro\}}}
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_parms.wiki
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/macros_with_parms.wiki	2006-04-02 23:03:18 UTC (rev 18)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_parms.wiki	2006-06-09 18:02:06 UTC (rev 19)
+@@ -0,0 +1 @@
++{{testmacro4|parm}} {{testmacro5 | parm }} {{ testmacro6 | parm1, parm2}} {{testmacro7 | parameter 1 , parameter 2 }} {{testmacro8 | 123, 456.789}} {{testmacro9|a,b,c,d,e}} {{ test macro 10 | 1, 2, 3, 4.56 }} 
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="000018.html">[fellowiki-svncheckins] r20 - trunk/fellowiki/wiki/tests
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#17">[ date ]</a>
+              <a href="thread.html#17">[ thread ]</a>
+              <a href="subject.html#17">[ subject ]</a>
+              <a href="author.html#17">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

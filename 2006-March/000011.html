@@ -1,0 +1,958 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r13 - / branches pjm pjm/planning pjm/tools tags trunk trunk/fellowiki trunk/fellowiki/tests trunk/fellowiki/tests/wiki trunk/fellowiki/tests/wiki/tests trunk/fellowiki/tests/wiki/tests/known_issues trunk/fellowiki/tests/wiki/tests/known_issues/stress_test trunk/fellowiki/tests/wiki/tests/mixed_markup trunk/fellowiki/tests/wiki/tests/real_world trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/third_party trunk/fellowiki/third_party/w3c trunk/fellowiki/util trunk/fellowiki/wiki
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-March/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r13%20-%20/%20branches%20pjm%20pjm/planning%20pjm/tools%20tags%20trunk%20trunk/fellowiki%20trunk/fellowiki/tests%20trunk/fellowiki/tests/wiki%20trunk/fellowiki/tests/wiki/tests%20trunk/fellowiki/tests/wiki/tests/known_issues%20trunk/fellowiki/tests/wiki/tests/known_issues/stress_test%20trunk/fellowiki/tests/wiki/tests/mixed_markup%20trunk/fellowiki/tests/wiki/tests/real_world%20trunk/fellowiki/tests/wiki/tests/simple_markup%20trunk/fellowiki/third_party%20trunk/fellowiki/third_party/w3c%20trunk/fellowiki/util%20trunk/fellowiki/wiki&In-Reply-To=%3C200603262113.k2QLDToX013022%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000010.html">
+   <LINK REL="Next"  HREF="000012.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r13 - / branches pjm pjm/planning pjm/tools tags trunk trunk/fellowiki trunk/fellowiki/tests trunk/fellowiki/tests/wiki trunk/fellowiki/tests/wiki/tests trunk/fellowiki/tests/wiki/tests/known_issues trunk/fellowiki/tests/wiki/tests/known_issues/stress_test trunk/fellowiki/tests/wiki/tests/mixed_markup trunk/fellowiki/tests/wiki/tests/real_world trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/third_party trunk/fellowiki/third_party/w3c trunk/fellowiki/util trunk/fellowiki/wiki</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r13%20-%20/%20branches%20pjm%20pjm/planning%20pjm/tools%20tags%20trunk%20trunk/fellowiki%20trunk/fellowiki/tests%20trunk/fellowiki/tests/wiki%20trunk/fellowiki/tests/wiki/tests%20trunk/fellowiki/tests/wiki/tests/known_issues%20trunk/fellowiki/tests/wiki/tests/known_issues/stress_test%20trunk/fellowiki/tests/wiki/tests/mixed_markup%20trunk/fellowiki/tests/wiki/tests/real_world%20trunk/fellowiki/tests/wiki/tests/simple_markup%20trunk/fellowiki/third_party%20trunk/fellowiki/third_party/w3c%20trunk/fellowiki/util%20trunk/fellowiki/wiki&In-Reply-To=%3C200603262113.k2QLDToX013022%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r13 - / branches pjm pjm/planning pjm/tools tags trunk trunk/fellowiki trunk/fellowiki/tests trunk/fellowiki/tests/wiki trunk/fellowiki/tests/wiki/tests trunk/fellowiki/tests/wiki/tests/known_issues trunk/fellowiki/tests/wiki/tests/known_issues/stress_test trunk/fellowiki/tests/wiki/tests/mixed_markup trunk/fellowiki/tests/wiki/tests/real_world trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/third_party trunk/fellowiki/third_party/w3c trunk/fellowiki/util trunk/fellowiki/wiki">fingerle at berlios.de
+       </A><BR>
+    <I>Sun Mar 26 23:13:29 CEST 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000010.html">[fellowiki-svncheckins] r12 - trunk/fellowiki/tests/wiki/tests/simple_markup
+</A></li>
+        <LI>Next message: <A HREF="000012.html">[fellowiki-svncheckins] r14 - pjm pjm/planning trunk/fellowiki/tests trunk/fellowiki/tests/wiki/tests/mixed_markup trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/third_party trunk/fellowiki/third_party/w3c
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11">[ date ]</a>
+              <a href="thread.html#11">[ thread ]</a>
+              <a href="subject.html#11">[ subject ]</a>
+              <a href="author.html#11">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-03-26 23:13:24 +0200 (Sun, 26 Mar 2006)
+New Revision: 13
+
+Modified:
+   /
+   branches/
+   pjm/
+   pjm/milestones.txt
+   pjm/planning/
+   pjm/pointers
+   pjm/tasks.txt
+   pjm/tools/
+   tags/
+   trunk/
+   trunk/fellowiki/
+   trunk/fellowiki/__init__.py
+   trunk/fellowiki/tests/
+   trunk/fellowiki/tests/README
+   trunk/fellowiki/tests/__init__.py
+   trunk/fellowiki/tests/pylintrc
+   trunk/fellowiki/tests/wiki/
+   trunk/fellowiki/tests/wiki/__init__.py
+   trunk/fellowiki/tests/wiki/tests/
+   trunk/fellowiki/tests/wiki/tests/known_issues/
+   trunk/fellowiki/tests/wiki/tests/known_issues/stress_test/
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_concurrent.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_concurrent.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_concurrent.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_concurrent.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/pre_with_non_pre.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/pre_with_non_pre.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_concurrent.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_concurrent.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_concurrent.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_concurrent.wiki
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.complete.xml
+   trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.wiki
+   trunk/fellowiki/tests/wiki/tests/real_world/
+   trunk/fellowiki/tests/wiki/tests/simple_markup/
+   trunk/fellowiki/tests/wiki/tests/simple_markup/bold_block.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/bold_block.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/bold_local.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/bold_local.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/double_quotes.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/double_quotes.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/empty.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/empty.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/escaped_text.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/escaped_text.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/include_link_rename.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/include_link_simple.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/italic_block.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/italic_block.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/italic_local.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/italic_local.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/just_text.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/just_text.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/just_text_multiline.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/just_text_multiline.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/large_font.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/large_font.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/line_break.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/line_break.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/link_rename.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/link_simple.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/lists_combined.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/lists_invalid.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/macros.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_list_simple.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_lists_hierarchical.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/paragraph.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/paragraph.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/paragraph_modified.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/pre.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/pre.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/single_quotes.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/single_quotes.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/small_font.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/small_font.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/some_special_markup_with_blanks.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/some_special_markup_with_blanks.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/special_characters.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/special_characters.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/special_chars.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/special_chars.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/subscript.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/subscript.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/superscript.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/superscript.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/tables_modified.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/tables_simple.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_block.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_block.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_local.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_local.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_block.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_block.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_local.complete.xml
+   trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_local.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_list_simple.wiki
+   trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_lists_hierarchical.wiki
+   trunk/fellowiki/tests/wiki/ut_parser.py
+   trunk/fellowiki/third_party/
+   trunk/fellowiki/third_party/w3c/
+   trunk/fellowiki/third_party/w3c/LICENSE
+   trunk/fellowiki/third_party/w3c/xhtml-lat1.ent
+   trunk/fellowiki/third_party/w3c/xhtml-special.ent
+   trunk/fellowiki/third_party/w3c/xhtml-symbol.ent
+   trunk/fellowiki/third_party/w3c/xhtml1-strict.dtd
+   trunk/fellowiki/util/
+   trunk/fellowiki/util/__init__.py
+   trunk/fellowiki/util/assorted.py
+   trunk/fellowiki/wiki/
+   trunk/fellowiki/wiki/__init__.py
+   trunk/fellowiki/wiki/parser.py
+Log:
+- set properties
+
+
+
+Property changes on: 
+___________________________________________________________________
+Name: svn:ignore
+   + *.pyc
+
+
+
+Property changes on: branches
+___________________________________________________________________
+Name: svn:ignore
+   + *.pyc
+
+
+
+Property changes on: pjm
+___________________________________________________________________
+Name: svn:ignore
+   + *.pyc
+
+
+
+Property changes on: pjm/milestones.txt
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: pjm/planning
+___________________________________________________________________
+Name: svn:ignore
+   + *.pyc
+
+
+
+Property changes on: pjm/pointers
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: pjm/tasks.txt
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: pjm/tools
+___________________________________________________________________
+Name: svn:ignore
+   + *.pyc
+
+
+
+Property changes on: tags
+___________________________________________________________________
+Name: svn:ignore
+   + *.pyc
+
+
+
+Property changes on: trunk
+___________________________________________________________________
+Name: svn:ignore
+   + *.pyc
+
+
+
+Property changes on: trunk/fellowiki
+___________________________________________________________________
+Name: svn:ignore
+   + *.pyc
+
+
+
+Property changes on: trunk/fellowiki/__init__.py
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests
+___________________________________________________________________
+Name: svn:ignore
+   + *.pyc
+
+
+
+Property changes on: trunk/fellowiki/tests/README
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/__init__.py
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/pylintrc
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki
+___________________________________________________________________
+Name: svn:ignore
+   + *.pyc
+
+
+
+Property changes on: trunk/fellowiki/tests/wiki/__init__.py
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests
+___________________________________________________________________
+Name: svn:ignore
+   + *.generated.*
+
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/known_issues
+___________________________________________________________________
+Name: svn:ignore
+   + *.generated.*
+
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/known_issues/stress_test
+___________________________________________________________________
+Name: svn:ignore
+   + *.generated.*
+
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup
+___________________________________________________________________
+Name: svn:ignore
+   + *.generated.*
+
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_concurrent.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_concurrent.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/bold_embedded.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_concurrent.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_concurrent.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/italic_embedded.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/pre_with_non_pre.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/pre_with_non_pre.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_concurrent.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_concurrent.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/typewriter_embedded.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_concurrent.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_concurrent.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/mixed_markup/underlined_embedded.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/real_world
+___________________________________________________________________
+Name: svn:ignore
+   + *.generated.*
+
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup
+___________________________________________________________________
+Name: svn:ignore
+   + *.generated.*
+
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/bold_block.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/bold_block.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/bold_local.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/bold_local.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/double_quotes.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/double_quotes.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/empty.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/empty.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/escaped_text.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/escaped_text.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/headlines.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/horizontal_rule.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/include_link_rename.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/include_link_simple.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/italic_block.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/italic_block.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/italic_local.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/italic_local.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/just_text.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/just_text.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/just_text_multiline.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/just_text_multiline.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/large_font.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/large_font.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/line_break.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/line_break.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/link_rename.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/link_simple.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/lists_combined.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/lists_invalid.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/macros.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_list_simple.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/numbered_lists_hierarchical.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/paragraph.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/paragraph.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/paragraph_modified.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/pre.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/pre.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/single_quotes.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/single_quotes.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/small_font.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/small_font.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/some_special_markup_with_blanks.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/some_special_markup_with_blanks.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/special_characters.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/special_characters.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/special_chars.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/special_chars.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/subscript.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/subscript.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/superscript.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/superscript.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/tables_modified.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/tables_simple.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_block.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_block.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_local.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/typewriter_local.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_block.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_block.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_local.complete.xml
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/underlined_local.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_list_simple.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/tests/simple_markup/unnumbered_lists_hierarchical.wiki
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/tests/wiki/ut_parser.py
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/third_party
+___________________________________________________________________
+Name: svn:ignore
+   + *.pyc
+
+
+
+Property changes on: trunk/fellowiki/third_party/w3c
+___________________________________________________________________
+Name: svn:ignore
+   + *.pyc
+
+
+
+Property changes on: trunk/fellowiki/third_party/w3c/LICENSE
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/third_party/w3c/xhtml-lat1.ent
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/third_party/w3c/xhtml-special.ent
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/third_party/w3c/xhtml-symbol.ent
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+Modified: trunk/fellowiki/third_party/w3c/xhtml1-strict.dtd
+===================================================================
+--- trunk/fellowiki/third_party/w3c/xhtml1-strict.dtd	2006-03-26 20:39:47 UTC (rev 12)
++++ trunk/fellowiki/third_party/w3c/xhtml1-strict.dtd	2006-03-26 21:13:24 UTC (rev 13)
+@@ -16,7 +16,7 @@
+    PUBLIC &quot;-//W3C//DTD XHTML 1.0 Strict//EN&quot;
+    SYSTEM &quot;<A HREF="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd</A>&quot;
+ 
+-   $Revision: 1.1 $
++   $Revision$
+    $Date: 2002/08/01 13:56:03 $
+ 
+ --&gt;
+
+
+Property changes on: trunk/fellowiki/third_party/w3c/xhtml1-strict.dtd
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/util
+___________________________________________________________________
+Name: svn:ignore
+   + *.pyc
+
+
+
+Property changes on: trunk/fellowiki/util/__init__.py
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/util/assorted.py
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/wiki
+___________________________________________________________________
+Name: svn:ignore
+   + *.pyc
+
+
+
+Property changes on: trunk/fellowiki/wiki/__init__.py
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+Property changes on: trunk/fellowiki/wiki/parser.py
+___________________________________________________________________
+Name: svn:keywords
+   + Revision
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000010.html">[fellowiki-svncheckins] r12 - trunk/fellowiki/tests/wiki/tests/simple_markup
+</A></li>
+	<LI>Next message: <A HREF="000012.html">[fellowiki-svncheckins] r14 - pjm pjm/planning trunk/fellowiki/tests trunk/fellowiki/tests/wiki/tests/mixed_markup trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/third_party trunk/fellowiki/third_party/w3c
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#11">[ date ]</a>
+              <a href="thread.html#11">[ thread ]</a>
+              <a href="subject.html#11">[ subject ]</a>
+              <a href="author.html#11">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

@@ -1,0 +1,438 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r38 - / trunk
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r38%20-%20/%20trunk&In-Reply-To=%3C200809032143.m83Lh9x8028589%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="000037.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r38 - / trunk</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r38%20-%20/%20trunk&In-Reply-To=%3C200809032143.m83Lh9x8028589%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r38 - / trunk">fingerle at mail.berlios.de
+       </A><BR>
+    <I>Wed Sep  3 23:43:09 CEST 2008</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="000037.html">[fellowiki-svncheckins] r39 - in trunk: . shared templates
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#36">[ date ]</a>
+              <a href="thread.html#36">[ thread ]</a>
+              <a href="subject.html#36">[ subject ]</a>
+              <a href="author.html#36">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2008-09-03 23:43:05 +0200 (Wed, 03 Sep 2008)
+New Revision: 38
+
+Removed:
+   pjm/
+   trunk/README.txt
+   trunk/dev.cfg
+   trunk/fellowiki.py
+   trunk/fellowiki/
+   trunk/sample-prod.cfg
+   trunk/setup.cfg
+   trunk/setup.py
+Log:
+starting over - removing failed attempt
+
+
+Deleted: trunk/README.txt
+===================================================================
+--- trunk/README.txt	2006-11-22 02:55:51 UTC (rev 37)
++++ trunk/README.txt	2008-09-03 21:43:05 UTC (rev 38)
+@@ -1,4 +0,0 @@
+-FelloWiki
+-
+-This is a TurboGears (<A HREF="http://www.turbogears.org">http://www.turbogears.org</A>) project. It can be
+-started by running the fellowiki.py script.
+
+Deleted: trunk/dev.cfg
+===================================================================
+--- trunk/dev.cfg	2006-11-22 02:55:51 UTC (rev 37)
++++ trunk/dev.cfg	2008-09-03 21:43:05 UTC (rev 38)
+@@ -1,61 +0,0 @@
+-[global]
+-# This is where all of your settings go for your development environment
+-# Settings that are the same for both development and production
+-# (such as template engine, encodings, etc.) all go in 
+-# fellowiki/config/app.cfg
+-
+-# DATABASE
+-
+-# <A HREF="driver://username:password@host:port/database">driver://username:password@host:port/database</A>
+-
+-# pick the form for your database
+-# sqlalchemy.dburi=&quot;<A HREF="postgres://username@hostname/databasename">postgres://username@hostname/databasename</A>&quot;
+-# sqlalchemy.dburi=&quot;<A HREF="mysql://username:password@hostname:port/databasename">mysql://username:password@hostname:port/databasename</A>&quot;
+-# sqlalchemy.dburi=&quot;<A HREF="sqlite://%(current_dir_uri">sqlite://%(current_dir_uri</A>)s/devdata.sqlite&quot;
+-
+-# If you have sqlite, here's a simple default to get you started
+-# in development
+-sqlalchemy.dburi=&quot;<A HREF="sqlite:///devdata.sqlite">sqlite:///devdata.sqlite</A>&quot;
+-
+-# set to 1 to make SQLAlchemy echo SQL commands on the console
+-sqlalchemy.echo = 0
+-
+-# SERVER
+-
+-# Some server parameters that you may want to tweak
+-# server.socket_port=8080
+-
+-# Enable the debug output at the end on pages.
+-# log_debug_info_filter.on = False
+-
+-server.environment=&quot;development&quot;
+-autoreload.package=&quot;fellowiki&quot;
+-
+-# session_filter.on = True
+-
+-# Set to True if you'd like to abort execution if a controller gets an
+-# unexpected parameter. False by default
+-tg.strict_parameters = True
+-
+-# LOGGING
+-# Logging configuration generally follows the style of the standard
+-# Python logging module configuration. Note that when specifying
+-# log format messages, you need to use *() for formatting variables.
+-# Deployment independent log configuration is in fellowiki/config/log.cfg
+-[logging]
+-
+-[[loggers]]
+-[[[fellowiki]]]
+-level='DEBUG'
+-qualname='fellowiki'
+-handlers=['debug_out']
+-
+-[[[allinfo]]]
+-level='INFO'
+-handlers=['debug_out']
+-
+-[[[access]]]
+-level='INFO'
+-qualname='turbogears.access'
+-handlers=['access_out']
+-propagate=0
+
+Deleted: trunk/fellowiki.py
+===================================================================
+--- trunk/fellowiki.py	2006-11-22 02:55:51 UTC (rev 37)
++++ trunk/fellowiki.py	2008-09-03 21:43:05 UTC (rev 38)
+@@ -1,125 +0,0 @@
+-#!/usr/bin/python2.4
+-# Copyright (c) 2006 Jan Niklas Fingerle
+-#
+-# This source code file is based on a TurboGears &quot;quickstarted&quot; project.
+-# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
+-# and contributors.
+-# 
+-# Permission is hereby granted, free of charge, to any person obtaining a
+-# copy of this software and associated documentation files (the &quot;Software&quot;),
+-# to deal in the Software without restriction, including without limitation
+-# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+-# and/or sell copies of the Software, and to permit persons to whom the
+-# Software is furnished to do so, subject to the following conditions:
+-#
+-# The above copyright notice and this permission notice shall be included in
+-# all copies or substantial portions of the Software.
+-#
+-# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+-# DEALINGS IN THE SOFTWARE.
+-
+-import pkg_resources
+-pkg_resources.require(&quot;TurboGears&quot;)
+-
+-from optparse import OptionParser
+-from os.path import join, exists, dirname
+-
+-import cherrypy
+-import turbogears
+-from turbogears.database import session
+-from sqlalchemy.exceptions import SQLError
+-
+-from fellowiki.model import DBVersion, initialize
+-
+-def get_configuration():
+-    parser = OptionParser()
+-    parser.add_option(&quot;-c&quot;, &quot;--config&quot;, dest=&quot;config_file&quot;, type='string',
+-                  help=&quot;read configuration from FILE&quot;, metavar=&quot;FILE&quot;)
+-    parser.add_option(&quot;-u&quot;, &quot;--database &quot;, dest=&quot;db_uri&quot;, type='string',
+-                  help=&quot;data base URI&quot;, metavar=&quot;URI&quot;)
+-    parser.add_option(&quot;-b&quot;, &quot;--bind&quot;, dest=&quot;server_host&quot;, type='string',
+-                  help=&quot;bind server to HOST&quot;, metavar=&quot;HOST&quot;)
+-    parser.add_option(&quot;-p&quot;, &quot;--port&quot;, dest=&quot;server_port&quot;, type='int',
+-                  help=&quot;bind server to PORT&quot;, metavar=&quot;PORT&quot;)
+-    parser.add_option(&quot;--generate-tables&quot;, dest=&quot;generate_tables&quot;, 
+-                  action='store_true', default=False,
+-                  help=&quot;generate fellowiki data base tables&quot;)
+-    parser.add_option(&quot;--update-tables&quot;, dest=&quot;update_tables&quot;, 
+-                  action='store_true', default=False,
+-                  help=&quot;update fellowiki data base tables - not yet supported&quot;)
+-                  
+-    (options, args) = parser.parse_args()
+-    
+-    if len(args) &lt;&gt; 0:
+-        parser.error(&quot;positional parameters supplied, but not expected&quot;)
+-                      
+-    return options
+-
+-
+-def check_database(options):
+-    cherrypy.log('DB URI is %s' % cherrypy.config.get('sqlalchemy.dburi'), 'DB', 0)
+-    if cherrypy.config.get('sqlalchemy.dburi') in ['<A HREF="sqlite://">sqlite://</A>', '<A HREF="sqlite://:memory:">sqlite://:memory:</A>', 
+-                                         '<A HREF="sqlite:///">sqlite:///</A>', '<A HREF="sqlite:///:memory:">sqlite:///:memory:</A>']:
+-        # SQLite data bases require one DBApi per Thread. Cherrypy is 
+-        # multithreaded. Each thread will get its own *empty* memory DB, which
+-        # is not what we want, therefore...
+-        cherrypy.log(&quot;FelloWiki does not support SQLite memory data bases.&quot;, 'DB', 2)
+-        return False
+-    
+-    try: 
+-        versions = DBVersion.select()
+-        if options.generate_tables:
+-            cherrypy.log('generation of data base tables requested, but '+
+-                         'schema version table exists', 'DB', 1)
+-            return True
+-    except SQLError:
+-        if options.generate_tables:
+-            cherrypy.log('generating data base tables, as requested', 'DB', 0)
+-            initialize()
+-            session.flush()
+-            
+-        else:
+-            cherrypy.log(&quot;The FelloWiki data base tables seem not to be &quot; 
+-                         + &quot;installed. Please run FelloWiki with the flag &quot; 
+-                         + &quot;'--generate-tables' to create all needed tables.&quot;, 'DB', 2)
+-            return False
+-        
+-    return True
+-
+-def config_turbogears(options):
+-    if options.config_file is not None:
+-        turbogears.config.update_config(configfile=options.config_file, 
+-            modulename=&quot;fellowiki.config&quot;)
+-    elif exists(join(dirname(__file__), &quot;setup.py&quot;)):
+-        turbogears.config.update_config(configfile=join(dirname(__file__), &quot;dev.cfg&quot;),
+-            modulename=&quot;fellowiki.config&quot;)
+-    elif exists(&quot;/etc/fellowiki.cfg&quot;):
+-        turbogears.config.update_config(configfile=&quot;/etc/fellowiki.cfg&quot;,
+-            modulename=&quot;fellowiki.config&quot;)
+-
+-    new_conf = {}
+-    
+-    if options.server_host is not None:
+-        new_conf['server.socket_host'] = options.server_host
+-    if options.server_port is not None:
+-        new_conf['server.socket_port'] = options.server_port
+-    if options.db_uri is not None:   
+-        new_conf['sqlalchemy.dburi'] = options.db_uri
+-        
+-    turbogears.config.update({'global': new_conf})
+-
+-
+-def start_web_server():
+-    options = get_configuration()
+-    config_turbogears(options)
+-    if check_database(options):
+-        from fellowiki.controllers import FelloWikiRoot
+-        turbogears.start_server(FelloWikiRoot())
+-      
+-if __name__ == '__main__':
+-    start_web_server()
+
+Deleted: trunk/sample-prod.cfg
+===================================================================
+--- trunk/sample-prod.cfg	2006-11-22 02:55:51 UTC (rev 37)
++++ trunk/sample-prod.cfg	2008-09-03 21:43:05 UTC (rev 38)
+@@ -1,63 +0,0 @@
+-[global]
+-# This is where all of your settings go for your production environment.
+-# You'll copy this file over to your production server and provide it
+-# as a command-line option to your start script.
+-# Settings that are the same for both development and production
+-# (such as template engine, encodings, etc.) all go in 
+-# fellowiki/config/app.cfg
+-
+-# <A HREF="driver://username:password@host:port/database">driver://username:password@host:port/database</A>
+-# pick the form for your database
+-# sqlalchemy.dburi=&quot;<A HREF="postgres://username@hostname/databasename">postgres://username@hostname/databasename</A>&quot;
+-# sqlalchemy.dburi=&quot;<A HREF="mysql://username:password@hostname:port/databasename">mysql://username:password@hostname:port/databasename</A>&quot;
+-# sqlalchemy.dburi=&quot;<A HREF="sqlite:///file_name_and_path">sqlite:///file_name_and_path</A>&quot;
+-
+-# If you have sqlite, here's a simple default to get you started
+-# in development
+-sqlalchemy.dburi=&quot;<A HREF="sqlite:///%(current_dir_uri">sqlite:///%(current_dir_uri</A>)s/devdata.sqlite&quot;
+-
+-
+-# SERVER
+-
+-server.environment=&quot;production&quot;
+-
+-# Sets the number of threads the server uses
+-# server.thread_pool = 1
+-
+-# if this is part of a larger site, you can set the path
+-# to the TurboGears instance here
+-# server.webpath=&quot;&quot;
+-
+-# session_filter.on = True
+-
+-# Set to True if you'd like to abort execution if a controller gets an
+-# unexpected parameter. False by default
+-# tg.strict_parameters = False
+-
+-# LOGGING
+-# Logging configuration generally follows the style of the standard
+-# Python logging module configuration. Note that when specifying
+-# log format messages, you need to use *() for formatting variables.
+-# Deployment independent log configuration is in fellowiki/config/log.cfg
+-[logging]
+-
+-[[handlers]]
+-
+-[[[access_out]]]
+-# set the filename as the first argument below
+-args=&quot;('server.log',)&quot;
+-class='FileHandler'
+-level='INFO'
+-formatter='message_only'
+-
+-[[loggers]]
+-[[[fellowiki]]]
+-level='ERROR'
+-qualname='fellowiki'
+-handlers=['error_out']
+-
+-[[[access]]]
+-level='INFO'
+-qualname='turbogears.access'
+-handlers=['access_out']
+-propagate=0
+
+Deleted: trunk/setup.cfg
+===================================================================
+--- trunk/setup.cfg	2006-11-22 02:55:51 UTC (rev 37)
++++ trunk/setup.cfg	2008-09-03 21:43:05 UTC (rev 38)
+@@ -1,3 +0,0 @@
+-[egg_info]
+-tag_build = .dev
+-tag_svn_revision = 1
+
+Deleted: trunk/setup.py
+===================================================================
+--- trunk/setup.py	2006-11-22 02:55:51 UTC (rev 37)
++++ trunk/setup.py	2008-09-03 21:43:05 UTC (rev 38)
+@@ -1,70 +0,0 @@
+-# Copyright (c) 2006 Jan Niklas Fingerle
+-#
+-# This source code file is based on a TurboGears &quot;quickstarted&quot; project.
+-# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
+-# and contributors.
+-# 
+-# Permission is hereby granted, free of charge, to any person obtaining a
+-# copy of this software and associated documentation files (the &quot;Software&quot;),
+-# to deal in the Software without restriction, including without limitation
+-# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+-# and/or sell copies of the Software, and to permit persons to whom the
+-# Software is furnished to do so, subject to the following conditions:
+-#
+-# The above copyright notice and this permission notice shall be included in
+-# all copies or substantial portions of the Software.
+-#
+-# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+-# DEALINGS IN THE SOFTWARE.
+-
+-
+-from setuptools import setup, find_packages
+-from turbogears.finddata import find_package_data
+-
+-import os
+-
+-# Release information about FelloWiki
+-
+-setup(
+-    name=&quot;FelloWiki&quot;,
+-    version=&quot;0.1a1&quot;,
+-    
+-    description='Yet another wiki engine',
+-    long_description='Yet another wiki engine - still heavily in alpha',
+-    author=&quot;Jan Niklas Fingerle&quot;,
+-    author_email='<A HREF="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">fingerle at users.berlios.de</A>',
+-    url='<A HREF="http://developer.berlios.de/projects/fellowiki/">http://developer.berlios.de/projects/fellowiki/</A>',
+-    download_url='<A HREF="http://developer.berlios.de/project/showfiles.php?group_id=6220">http://developer.berlios.de/project/showfiles.php?group_id=6220</A>',
+-    license='MIT-style',
+-    
+-    install_requires = [
+-        &quot;TurboGears &gt;= 1.0b1&quot;,
+-    ],
+-    scripts = [&quot;fellowiki.py&quot;],
+-    zip_safe=False,
+-    packages=find_packages(),
+-    package_data = find_package_data(where='fellowiki',
+-                                     package='fellowiki'),
+-    keywords = ['turbogears.app'],
+-    classifiers = [
+-        'Development Status :: 3 - Alpha',
+-        'Operating System :: OS Independent',
+-        'Programming Language :: Python',
+-        'Topic :: Software Development :: Libraries :: Python Modules',
+-        'Framework :: TurboGears',
+-        # if this is an application that you'll distribute through
+-        # the Cheeseshop, uncomment the next line
+-        'Framework :: TurboGears :: Applications',
+-        
+-        # if this is a package that includes widgets that you'll distribute
+-        # through the Cheeseshop, uncomment the next line
+-        # 'Framework :: TurboGears :: Widgets',
+-    ],
+-    test_suite = 'nose.collector',
+-    )
+-    
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="000037.html">[fellowiki-svncheckins] r39 - in trunk: . shared templates
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#36">[ date ]</a>
+              <a href="thread.html#36">[ thread ]</a>
+              <a href="subject.html#36">[ subject ]</a>
+              <a href="author.html#36">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

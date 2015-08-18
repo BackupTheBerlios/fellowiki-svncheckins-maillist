@@ -1,0 +1,835 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r30 - in trunk: . fellowiki	fellowiki/config fellowiki/controllers	fellowiki/controllers/wikiparser/tests fellowiki/model	fellowiki/templates fellowiki/tests
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-September/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r30%20-%20in%20trunk%3A%20.%20fellowiki%0A%09fellowiki/config%20fellowiki/controllers%0A%09fellowiki/controllers/wikiparser/tests%20fellowiki/model%0A%09fellowiki/templates%20fellowiki/tests&In-Reply-To=%3C200609102338.k8ANcRJG013309%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000027.html">
+   <LINK REL="Next"  HREF="000029.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r30 - in trunk: . fellowiki	fellowiki/config fellowiki/controllers	fellowiki/controllers/wikiparser/tests fellowiki/model	fellowiki/templates fellowiki/tests</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r30%20-%20in%20trunk%3A%20.%20fellowiki%0A%09fellowiki/config%20fellowiki/controllers%0A%09fellowiki/controllers/wikiparser/tests%20fellowiki/model%0A%09fellowiki/templates%20fellowiki/tests&In-Reply-To=%3C200609102338.k8ANcRJG013309%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r30 - in trunk: . fellowiki	fellowiki/config fellowiki/controllers	fellowiki/controllers/wikiparser/tests fellowiki/model	fellowiki/templates fellowiki/tests">fingerle at mail.berlios.de
+       </A><BR>
+    <I>Mon Sep 11 01:38:27 CEST 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000027.html">[fellowiki-svncheckins] r29 - in trunk: . fellowiki	fellowiki/config fellowiki/controllers	fellowiki/controllers/wikiparser fellowiki/model	fellowiki/static fellowiki/static/css fellowiki/static/images	fellowiki/templates fellowiki/tests
+</A></li>
+        <LI>Next message: <A HREF="000029.html">[fellowiki-svncheckins] r31 - trunk
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#28">[ date ]</a>
+              <a href="thread.html#28">[ thread ]</a>
+              <a href="subject.html#28">[ subject ]</a>
+              <a href="author.html#28">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-09-11 01:38:25 +0200 (Mon, 11 Sep 2006)
+New Revision: 30
+
+Modified:
+   trunk/fellowiki/__init__.py
+   trunk/fellowiki/config/__init__.py
+   trunk/fellowiki/config/app.cfg
+   trunk/fellowiki/config/log.cfg
+   trunk/fellowiki/controllers/__init__.py
+   trunk/fellowiki/controllers/wikiparser/tests/test_parser.py
+   trunk/fellowiki/json.py
+   trunk/fellowiki/model/__init__.py
+   trunk/fellowiki/model/model_classes.py
+   trunk/fellowiki/model/schema.py
+   trunk/fellowiki/templates/__init__.py
+   trunk/fellowiki/tests/__init__.py
+   trunk/fellowiki/tests/test_controllers.py
+   trunk/fellowiki/tests/test_model.py
+   trunk/setup.py
+   trunk/start-fellowiki.py
+Log:
+- some more TurboGearsifying
+
+
+Modified: trunk/fellowiki/__init__.py
+===================================================================
+--- trunk/fellowiki/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/__init__.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -0,0 +1,19 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
+
+Modified: trunk/fellowiki/config/__init__.py
+===================================================================
+--- trunk/fellowiki/config/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/config/__init__.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -0,0 +1,19 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
+
+Modified: trunk/fellowiki/config/app.cfg
+===================================================================
+--- trunk/fellowiki/config/app.cfg	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/config/app.cfg	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,27 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++#
++# This source code file is based on a TurboGears &quot;quickstarted&quot; project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ [global]
+ # The settings in this file should not vary depending on the deployment
+ # environment. dev.cfg and prod.cfg are the locations for
+
+Modified: trunk/fellowiki/config/log.cfg
+===================================================================
+--- trunk/fellowiki/config/log.cfg	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/config/log.cfg	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,27 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++#
++# This source code file is based on a TurboGears &quot;quickstarted&quot; project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ # LOGGING
+ # Logging is often deployment specific, but some handlers and
+ # formatters can be defined here.
+
+Modified: trunk/fellowiki/controllers/__init__.py
+===================================================================
+--- trunk/fellowiki/controllers/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/controllers/__init__.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,23 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ import logging
+ 
+ import cherrypy
+@@ -5,14 +25,19 @@
+ import turbogears
+ from turbogears import controllers, expose, validate, redirect
+ from turbogears.database import session
++from fellowiki.model import *
+ 
+ from fellowiki import json
+ 
+ log = logging.getLogger(&quot;fellowiki.controllers&quot;)
+ 
+-class Root(controllers.RootController):
++class FelloWikiRoot(controllers.RootController):
+     @expose(template=&quot;fellowiki.templates.welcome&quot;)
+     def index(self):
++        cherrypy.log('Versions:', 'DEBUG', 0)
++        versions = DBVersion.select()
++        for item in versions:
++            cherrypy.log(unicode(item), 'DEBUG', 0)
+         import time
+         log.debug(&quot;Happy TurboGears Controller Responding For Duty&quot;)
+         return dict(now=time.ctime())
+
+Modified: trunk/fellowiki/controllers/wikiparser/tests/test_parser.py
+===================================================================
+--- trunk/fellowiki/controllers/wikiparser/tests/test_parser.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/controllers/wikiparser/tests/test_parser.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -38,12 +38,12 @@
+ from elementtree.ElementTree import tostring, fromstring, Element, SubElement
+ from xml.parsers.xmlproc import xmlval, utils, xmldtd
+ 
+-from fellowiki.wiki.parser import WikiParser, PROC
+-from fellowiki.wiki.links import LINK, IMAGE_LINK
+-from fellowiki.wiki.macros import SPLIT, ESCAPE, MACRO, \
++from fellowiki.controllers.wikiparser.parser import WikiParser, PROC
++from fellowiki.controllers.wikiparser.links import LINK, IMAGE_LINK
++from fellowiki.controllers.wikiparser.macros import SPLIT, ESCAPE, MACRO, \
+                                   DEFERRED, BLOCK_LEVEL
+ 
+-from fellowiki.wiki import macros, tables, lists, headlines, special_characters, \
++from fellowiki.controllers.wikiparser import macros, tables, lists, headlines, special_characters, \
+             escaped_text, links, special_markup, text_style, \
+             text_style_simple, structure_modifiers
+ 
+@@ -53,7 +53,7 @@
+ 
+ # Pre-load the xhtml DTD once, since reloading for each xmlproc
+ # would be a major performance hit.
+-_xhtml_dtd = xmldtd.load_dtd(join(dirname(abspath(__file__)), '..', '..',
++_xhtml_dtd = xmldtd.load_dtd(join(dirname(abspath(__file__)), '..', '..', '..',
+                                   'third_party', 'w3c', 'xhtml1-strict.dtd'))
+ 
+ def _assert_etrees(etree_1, etree_2):
+
+Modified: trunk/fellowiki/json.py
+===================================================================
+--- trunk/fellowiki/json.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/json.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,28 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++#
++# This source code file is based on a TurboGears &quot;quickstarted&quot; project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
++
+ # This module provides helper functions for the JSON part of your
+ # view, if you are providing a JSON-based API for your app.
+ 
+
+Modified: trunk/fellowiki/model/__init__.py
+===================================================================
+--- trunk/fellowiki/model/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/model/__init__.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1 +1,21 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ from model_classes import *
+
+Modified: trunk/fellowiki/model/model_classes.py
+===================================================================
+--- trunk/fellowiki/model/model_classes.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/model/model_classes.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,23 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ from sqlalchemy import *
+ from sqlalchemy.ext.assignmapper import assign_mapper
+ from sqlalchemy.ext.sessioncontext import SessionContext
+
+Modified: trunk/fellowiki/model/schema.py
+===================================================================
+--- trunk/fellowiki/model/schema.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/model/schema.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,23 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ from sqlalchemy import *
+ 
+ import turbogears.database
+
+Modified: trunk/fellowiki/templates/__init__.py
+===================================================================
+--- trunk/fellowiki/templates/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/templates/__init__.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -0,0 +1,19 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
+
+Modified: trunk/fellowiki/tests/__init__.py
+===================================================================
+--- trunk/fellowiki/tests/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/tests/__init__.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -17,12 +17,3 @@
+ # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ # DEALINGS IN THE SOFTWARE.
+-
+-&quot;&quot;&quot;fellowiki test package
+-
+-This test package doesn't do anything special, it's just there to contain
+-the subpackages:
+-
+-    - wiki:  tests for the wiki engine
+-    
+-&quot;&quot;&quot;
+
+Modified: trunk/fellowiki/tests/test_controllers.py
+===================================================================
+--- trunk/fellowiki/tests/test_controllers.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/tests/test_controllers.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,28 @@
++#!/usr/bin/python2.4
++# Copyright (c) 2006 Jan Niklas Fingerle
++#
++# This source code file is based on a TurboGears &quot;quickstarted&quot; project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ from turbogears import testutil
+ from fellowiki.controllers import Root
+ import cherrypy
+
+Modified: trunk/fellowiki/tests/test_model.py
+===================================================================
+--- trunk/fellowiki/tests/test_model.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/tests/test_model.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,29 @@
++#!/usr/bin/python2.4
++# Copyright (c) 2006 Jan Niklas Fingerle
++#
++# This source code file is based on a TurboGears &quot;quickstarted&quot; project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
++
+ # If your project uses a database, you can set up database tests
+ # similar to what you see below. Be sure to set the db_uri to
+ # an appropriate uri for your testing database. sqlite is a good
+
+Modified: trunk/setup.py
+===================================================================
+--- trunk/setup.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/setup.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,28 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++#
++# This source code file is based on a TurboGears &quot;quickstarted&quot; project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
++
+ from setuptools import setup, find_packages
+ from turbogears.finddata import find_package_data
+ 
+
+Modified: trunk/start-fellowiki.py
+===================================================================
+--- trunk/start-fellowiki.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/start-fellowiki.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,162 +1,130 @@
+ #!/usr/bin/python2.4
++# Copyright (c) 2006 Jan Niklas Fingerle
++#
++# This source code file is based on a TurboGears &quot;quickstarted&quot; project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ import pkg_resources
+ pkg_resources.require(&quot;TurboGears&quot;)
+ 
+-import turbogears
++from optparse import OptionParser
++from os.path import join, exists, dirname
++
+ import cherrypy
+-cherrypy.lowercase_api = True
++import turbogears
++from sqlalchemy.exceptions import SQLError
+ 
+-from os.path import *
+-import sys
++from fellowiki.model import DBVersion
+ 
+-# first look on the command line for a desired config file,
+-# if it's not on the command line, then
+-# look for setup.py in this directory. If it's not there, this script is
+-# probably installed
+-if len(sys.argv) &gt; 1:
+-    turbogears.update_config(configfile=sys.argv[1], 
+-        modulename=&quot;fellowiki.config&quot;)
+-elif exists(join(dirname(__file__), &quot;setup.py&quot;)):
+-    turbogears.update_config(configfile=&quot;dev.cfg&quot;,
+-        modulename=&quot;fellowiki.config&quot;)
+-else:
+-    turbogears.update_config(configfile=&quot;prod.cfg&quot;,
+-        modulename=&quot;fellowiki.config&quot;)
++def get_configuration():
++    parser = OptionParser()
++    parser.add_option(&quot;-c&quot;, &quot;--config&quot;, dest=&quot;config_file&quot;, type='string',
++                  help=&quot;read configuration from FILE&quot;, metavar=&quot;FILE&quot;)
++    parser.add_option(&quot;-u&quot;, &quot;--database &quot;, dest=&quot;db_uri&quot;, type='string',
++                  help=&quot;data base URI&quot;, metavar=&quot;URI&quot;)
++    parser.add_option(&quot;-b&quot;, &quot;--bind&quot;, dest=&quot;server_host&quot;, type='string',
++                  help=&quot;bind server to HOST&quot;, metavar=&quot;HOST&quot;)
++    parser.add_option(&quot;-p&quot;, &quot;--port&quot;, dest=&quot;server_port&quot;, type='int',
++                  help=&quot;bind server to PORT&quot;, metavar=&quot;PORT&quot;)
++    parser.add_option(&quot;--generate-tables&quot;, dest=&quot;generate_tables&quot;, 
++                  action='store_true', default=False,
++                  help=&quot;generate fellowiki data base tables&quot;)
++    parser.add_option(&quot;--update-tables&quot;, dest=&quot;update_tables&quot;, 
++                  action='store_true', default=False,
++                  help=&quot;update fellowiki data base tables - not yet supported&quot;)
++                  
++    (options, args) = parser.parse_args()
++    
++    if len(args) &lt;&gt; 0:
++        parser.error(&quot;positional parameters supplied, but not expected&quot;)
++                      
++    return options
+ 
+-from fellowiki.controllers import Root
+ 
+-turbogears.start_server(Root())
++def check_database(options):
++    cherrypy.log('DB URI is %s' % cherrypy.config.get('sqlalchemy.dburi'), 'DB', 0)
++    if cherrypy.config.get('sqlalchemy.dburi') in ['<A HREF="sqlite://">sqlite://</A>', '<A HREF="sqlite://:memory:">sqlite://:memory:</A>', 
++                                         '<A HREF="sqlite:///">sqlite:///</A>', '<A HREF="sqlite:///:memory:">sqlite:///:memory:</A>']:
++        # SQLite data bases require one DBApi per Thread. Cherrypy is 
++        # multithreaded. Each thread will get its own *empty* memory DB, which
++        # is not what we want, therefore...
++        cherrypy.log(&quot;FelloWiki does not support SQLite memory data bases.&quot;, 'DB', 2)
++        return False
++    
++    try: 
++        versions = DBVersion.select()
++        if options.generate_tables:
++            cherrypy.log('generation of data base tables requested, but '+
++                         'schema version table exists', 'DB', 1)
++            return True
++    except SQLError:
++        if options.generate_tables:
++            cherrypy.log('generating data base tables, as requested', 'DB', 0)
++            
++            from turbogears.database import metadata, get_engine, session
++            
++            engine = get_engine()
++            
++            metadata.create_all(engine=engine)
++            DBVersion('FelloWiki - Base', 1)
++            session.flush()
++            
++        else:
++            cherrypy.log(&quot;The FelloWiki data base tables seem not to be &quot; 
++                         + &quot;installed. Please run FelloWiki with the flag &quot; 
++                         + &quot;'--generate-tables' to create all needed tables.&quot;, 'DB', 2)
++            return False
++        
++    return True
+ 
++def config_turbogears(options):
++    if options.config_file is not None:
++        turbogears.config.update_config(configfile=options.config_file, 
++            modulename=&quot;fellowiki.config&quot;)
++    elif exists(join(dirname(__file__), &quot;setup.py&quot;)):
++        turbogears.config.update_config(configfile=join(dirname(__file__), &quot;dev.cfg&quot;),
++            modulename=&quot;fellowiki.config&quot;)
++    elif exists(&quot;/etc/fellowiki.cfg&quot;):
++        turbogears.config.update_config(configfile=&quot;/etc/fellowiki.cfg&quot;,
++            modulename=&quot;fellowiki.config&quot;)
+ 
+-##from optparse import OptionParser
+-##from fellowiki.util.assorted import attributes_from_dict
+-##
+-##from fellowiki.database.model import DBVersion
+-##from fellowiki.database.schema import metadata
+-##
+-##import cherrypy
+-##
+-##import sqlalchemy
+-##from sqlalchemy.exceptions import SQLError
+-##
+-##from controllers import FelloWikiRoot, WikiInstance, DataBaseHelper
+-##      
+-##def get_configuration():
+-##    parser = OptionParser()
+-##    parser.add_option(&quot;-c&quot;, &quot;--config&quot;, dest=&quot;config_file&quot;, type='string',
+-##                  help=&quot;read configuration from FILE&quot;, metavar=&quot;FILE&quot;)
+-##    parser.add_option(&quot;-d&quot;, &quot;--development&quot;, action='store_true', dest=&quot;development_mode&quot;,
+-##                  help=&quot;run in development/debug mode&quot;)
+-##    parser.add_option(&quot;-u&quot;, &quot;--database &quot;, dest=&quot;db_uri&quot;, type='string',
+-##                  help=&quot;data base URI&quot;, metavar=&quot;URI&quot;)
+-##    parser.add_option(&quot;-l&quot;, &quot;--log&quot;, dest=&quot;log_file&quot;, type='string',
+-##                  help=&quot;write logs to FILE&quot;, metavar=&quot;FILE&quot;)
+-##    parser.add_option(&quot;-s&quot;, &quot;--silent&quot;, action='store_true', dest=&quot;silent&quot;,
+-##                  help=&quot;don't write logs to the screen&quot;)
+-##    parser.add_option(&quot;-b&quot;, &quot;--bind&quot;, dest=&quot;server_host&quot;, type='string',
+-##                  help=&quot;bind server to HOST&quot;, metavar=&quot;HOST&quot;)
+-##    parser.add_option(&quot;-p&quot;, &quot;--port&quot;, dest=&quot;server_port&quot;, type='int',
+-##                  help=&quot;bind server to PORT&quot;, metavar=&quot;PORT&quot;)
+-##    parser.add_option(&quot;--generate-tables&quot;, dest=&quot;generate_tables&quot;, 
+-##                  action='store_true', default=False,
+-##                  help=&quot;generate fellowiki data base tables&quot;)
+-##    parser.add_option(&quot;--update-tables&quot;, dest=&quot;update_tables&quot;, 
+-##                  action='store_true', default=False,
+-##                  help=&quot;update fellowiki data base tables&quot;)
+-##                  
+-##    (options, args) = parser.parse_args()
+-##    
+-##    if len(args) &lt;&gt; 0:
+-##        parser.error(&quot;positional parameters supplied, but not expected&quot;)
+-##                      
+-##    return options
+-##
+-##def config_cherrypy(options):
+-##    cherrypy.config.environments = \
+-##            {'development': {'server.log_file_not_found': True, 
+-##                             'server.show_tracebacks': True, 
+-##                             'server.log_request_headers': True, 
+-##                             'autoreload.on': True, 
+-##                             'log_debug_info_filter.on': False}, 
+-##             'production':  {'server.log_file_not_found': False, 
+-##                             'server.show_tracebacks': False,
+-##                             'server.log_request_headers': False, 
+-##                             'autoreload.on': False, 
+-##                             'log_debug_info_filter.on': False}}
+-##                             
+-##    cherrypy.config.update({'global': {'server.environment': 'production'}})
+-##        
+-##    if options.config_file is not None:
+-##        cherrypy.config.update(file=options.config_file)
+-##    
+-##    new_conf = {}
+-##    
+-##    if options.development_mode is True:
+-##        new_conf['server.environment'] = 'development'
+-##    if options.log_file is not None:
+-##        new_conf['server.log_file'] = options.log_file
+-##    if options.server_host is not None:
+-##        new_conf['server.socket_host'] = options.server_host
+-##    if options.server_port is not None:
+-##        new_conf['server.socket_port'] = options.server_port
+-##    if options.silent is True:
+-##        new_conf['server.log_to_screen'] = False
+-##    if options.db_uri is not None:   
+-##        new_conf['db.uri'] = options.db_uri
+-##        
+-##    cherrypy.config.update({'global': new_conf})
+-##
+-##def start_web_server():
+-##    options = get_configuration()
+-##    
+-##    config_cherrypy(options)
+-##    
+-##    if cherrypy.config.get('db.uri') in ['<A HREF="sqlite://">sqlite://</A>', '<A HREF="sqlite://:memory:">sqlite://:memory:</A>', 
+-##                                         '<A HREF="sqlite:///">sqlite:///</A>', '<A HREF="sqlite:///:memory:">sqlite:///:memory:</A>']:
+-##        # SQLite data bases require one DBApi per Thread. Cherrypy is 
+-##        # multithreaded. Each thread will get its own *empty* memory DB, which
+-##        # is not what we want, therefore...
+-##        cherrypy.log(&quot;FelloWiki does not support SQLite memory data bases.&quot;, 'DB', 2)
+-##        return
+-##    
+-##    cherrypy.log(&quot;creating database engine for URI '%s'&quot; % cherrypy.config.get('db.uri'), 'DB')
+-##    engine = sqlalchemy.create_engine(cherrypy.config.get('db.uri'), encoding='utf-8')
+-##    
+-##    metadata.dispose()
+-##    metadata.connect(engine)
+-##    
+-##    error_string = None
+-##    
+-##    try: 
+-##        versions = DBVersion.select()
+-##        if options.generate_tables:
+-##            cherrypy.log('generation of data base tables requested, but '+
+-##                         'schema version table exists', 'DB', 1)
+-##    except SQLError:
+-##        if options.generate_tables:
+-##            cherrypy.log('generating data base tables, as requested', 'DB', 0)
+-##            metadata.create_all(engine=engine)
+-##            DBVersion('FelloWiki - Base', 1)
+-##            sqlalchemy.objectstore.session.flush()
+-##            
+-##        else:
+-##            error_string = &quot;The FelloWiki data base tables seem not to be &quot; \
+-##                         + &quot;installed. Please run FelloWiki with the flag &quot; \
+-##                         + &quot;'--generate-tables' to create all needed tables.&quot;
+-##            cherrypy.root = DataBaseHelper(error_string)
+-##            cherrypy.log(error_string, 'DB', 2)
+-##            cherrypy.server.start()
+-##            return
+-##    
+-##    
+-##    
+-##    wiki_root = cherrypy.root = FelloWikiRoot()
+-##    wiki_root.wiki = WikiInstance()
+-##        
+-##        
+-##    cherrypy.server.start()
+-##
+-##    
+-##      
+-##if __name__ == '__main__':
+-##    start_web_server()
++    new_conf = {}
++    
++    if options.server_host is not None:
++        new_conf['server.socket_host'] = options.server_host
++    if options.server_port is not None:
++        new_conf['server.socket_port'] = options.server_port
++    if options.db_uri is not None:   
++        new_conf['sqlalchemy.dburi'] = options.db_uri
++        
++    turbogears.config.update({'global': new_conf})
++
++
++def start_web_server():
++    options = get_configuration()
++    config_turbogears(options)
++    if check_database(options):
++        from fellowiki.controllers import FelloWikiRoot
++        turbogears.start_server(FelloWikiRoot())
++      
++if __name__ == '__main__':
++    start_web_server()
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000027.html">[fellowiki-svncheckins] r29 - in trunk: . fellowiki	fellowiki/config fellowiki/controllers	fellowiki/controllers/wikiparser fellowiki/model	fellowiki/static fellowiki/static/css fellowiki/static/images	fellowiki/templates fellowiki/tests
+</A></li>
+	<LI>Next message: <A HREF="000029.html">[fellowiki-svncheckins] r31 - trunk
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#28">[ date ]</a>
+              <a href="thread.html#28">[ thread ]</a>
+              <a href="subject.html#28">[ subject ]</a>
+              <a href="author.html#28">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

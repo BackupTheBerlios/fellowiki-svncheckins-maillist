@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r5 - trunk/fellowiki/tests/wiki
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-March/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r5%20-%20trunk/fellowiki/tests/wiki&In-Reply-To=%3C200603121151.k2CBp82P019555%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000002.html">
+   <LINK REL="Next"  HREF="000004.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r5 - trunk/fellowiki/tests/wiki</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r5%20-%20trunk/fellowiki/tests/wiki&In-Reply-To=%3C200603121151.k2CBp82P019555%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r5 - trunk/fellowiki/tests/wiki">fingerle at berlios.de
+       </A><BR>
+    <I>Sun Mar 12 12:51:08 CET 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000002.html">[fellowiki-svncheckins] r4 - in trunk/fellowiki: tests wiki
+</A></li>
+        <LI>Next message: <A HREF="000004.html">[fellowiki-svncheckins] r6 - trunk/fellowiki/tests/wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3">[ date ]</a>
+              <a href="thread.html#3">[ thread ]</a>
+              <a href="subject.html#3">[ subject ]</a>
+              <a href="author.html#3">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-03-12 12:51:06 +0100 (Sun, 12 Mar 2006)
+New Revision: 5
+
+Modified:
+   trunk/fellowiki/tests/wiki/ut_wikiparser.py
+Log:
+- changed test runner for wiki parser to only generate missing xml only in
+  case of failures, but not in case of errors
+
+
+Modified: trunk/fellowiki/tests/wiki/ut_wikiparser.py
+===================================================================
+--- trunk/fellowiki/tests/wiki/ut_wikiparser.py	2006-03-11 00:34:25 UTC (rev 4)
++++ trunk/fellowiki/tests/wiki/ut_wikiparser.py	2006-03-12 11:51:06 UTC (rev 5)
+@@ -82,9 +82,9 @@
+         The function parses the file &lt;fname&gt;.wiki and compares the result to 
+         the content of &lt;fname&gt;.&lt;tc_extension&gt;.xml. 
+         
+-        If the unit test fails or leads to an error, an attempt is made, to 
+-        write &lt;fname&gt;.&lt;tc_extension&gt;.generated.xml. If this write attempt 
+-        fails, it does so silently. 
++        If the unit test fails (but not in case of errors), an attempt is 
++        made, to write &lt;fname&gt;.&lt;tc_extension&gt;.generated.xml. If this write 
++        attempt fails, it does so silently. 
+         In any case the original fail or error (that occured before the 
+         writing attempt) will be raised to the caller (i.e. the unit test 
+         &quot;test runner&quot;).
+@@ -124,10 +124,10 @@
+             self._assert_etrees(xhtml_tree, xhtml_tree_wiki_ext_cononical)
+             self.xhtml_validator.parse_resource(xhtml_fn) # validate as XHTML
+             
+-        except:
++        except self.failureException, ex_val:
+             # I want to re-raise *this* exception with full traceback, even if I
+             # get another one inbetween
+-            (ex_type, ex_val, ex_tb) = sys.exc_info()
++            ex_tb = sys.exc_info()[-1]
+             try:
+                 gen_file = codecs.open('%s.%s.generated.xml' % 
+                              (fname, tc_extension), 'w+','utf8')
+@@ -135,7 +135,7 @@
+                 gen_file.close
+             except:
+                 pass # it's only debug output after all
+-            raise ex_type, ex_val, ex_tb 
++            raise self.failureException, ex_val, ex_tb 
+     return new_test_func
+     
+ def make_wiki_test_suite(tc_extension, 
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000002.html">[fellowiki-svncheckins] r4 - in trunk/fellowiki: tests wiki
+</A></li>
+	<LI>Next message: <A HREF="000004.html">[fellowiki-svncheckins] r6 - trunk/fellowiki/tests/wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3">[ date ]</a>
+              <a href="thread.html#3">[ thread ]</a>
+              <a href="subject.html#3">[ subject ]</a>
+              <a href="author.html#3">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

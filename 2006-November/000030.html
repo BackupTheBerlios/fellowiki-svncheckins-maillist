@@ -1,0 +1,2138 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r32 - pjm trunk trunk/fellowiki	trunk/fellowiki/config trunk/fellowiki/controllers	trunk/fellowiki/controllers/wikiparser trunk/fellowiki/model	trunk/fellowiki/templates trunk/fellowiki/util	trunk/fellowiki/widgets
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-November/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r32%20-%20pjm%20trunk%20trunk/fellowiki%0A%09trunk/fellowiki/config%20trunk/fellowiki/controllers%0A%09trunk/fellowiki/controllers/wikiparser%20trunk/fellowiki/model%0A%09trunk/fellowiki/templates%20trunk/fellowiki/util%0A%09trunk/fellowiki/widgets&In-Reply-To=%3C200611191757.kAJHvkPB023294%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="000031.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r32 - pjm trunk trunk/fellowiki	trunk/fellowiki/config trunk/fellowiki/controllers	trunk/fellowiki/controllers/wikiparser trunk/fellowiki/model	trunk/fellowiki/templates trunk/fellowiki/util	trunk/fellowiki/widgets</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r32%20-%20pjm%20trunk%20trunk/fellowiki%0A%09trunk/fellowiki/config%20trunk/fellowiki/controllers%0A%09trunk/fellowiki/controllers/wikiparser%20trunk/fellowiki/model%0A%09trunk/fellowiki/templates%20trunk/fellowiki/util%0A%09trunk/fellowiki/widgets&In-Reply-To=%3C200611191757.kAJHvkPB023294%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r32 - pjm trunk trunk/fellowiki	trunk/fellowiki/config trunk/fellowiki/controllers	trunk/fellowiki/controllers/wikiparser trunk/fellowiki/model	trunk/fellowiki/templates trunk/fellowiki/util	trunk/fellowiki/widgets">fingerle at mail.berlios.de
+       </A><BR>
+    <I>Sun Nov 19 18:57:46 CET 2006</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="000031.html">[fellowiki-svncheckins] r33 - pjm trunk
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#30">[ date ]</a>
+              <a href="thread.html#30">[ thread ]</a>
+              <a href="subject.html#30">[ subject ]</a>
+              <a href="author.html#30">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-11-19 18:57:44 +0100 (Sun, 19 Nov 2006)
+New Revision: 32
+
+Added:
+   trunk/fellowiki-www.py
+   trunk/fellowiki/controllers/wiki.py
+   trunk/fellowiki/templates/wiki_edit.kid
+   trunk/fellowiki/templates/wiki_view.kid
+   trunk/fellowiki/util/xmlelement.py
+   trunk/fellowiki/widgets/
+   trunk/fellowiki/widgets/__init__.py
+   trunk/fellowiki/widgets/forms.py
+Removed:
+   pjm/tools/
+   trunk/fellowiki.py
+   trunk/fellowiki/templates/default.kid
+   trunk/fellowiki/templates/welcome.kid
+Modified:
+   pjm/milestones.txt
+   pjm/tasks.txt
+   trunk/README.txt
+   trunk/fellowiki/config/app.cfg
+   trunk/fellowiki/controllers/__init__.py
+   trunk/fellowiki/controllers/wikiparser/parser.py
+   trunk/fellowiki/model/__init__.py
+   trunk/fellowiki/model/model_classes.py
+   trunk/fellowiki/model/schema.py
+   trunk/fellowiki/templates/login.kid
+   trunk/fellowiki/templates/master.kid
+   trunk/fellowiki/util/assorted.py
+   trunk/setup.py
+Log:
+Many changes to Turbogearsify Fellowiki
+
+
+Modified: pjm/milestones.txt
+===================================================================
+--- pjm/milestones.txt	2006-09-10 23:39:54 UTC (rev 31)
++++ pjm/milestones.txt	2006-11-19 17:57:44 UTC (rev 32)
+@@ -5,7 +5,6 @@
+ planned:
+ ========
+ 
+-0.0.1 working wiki parser
+ 0.1.0 working wiki 
+ 0.2.0 page templates are wiki pages
+ 0.3.0 user DB &amp; access restriction
+
+Modified: pjm/tasks.txt
+===================================================================
+--- pjm/tasks.txt	2006-09-10 23:39:54 UTC (rev 31)
++++ pjm/tasks.txt	2006-11-19 17:57:44 UTC (rev 32)
+@@ -1,3 +1,2 @@
+ *) simple web site
+ *) some kind of issue tracker - but I don't like the BerliOS ones
+-*) get svn mailing list working
+
+Modified: trunk/README.txt
+===================================================================
+--- trunk/README.txt	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/README.txt	2006-11-19 17:57:44 UTC (rev 32)
+@@ -1,4 +1,4 @@
+ FelloWiki
+ 
+ This is a TurboGears (<A HREF="http://www.turbogears.org">http://www.turbogears.org</A>) project. It can be
+-started by running the start-fellowiki.py script.
+\ No newline at end of file
++started by running the fellowiki.py script.
+
+Modified: trunk/fellowiki/config/app.cfg
+===================================================================
+--- trunk/fellowiki/config/app.cfg	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/config/app.cfg	2006-11-19 17:57:44 UTC (rev 32)
+@@ -57,6 +57,87 @@
+ # Set to True if the scheduler should be started
+ # tg.scheduler = False
+ 
++# VISIT TRACKING
++# Each visit to your application will be assigned a unique visit ID tracked via
++# a cookie sent to the visitor's browser.
++# --------------
++
++# Enable Visit tracking
++visit.on=True
++
++# Number of minutes a visit may be idle before it expires.
++visit.timeout=60
++
++# The name of the cookie to transmit to the visitor's browser.
++visit.cookie.name=&quot;fw-visit&quot;
++
++# Domain name to specify when setting the cookie (must begin with . according to
++# RFC 2109). The default (None) should work for most cases and will default to
++# the machine to which the request was made. NOTE: localhost is NEVER a valid
++# value and will NOT WORK.
++# visit.cookie.domain=None
++
++# Specific path for the cookie
++# visit.cookie.path=&quot;/&quot;
++
++# The name of the VisitManager plugin to use for visitor tracking.
++visit.manager=&quot;sqlalchemy&quot;
++
++# Database class to use for visit tracking
++visit.saprovider.model = &quot;fellowiki.model.Visit&quot;
++
++# IDENTITY
++# General configuration of the TurboGears Identity management module
++# --------
++
++# Switch to turn on or off the Identity management module
++identity.on=True
++
++# [REQUIRED] URL to which CherryPy will internally redirect when an access
++# control check fails. If Identity management is turned on, a value for this
++# option must be specified.
++identity.failure_url=&quot;/login&quot;
++
++identity.provider='sqlalchemy'
++
++# The names of the fields on the login form containing the visitor's user ID
++# and password. In addition, the submit button is specified simply so its
++# existence may be stripped out prior to passing the form data to the target
++# controller.
++# identity.form.user_name=&quot;user_name&quot;
++# identity.form.password=&quot;password&quot;
++# identity.form.submit=&quot;login&quot;
++
++# What sources should the identity provider consider when determining the
++# identity associated with a request? Comma separated list of identity sources.
++# Valid sources: form, visit, http_auth
++# identity.source=&quot;form,http_auth,visit&quot;
++
++# SqlAlchemyIdentityProvider
++# Configuration options for the default IdentityProvider
++# -------------------------
++
++# The classes you wish to use for your Identity model. Remember to not use reserved
++# SQL keywords for class names (at least unless you specify a different table
++# name using sqlmeta).
++identity.saprovider.model.user=&quot;fellowiki.model.User&quot;
++identity.saprovider.model.group=&quot;fellowiki.model.Group&quot;
++identity.saprovider.model.permission=&quot;fellowiki.model.Permission&quot;
++identity.saprovider.model.visit=&quot;fellowiki.model.VisitIdentity&quot;
++
++# The password encryption algorithm used when comparing passwords against what's
++# stored in the database. Valid values are 'md5' or 'sha1'. If you do not
++# specify an encryption algorithm, passwords are expected to be clear text.
++#
++# The SqlAlchemyProvider *will* encrypt passwords supplied as part of your login
++# form.  If you set the password through the password property, like:
++# my_user.password = 'secret'
++# the password will be encrypted in the database, provided identity is up and 
++# running, or you have loaded the configuration specifying what encryption to
++# use (in situations where identity may not yet be running, like tests).
++
++#identity.saprovider.encryption_algorithm=&quot;sha1&quot;
++
+ [/static]
+ static_filter.on = True
+ static_filter.dir = &quot;%(top_level_dir)s/static&quot;
+
+Modified: trunk/fellowiki/controllers/__init__.py
+===================================================================
+--- trunk/fellowiki/controllers/__init__.py	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/controllers/__init__.py	2006-11-19 17:57:44 UTC (rev 32)
+@@ -1,5 +1,9 @@
+ # Copyright (c) 2006 Jan Niklas Fingerle
+ # 
++# This source code file is based on a TurboGears &quot;quickstarted&quot; project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++#
+ # Permission is hereby granted, free of charge, to any person obtaining a
+ # copy of this software and associated documentation files (the &quot;Software&quot;),
+ # to deal in the Software without restriction, including without limitation
+@@ -19,58 +23,51 @@
+ # DEALINGS IN THE SOFTWARE.
+ 
+ import logging
+-
+ import cherrypy
++from turbogears import expose, identity
+ 
+-import turbogears
+-from turbogears import controllers, expose, validate, redirect
+-from turbogears.database import session
++from turbogears.controllers import RootController, redirect
+ from fellowiki.model import *
++import wiki
+ 
+-from fellowiki import json
+-
+ log = logging.getLogger(&quot;fellowiki.controllers&quot;)
+ 
+-class FelloWikiRoot(controllers.RootController):
+-    @expose(template=&quot;fellowiki.templates.welcome&quot;)
++                    
++class FelloWikiRoot(RootController):
++    redirect_default = 'admin'
++    def __init__(self):
++        wiki.register_wikis(self)
++    
++    @expose()
+     def index(self):
+-        cherrypy.log('Versions:', 'DEBUG', 0)
+-        versions = DBVersion.select()
+-        for item in versions:
+-            cherrypy.log(unicode(item), 'DEBUG', 0)
+-        import time
+-        log.debug(&quot;Happy TurboGears Controller Responding For Duty&quot;)
+-        return dict(now=time.ctime())
++        redirect(self.redirect_default)
+ 
+-##
+-##import cherrypy
+-##from view import expose
+-##import sqlalchemy
+-##
+-##from fellowiki.database.schema import metadata
+-##
+-##from fellowiki.database.model import *
+-##
+-##class FelloWikiRoot:
+-##    @expose()
+-##    def index(self):
+-##        
+-##        versions = DBVersion.select()
+-##        
+-##        return dict(page_title = 'Welcome to FelloWiki!',
+-##                    page_body = 'index body: ' )
+-##    
+-##class WikiInstance:
+-##    @expose()
+-##    def default(self, *args, **kwargs):
+-##        return dict(page_title = 'Welcome to FelloWiki!',
+-##                    page_body = 'wiki instance: '+unicode(args))
+-##           
+-##class DataBaseHelper:
+-##    def __init__(self, error_string):
+-##        self.error_string = error_string
+-##        
+-##    @expose()
+-##    def default(self, *args, **kwargs):
+-##        return dict(page_title = 'FelloWiki: data base not available',
+-##                    page_body = self.error_string)
++    @expose(template=&quot;fellowiki.templates.login&quot;)
++    def login(self, forward_url=None, previous_url=None, *args, **kw):
++
++        if not identity.current.anonymous \
++            and identity.was_login_attempted() \
++            and not identity.get_identity_errors():
++            raise redirect(forward_url)
++
++        forward_url=None
++        previous_url= cherrypy.request.path
++
++        if identity.was_login_attempted():
++            msg=_(&quot;The credentials you supplied were not correct or &quot;
++                   &quot;did not grant access to this resource.&quot;)
++        elif identity.get_identity_errors():
++            msg=_(&quot;You must provide your credentials before accessing &quot;
++                   &quot;this resource.&quot;)
++        else:
++            msg=_(&quot;Please log in.&quot;)
++            forward_url= cherrypy.request.headers.get(&quot;Referer&quot;, &quot;/&quot;)
++        cherrypy.response.status=403
++        return dict(message=msg, previous_url=previous_url, logging_in=True,
++                    original_parameters=cherrypy.request.params,
++                    forward_url=forward_url)
++
++    @expose()
++    def logout(self):
++        identity.current.logout()
++        raise redirect(&quot;/&quot;)
+
+Added: trunk/fellowiki/controllers/wiki.py
+===================================================================
+--- trunk/fellowiki/controllers/wiki.py	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/controllers/wiki.py	2006-11-19 17:57:44 UTC (rev 32)
+@@ -0,0 +1,277 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
++import cherrypy
++from turbogears import expose, controllers, validate, error_handler, identity
++
++from turbogears.controllers import Controller, redirect
++import turbogears
++import turbogears.widgets as w
++import turbogears.validators as v
++import copy
++
++from fellowiki.util.xmlelement import XMLElement, SubElement
++
++from fellowiki.util.assorted import check_for_permission
++from fellowiki.model import *
++
++from fellowiki.widgets.forms import SubmitPreviewTableForm
++
++from wikiparser.parser import WikiParser
++
++from sqlalchemy import desc,asc, and_, or_
++from sqlalchemy.exceptions import InvalidRequestError
++
++
++from wikiparser import macros, tables, lists, headlines, special_characters, \
++            escaped_text, links, special_markup, text_style, \
++            text_style_simple, structure_modifiers
++
++extensions = [macros, tables, lists, headlines, special_characters,
++              escaped_text, links, special_markup, text_style,
++              text_style_simple, structure_modifiers]
++
++from fellowiki.model import *
++
++__all__ = ['register_wikis']
++
++        
++def no_cache(f):
++    def new_f(*args, **kwargs):
++        cherrypy.response.headers['Pragma'] = 'no-cache'
++        if cherrypy.response.version &lt;&gt; '1.0':
++            cherrypy.response.headers['Cache-Control'] = 'no-cache'
++        return f(*args, **kwargs)
++    return new_f
++        
++def extract_ressource_key(num_args):
++    def erp(f):
++        def new_f(self, *args, **kw_args):
++            return f(self, ressource_key=self.get_ressource_key(args[num_args:]),
++                     *(args[0:num_args]), **kw_args)
++        return new_f
++    return erp
++        
++        
++# Edit form
++        
++text_types = [(t.mime_type, t.name) 
++                for t in WikiItemType.select(order_by=[desc(WikiItemType.c.wiki_text),
++                                                            WikiItemType.c.name])
++                if t.text]
++
++binary_types = [(t.mime_type, t.name) 
++                for t in WikiItemType.select(order_by=WikiItemType.c.name)
++                if not t.text]
++
++try:
++    default_text_type = text_types[0][0]
++except IndexError:
++    default_text_type = None
++        
++try:
++    default_binary_type = binary_types[0][0]
++except IndexError:
++    default_binary_type = None
++        
++wiki_edit_form = SubmitPreviewTableForm(
++            fields=[w.TextArea(name='wiki_text', label='My Wiki Text', validator=v.NotEmpty),
++                    w.TextField(name='comment', label='My Comment', validator=v.NotEmpty),
++                    w.CheckBox(name='minor_change', label=&quot;This is a minor change.&quot;),
++                    w.SingleSelectField(name=&quot;data type&quot;, label='My Data Type',  
++                          options=text_types,   
++                                    default=default_text_type
++                          ),
++                    w.HiddenField(name='version', validator=v.All(v.Int, v.NotEmpty))],
++                    # validator = v.Schema(chained_validators=[v.FieldsMatch(&quot;comment&quot;,  &quot;comment2&quot;)]),
++                    submit_text=&quot;Save&quot;, preview_text=&quot;Preview&quot;, reset_text=&quot;Reset&quot;)
++        
++del text_types, binary_types, default_text_type, default_binary_type
++        
++        
++class WikiInstance(Controller, identity.SecureResource):
++    def __init__(self, wiki):
++        self.name = wiki.name
++        self.wiki_id = wiki.wiki_id
++        self.parser = WikiParser([], extensions)
++        self.registry = {}
++        
++        for entry in wiki.registry_items:
++            try:
++                column_name = Registry.TYPES[type]
++                self.registry[entry.key] = getattr(entry, column_name)
++            except KeyError:
++                pass
++        
++        self.home_page = self.registry.get('home page', 'Home')
++
++        if wiki.read_permission is not None:
++            self.rd_perm = wiki.read_permission.permission_name
++        else:
++            self.rd_perm = None
++            
++        if wiki.write_permission is not None:
++            self.wr_perm = wiki.write_permission.permission_name
++        else:
++            self.wr_perm = self.rd_perm
++            
++        if wiki.admin_permission is not None:
++            self.adm_perm = wiki.admin_permission.permission_name
++        else:
++            self.adm_perm = self.wr_perm
++            
++        if wiki.protect_read_history:
++            self.rd_hist_perm = self.wr_perm
++        else:
++            self.rd_hist_perm = self.rd_perm 
++        
++    def get_ressource_key(self, ressource_path = []):
++        ressource_path = filter(None, ressource_path)
++        if len(ressource_path) == 0:
++            return self.home_page
++        return '/'.join(ressource_path)
++    
++    @expose()
++    @no_cache
++    def index(self):
++        check_for_permission(self.rd_perm)
++        redirect(&quot;view/%s&quot; % self.get_ressource_key())
++        
++        
++        
++    @expose(template=&quot;fellowiki.templates.wiki_view&quot;)
++    @no_cache
++    @extract_ressource_key(0)
++    @validate(validators={&quot;version&quot;: v.Int})
++    def view(self, ressource_key, version=None, tg_errors={}):
++        if version is None:
++            check_for_permission(self.rd_perm)
++        else:
++            check_for_permission(self.rd_hist_perm)
++        edit_link = '/'.join([cherrypy.request.object_path[:-5], 'edit', ressource_key])
++        try:
++            if version is None:
++                current_version = WikiItem.selectone(and_(WikiItem.c.name==ressource_key,
++                                                          WikiItem.c.wiki_id==self.wiki_id),
++                                        order_by=desc(WikiItem.c.version),
++                                        limit=1)    
++            else:
++                current_version = WikiItem.selectone(and_(WikiItem.c.name==ressource_key,
++                                                          WikiItem.c.version==version,
++                                                          WikiItem.c.wiki_id==self.wiki_id))
++        except InvalidRequestError:
++            if version is None:
++                redirect(edit_link)
++            else:
++                raise cherrypy.NotFound
++      
++        parsed_content = self.parser.parse(current_version.text_content)
++        content = self.parser.evaluate(parsed_content)
++        
++        page_is_editable = version is None
++        
++        
++        
++        return dict(title='FelloWiki - %s' % ressource_key, 
++                    page_name=ressource_key, 
++                    main_content=content,
++                    edit_link=edit_link,
++                    page_is_editable=page_is_editable)
++            
++            
++    @expose()
++    @extract_ressource_key(0)
++    @validate(validators={&quot;version&quot;: v.Int(not_empty=True)})
++    def source(self, ressource_key, version=None, tg_errors={}):
++        if version is None:
++            check_for_permission(self.rd_perm)
++        else:
++            check_for_permission(self.rd_hist_perm)
++        if len(tg_errors) &gt; 0:
++            raise cherrypy.NotFound
++            
++        try:
++            selected_version = WikiItem.selectone(and_(WikiItem.c.name==ressource_key,
++                                                       WikiItem.c.version==version,
++                                                       WikiItem.c.wiki_id==self.wiki_id))
++        except InvalidRequestError:
++            raise cherrypy.NotFound
++      
++        item_type = selected_version.item_type
++        cherrypy.response.headers['Content-Type'] = item_type.mime_type
++        # TODO: set Header for encoding?
++        
++        if item_type.text:
++            return selected_version.text_content
++        else:
++            return selected_version.binary_content
++    
++    # a bit hackish, but I want to have *all* of the decorators functionality
++    # without decorating...
++    @validate(form=wiki_edit_form)
++    def validate_edit_form(self, tg_errors={}, **input_data):
++        return tg_errors, input_data
++
++    @expose(template=&quot;fellowiki.templates.wiki_edit&quot;) 
++    @no_cache
++    @extract_ressource_key(0)
++    def edit(self, ressource_key, **input_data):
++        check_for_permission(self.wr_perm)
++        form_data = dict()
++        preview = None
++        
++        try:
++            prev_version = WikiItem.selectone(and_(WikiItem.c.name==ressource_key,
++                                                   WikiItem.c.wiki_id==self.wiki_id),
++                                       order_by=desc(WikiItem.c.version),
++                                       limit=1)
++        except InvalidRequestError:
++            prev_version = None
++      
++         
++        if len(input_data) == 0:
++            if prev_version is None:
++                form_data['version'] = 0
++            else:
++                form_data['wiki_text'] = prev_version.text_content
++                form_data['version'] = prev_version.version
++                
++        else:
++            parsed_content = self.parser.parse(input_data['wiki_text'])
++            preview = self.parser.evaluate(parsed_content)
++            
++            tg_errors, input_data = self.validate_edit_form(**input_data)
++            
++            if len(tg_errors) == 0:
++                
++                item = WikiItem(ressource_key, input_data['version']+1, self.wiki_id,
++                                'wiki text', text_content=input_data['wiki_text'], 
++                                cache=parsed_content)
++                redirect('/'.join([cherrypy.request.object_path[:-5], 'view', ressource_key]))
++                
++                
++        
++        return dict(form=wiki_edit_form, data=form_data, preview = preview)
++
++
++def register_wikis(parent):
++    for wiki in Wiki.select():
++        if not hasattr(parent, wiki.name):
++            setattr(parent, wiki.name, WikiInstance(wiki))
+
+Modified: trunk/fellowiki/controllers/wikiparser/parser.py
+===================================================================
+--- trunk/fellowiki/controllers/wikiparser/parser.py	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/controllers/wikiparser/parser.py	2006-11-19 17:57:44 UTC (rev 32)
+@@ -27,13 +27,14 @@
+     
+ &quot;&quot;&quot;
+ 
+-import elementtree.ElementTree as ElementTree
+ from fellowiki.util.assorted import attributes_from_dict
++import elementtree.ElementTree as ElementTree
++from fellowiki.util.xmlelement import XMLElement
+ from util import remove_backslashes_and_whitespace, remove_escaping_backslashes
+       
+ import sre
+ import re
+-from copy import copy, deepcopy
++from copy import deepcopy
+ 
+ 
+ PREFIX_COUNT = &quot;prefix count&quot;
+@@ -49,78 +50,7 @@
+ END_TOKEN = 'end token'
+ ENCAPSULATE_TOKEN = 'encapsulate token'
+ PREFIX = 'prefix'
+-        
+ 
+-            
+-class XMLElement(object):
+-    def __init__(self, tag = None):
+-        self.tag = tag
+-        self.content = []
+-        self.attributes = {}
+-        self.callback = []
+-        self.translations = []
+-        
+-    def clone(self, other):
+-        self.tag = other.tag
+-        self.content = other.content
+-        self.attributes = other.attributes
+-        self.callback = other.callback
+-        self.translations = other.translations
+-        
+-    def to_element_tree(self): 
+-        xhtml = ElementTree.Element(self.tag)
+-        sub_xhtml = None
+-        xhtml.attrib = copy(self.attributes)
+-        current_textlist = []
+-        content = copy(self.content)
+-        translations = []
+-        
+-        # I want to modify the list, therefore I write this a bit 
+-        # more explicitly:
+-        while content:
+-            item = content.pop(0) 
+-            try: # should work, if it's a text list
+-                current_textlist.extend(item)
+-            except TypeError: # should be an XMLElement
+-                if item.tag is None:
+-                    content = item.content + content
+-                else:
+-                    current_text = ''.join(current_textlist)
+-                    current_textlist = []
+-                    if sub_xhtml is None:
+-                        xhtml.text = current_text
+-                    else:
+-                        sub_xhtml.tail = current_text
+-                    sub_xhtml, sub_translations = item.to_element_tree()
+-                    xhtml.append(sub_xhtml)
+-                    translations.extend(sub_translations)
+-        current_text = ''.join(current_textlist)
+-        if sub_xhtml is None:
+-            xhtml.text = current_text
+-        else:
+-            sub_xhtml.tail = current_text
+-        for translation in self.translations:
+-            if translation[1] is None:
+-                translations.append((xhtml, 
+-                                     translation[0], 
+-                                     translation[2]))
+-            else:
+-                translation[1](xhtml, translation[2])
+-        return xhtml, translations
+-        
+-    def is_empty(self):
+-        return not bool(self.content)
+-        
+-    def is_not_empty(self):
+-        return bool(self.content)
+-            
+-    def append(self, *appendee):
+-        self.content.extend(appendee)
+-    
+-    def prepend(self, *prependee):
+-        self.content = list(prependee) + self.content
+-        
+-
+ class WikiError(StandardError):
+     pass
+ 
+@@ -435,6 +365,8 @@
+ 
+     def parse(self, text):
+         import time
++        
++        text = re.sub('\r\n', '\n', text)
+         tokens = self.scanner.scan(''.join(['\n\n', text, '\n\n']))
+         
+         if tokens[1] != '':
+
+Modified: trunk/fellowiki/model/__init__.py
+===================================================================
+--- trunk/fellowiki/model/__init__.py	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/model/__init__.py	2006-11-19 17:57:44 UTC (rev 32)
+@@ -8,7 +8,7 @@
+ # Software is furnished to do so, subject to the following conditions:
+ #
+ # The above copyright notice and this permission notice shall be included in
+-# all copies or substantial portions of the Software.
++# all copies or substantial porhtions of the Software.
+ #
+ # THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+
+Modified: trunk/fellowiki/model/model_classes.py
+===================================================================
+--- trunk/fellowiki/model/model_classes.py	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/model/model_classes.py	2006-11-19 17:57:44 UTC (rev 32)
+@@ -18,87 +18,181 @@
+ # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ # DEALINGS IN THE SOFTWARE.
+ 
++# TODO: add reference to quickstarted project
++
++
+ from sqlalchemy import *
+ from sqlalchemy.ext.assignmapper import assign_mapper
+-from sqlalchemy.ext.sessioncontext import SessionContext
+ 
+ import turbogears.database
+ 
++from fellowiki.util.assorted import attributes_from_dict
+ from schema import *
+ 
+-__all__ = ['DBVersion', 'User', 'Login', 'Group', 'Task', 'RessourceType', 
+-           'Ressource', 'LoginTask', 'WikiItemType', 'WikiItem']
++__all__ = ['DBVersion', 'Visit', 'VisitIdentity', 'Group', 'User',
++           'Permission', 'Wiki', 'WikiItemType', 'WikiItem', 'Registry', 
++           'initialize']
+ 
+ sc = turbogears.database.session.context
+ 
+-## more cascades?
+-
+ class DBVersion(object):
+     def __init__(self, prj, db_version):
+         self.prj = prj
+         self.db_version = db_version
+     def __repr__(self):
+         return u&quot;DBVersion(%s, %s)&quot; %(repr(self.prj), repr(self.db_version))
++        
++assign_mapper(sc, DBVersion, db_version)
+ 
+-class User(object): pass
+ 
+-class Login(object): pass
++# visit and identity
+ 
+-class Group(object): pass
++class Visit(object):
++    @classmethod
++    def lookup_visit(cls, visit_key):
++        return Visit.get(visit_key)
++        
++assign_mapper(sc, Visit, visit)
+ 
+-class Task(object): pass
+ 
+-class RessourceType(object): pass
++class VisitIdentity(object): pass
++        
++assign_mapper(sc, VisitIdentity, visit_identity)
+ 
+-class Ressource(object): pass
+ 
+-class LoginTask(object): pass
++class Group(object):
++    def __init__(self, group_name, display_name, permissions):
++        self.group_name = group_name
++        self.display_name = display_name
++        self.permissions.extend(permissions)
+     
+-class WikiItemType(object): pass
++assign_mapper(sc, Group, group)
+ 
+-class WikiItem(object): pass
++class User(object):
++    def __init__(self, user_name, display_name, password, groups):
++        self.user_name = user_name
++        self.display_name = display_name
++        self.password = password
++        self.groups.extend(groups)
++        
++    def permissions(self):
++        perms = set()
++        for g in self.groups:
++            perms = perms | set(g.permissions)
++        return perms
++    permissions = property(permissions)
++        
++assign_mapper(sc, User, user,
++              properties = {'groups': relation(Group, secondary=user_group, backref='users')})
++                  
++                  
++class Permission(object):
++    def __init__(self, permission_name, description):
++        attributes_from_dict(locals())
++        
++assign_mapper(sc, Permission, permission,
++              properties = {'groups': relation(Group, secondary=group_permission, backref='permissions')})
++
++
++# Wiki
++
++class Wiki(object):
++    def __init__(self, name, read_permission=None, 
++                 write_permission=None, admin_permission=None,
++                 protect_read_history=False):
++        attributes_from_dict(locals())
++
++assign_mapper(sc, Wiki, wiki,
++              properties = {'read_permission': relation(Permission, primaryjoin=wiki.c.read_permission_id==permission.c.permission_id, backref='wiki_read_access'),
++                            'write_permission': relation(Permission, primaryjoin=wiki.c.write_permission_id==permission.c.permission_id, backref='wiki_write_access'),
++                            'admin_permission': relation(Permission, primaryjoin=wiki.c.admin_permission_id==permission.c.permission_id, backref='wiki_admin_access')})
++
++class WikiItemType(object):
++    def __init__(self, name, mime_type, binary=False, text=False, wiki_text=False):
++        attributes_from_dict(locals())
+     
++assign_mapper(sc, WikiItemType, wiki_item_type)
++
++
++class WikiItem(object):
++    def __init__(self, name, version, wiki, item_type, text_content=None, binary_content=None, cache=None):
++        self.name = name
++        self.version = version
++        if isinstance(wiki, Wiki):
++            self.wiki = wiki
++        else:
++            self.wiki_id = wiki
++        if isinstance(item_type, WikiItemType):
++            self.item_type = item_type
++        else:
++            self.item_type = WikiItemType.selectone(WikiItemType.c.name == item_type)
++        
++        if text_content is not None:
++            self.text_content = text_content 
++        if binary_content is not None:
++            self.binary_content = binary_content
++        if cache is not None:
++            self.cache = cache
++
++assign_mapper(sc, WikiItem, wiki_item,
++              properties = {'wiki': relation(Wiki),
++                            'item_type': relation(WikiItemType)})
+     
+-assign_mapper(sc, DBVersion, db_version)
+-assign_mapper(sc, RessourceType, ressource_types)
+-assign_mapper(sc, WikiItemType, wiki_item_types)
++class Registry(object):
++    TYPES = {'S': 'value_string',
++             'I': 'value_integer',
++             'B': 'value_boolean',
++             'D': 'value_datetime'}
+     
+-assign_mapper(sc, User, users)
++    def __init__(self, key, type, value):
++        try:
++            column_name = self.TYPES[type]
++        except KeyError:
++            raise NotImplementedError, 'Registry type &quot;%s&quot; not (yet) implemented' % type
++            
++        setattr(self, column_name, value)
++        self.key = key
++        self.type = type
+ 
+-assign_mapper(sc, Login, logins, 
+-              properties = {'user': relation(User, backref=backref('login', uselist=False))})
+-
+-assign_mapper(sc, Group, groups,
+-              properties = {'children': relation(Group, 
+-                                primaryjoin=groups.c.id==groups.c.parent_id,
+-                                cascade=&quot;all&quot;),
+-                            'users': relation(User, secondary=user_groups, backref='groups')}) 
++assign_mapper(sc, Registry, wiki_registry,
++              properties = {'wiki': relation(Wiki, backref='registry_items')})
+                                 
+-assign_mapper(sc, Task, tasks,
+-              properties = {'sub_tasks': relation(Task,
+-                                secondary=sub_tasks,
+-                                primaryjoin=tasks.c.id==sub_tasks.c.super_task_id,
+-                                secondaryjoin=sub_tasks.c.sub_task_id==tasks.c.id,
+-                                backref='super_tasks')})
+-
+-assign_mapper(sc, Ressource, ressources,
+-              properties = {'ressource_type' : relation(RessourceType)})
+-                  
+-assign_mapper(sc, LoginTask, login_tasks,
+-              properties = {'login': relation(Login, primaryjoin=
+-                                login_tasks.c.refers_to_login_id==Login.c.id),
+-                            'task': relation(Task, primaryjoin=
+-                                login_tasks.c.task_id==Task.c.id),
+-                            'group': relation(Group, primaryjoin=
+-                                login_tasks.c.group_id==Group.c.id),
+-                            'user': relation(User, primaryjoin=
+-                                login_tasks.c.user_id==User.c.id),
+-                            'ressource': relation(Ressource, primaryjoin=
+-                                login_tasks.c.ressource_id==Ressource.c.id)})
++def initialize():
++    from turbogears.database import metadata, get_engine
++    metadata.create_all(engine=get_engine())
+     
+-Login.mapper.add_property('tasks', relation(LoginTask, primaryjoin=logins.c.id==login_tasks.c.login_id, 
+-                                            cascade=&quot;all, delete-orphan&quot;))
++    DBVersion('FelloWiki - Base', 1)
+     
+-assign_mapper(sc, WikiItem, wiki_items,
+-              properties = {'ressource': relation(Ressource),
+-                            'item_type': relation(WikiItemType)})
++    private_read = Permission('read private wiki', 'read access for the &quot;private&quot; wiki')
++    private_write = Permission('write private wiki', 'write access for the &quot;private&quot; wiki')
++    private_admin = Permission('admin private wiki', 'admin access for the &quot;private&quot; wiki')
++    protected_write = Permission('write protected wiki', 'write access for the &quot;protected&quot; wiki')
++    protected_admin = Permission('admin protected wiki', 'admin access for the &quot;protected&quot; wiki')
++    public_admin = Permission('admin public wiki', 'admin access for the &quot;public&quot; wiki')
++    
++    user_group = Group('Users', 'Users', [public_admin, protected_admin, private_admin])
++    admin_group = Group('Admins', 'Admins', [protected_write, private_write, private_read])
++    
++    admin_user = User('admin', 'Jane Admin', 'password', [user_group, admin_group])
++    user_user = User('user', 'Joe User', 'password', [user_group])
++    
++    wiki_text = WikiItemType('wiki text', 'text/wiki', text = True, wiki_text = True)
++    plain_text = WikiItemType('plain text', 'text/plain', text = True)
++    css_text = WikiItemType('CSS', 'text/css', text = True)
++    jpeg_image = WikiItemType('image: JPEG', 'image/jpeg', binary = True)
++    gif_image = WikiItemType('image: GIF', 'image/gif', binary = True)
++    bmp_image = WikiItemType('image: BMP', 'image/bmp', binary = True)
++    png_image = WikiItemType('image: PNG', 'image/png', binary = True)
++    
++    wiki_private = Wiki('private', 
++                        read_permission=private_read, 
++                        write_permission=private_write,
++                        admin_permission=private_admin)
++    wiki_protected = Wiki('protected', 
++                          write_permission=protected_write,
++                          admin_permission=protected_admin)
++    wiki_public = Wiki('public', 
++                       admin_permission=public_admin)
++                       
++    for wiki in [wiki_private, wiki_protected, wiki_public]:
++        wiki.registry_items.append(Registry('home page', 'S', 'Home Page'))
+
+Modified: trunk/fellowiki/model/schema.py
+===================================================================
+--- trunk/fellowiki/model/schema.py	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/model/schema.py	2006-11-19 17:57:44 UTC (rev 32)
+@@ -18,6 +18,9 @@
+ # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ # DEALINGS IN THE SOFTWARE.
+ 
++
++# TODO: add reference to quickstarted project
++
+ from sqlalchemy import *
+ 
+ import turbogears.database
+@@ -26,93 +29,90 @@
+ 
+ from datetime import datetime
+ 
+-
+ DEFAULT_STRING_LENGTH = 200
+ DEFAULT_COMMENT_LENGTH = 2000
+ 
+ 
+-__all__ = ['db_version', 'users', 'logins', 'groups', 'tasks', 'sub_tasks', 
+-           'user_groups', 'ressource_types', 'ressources', 'login_tasks', 
+-           'wiki_item_types', 'wiki_items']
++__all__ = ['db_version', 'visit', 'group', 'user', 'permission', 'user_group',
++           'group_permission', 'visit_identity', 'wiki', 'wiki_item_type', 
++           'wiki_item', 'wiki_registry']
+ 
+ db_version = Table('fw_db_version', md,
+     Column('prj', Unicode(30), nullable = False, primary_key = True),
+     Column('db_version', Integer, nullable = False, primary_key = True),
+     Column('installation_date', DateTime, default = datetime.utcnow))
+ 
+-users = Table('fw_users', md,
+-    Column('id', Integer, Sequence('fw_user_seq'), primary_key = True, nullable = False),
+-    Column('forename', Unicode(DEFAULT_STRING_LENGTH), nullable = False),
+-    Column('name', Unicode(DEFAULT_STRING_LENGTH), nullable = False),
+-    Column('name_at_birth', Unicode(DEFAULT_STRING_LENGTH)),
+-    Column('comment', Unicode(DEFAULT_COMMENT_LENGTH)))
+-
+-logins = Table('fw_logins', md,
+-    Column('id', Integer, Sequence('fw_logins_seq'), primary_key = True, nullable = False),
+-    Column('login_name', Unicode(DEFAULT_STRING_LENGTH), nullable = False, unique=True),
+-    Column('user_id', Integer, ForeignKey(users.c.id), nullable = True, unique = True),
+-    Column('last_change', DateTime, default = datetime.utcnow, nullable = False),
+-    Column('password_encoded', Unicode(DEFAULT_STRING_LENGTH), nullable=False),
+-    Column('change_at_login', Boolean, nullable = False, default=False))
++visit = Table('fw_visit', md,
++    Column('visit_key', String(40), primary_key=True),
++    Column('created', DateTime, nullable=False, default=datetime.utcnow),
++    Column('expiry', DateTime))
++        
++group = Table('fw_group', md,
++    Column('group_id', Integer, primary_key=True),
++    Column('group_name', Unicode(16), unique=True),
++    Column('display_name', Unicode(DEFAULT_STRING_LENGTH)),
++    Column('created', DateTime, default=datetime.utcnow))
+     
+-groups = Table('fw_groups', md,
+-    Column('id', Integer, Sequence('fw_groups_seq'), primary_key = True, nullable = False),
+-    Column('name', Unicode(DEFAULT_STRING_LENGTH), nullable = False, unique=True),
+-    Column('parent_id', Integer, ForeignKey('fw_groups.id')),
+-    Column('comment', Unicode(DEFAULT_COMMENT_LENGTH)))
+-    
+-# pre-load:    
+-tasks = Table('fw_tasks', md,
+-    Column('id', Integer, primary_key = True, nullable = False),
+-    Column('name', Unicode(DEFAULT_STRING_LENGTH), nullable = False, unique=True),
+-    Column('related_to_group', Boolean, nullable = False),
+-    Column('related_to_login', Boolean, nullable = False),
+-    Column('related_to_user', Boolean, nullable = False),
+-    Column('related_to_ressource', Boolean, nullable = False),
+-    Column('comment', Unicode(DEFAULT_COMMENT_LENGTH)))
+-    
+-sub_tasks = Table('fw_sub_tasks', md,
+-    Column('super_task_id', Integer, ForeignKey(tasks.c.id), nullable = False),
+-    Column('sub_task_id', Integer, ForeignKey(tasks.c.id), nullable = False))
+-    
+-user_groups = Table('fw_user_groups', md,
+-    Column('user_id', Integer, ForeignKey(users.c.id), nullable = False),
+-    Column('group_id', Integer, ForeignKey(groups.c.id), nullable = False))
++user = Table('fw_user', md,
++    Column('user_id', Integer, primary_key=True),
++    Column('user_name', Unicode(16), unique=True),
++    Column('display_name', Unicode(DEFAULT_STRING_LENGTH)),
++    Column('password', Unicode(40)),
++    Column('created', DateTime, default=datetime.utcnow))
+ 
+-# pre-load
+-ressource_types = Table('fw_ressource_types', md,
+-    Column('id', Integer, primary_key = True, nullable = False),
+-    Column('name', Unicode(DEFAULT_STRING_LENGTH), nullable = False, unique = True))
++permission = Table('fw_permission', md,
++    Column('permission_id', Integer, primary_key=True),
++    Column('permission_name', Unicode(16), unique=True),
++    Column('description', Unicode(DEFAULT_STRING_LENGTH)))
+ 
+-ressources = Table('fw_ressources', md,
+-    Column('id', Integer, Sequence('fw_ressource_seq'), primary_key = True, nullable = False),
++user_group = Table(&quot;fw_user_group&quot;, md, 
++    Column(&quot;user_id&quot;, Integer, ForeignKey(user.c.user_id), primary_key=True),
++    Column(&quot;group_id&quot;, Integer, ForeignKey(group.c.group_id), primary_key=True))
++
++group_permission = Table(&quot;fw_group_permission&quot;, md,
++    Column(&quot;group_id&quot;, Integer, ForeignKey(group.c.group_id), primary_key=True),
++    Column(&quot;permission_id&quot;, Integer, ForeignKey(permission.c.permission_id), primary_key=True))
++
++visit_identity = Table('fw_visit_identity', md,
++    Column('visit_key', String, ForeignKey(visit.c.visit_key), primary_key=True), # foreign key *not* in quickstarted project
++    Column('user_id', Integer, ForeignKey(user.c.user_id), index=True))
++    
++wiki = Table('fw_wiki', md,
++    Column('wiki_id', Integer, Sequence('fw_wiki_seq'), primary_key = True, nullable = False),
+     Column('name', Unicode(DEFAULT_STRING_LENGTH), nullable = False, unique = True),
+-    Column('type_id', Integer, ForeignKey(ressource_types.c.id),nullable = False))
+-    
+-login_tasks = Table('fw_login_tasks', md,
+-    Column('id', Integer, Sequence('fw_login_tasks_seq'), primary_key = True, nullable = False),
+-    Column('login_id', Integer, ForeignKey(logins.c.id), nullable = False),
+-    Column('task_id', Integer, ForeignKey(tasks.c.id), nullable = False),
+-    Column('group_id', Integer, ForeignKey(groups.c.id), nullable = True),
+-    Column('refers_to_login_id', Integer, ForeignKey(logins.c.id), nullable = True),
+-    Column('user_id', Integer, ForeignKey(users.c.id), nullable = True),
+-    Column('ressource_id', Integer, ForeignKey(ressources.c.id), nullable = True))
++    Column(&quot;read_permission_id&quot;, Integer, ForeignKey(permission.c.permission_id)),
++    Column(&quot;protect_read_history&quot;, Boolean),
++    Column(&quot;write_permission_id&quot;, Integer, ForeignKey(permission.c.permission_id)),
++    Column(&quot;admin_permission_id&quot;, Integer, ForeignKey(permission.c.permission_id)))
+ 
+ #pre-load
+-wiki_item_types = Table('fw_wiki_item_types', md,
+-    Column('id', Integer, Sequence('fw_wiki_item_type_seq'), primary_key = True, nullable = False),
++wiki_item_type = Table('fw_wiki_item_type', md,
++    Column('wiki_item_type_id', Integer, Sequence('fw_wiki_item_type_seq'), primary_key = True, nullable = False),
+     Column('name', Unicode(DEFAULT_STRING_LENGTH), unique = True, nullable = False),
+-    Column('mime_type', String(DEFAULT_STRING_LENGTH)),
+-    Column('parsing_handler', String(DEFAULT_STRING_LENGTH)),
+-    Column('binary', Boolean, nullable = False))
++    Column('mime_type', String(DEFAULT_STRING_LENGTH), nullable = False),
++    Column('binary', Boolean, nullable = False),
++    Column('text', Boolean, nullable = False),
++    Column('wiki_text', Boolean, nullable = False))
+ 
+-wiki_items = Table('fw_res_items', md,
+-    Column('name', Unicode(DEFAULT_STRING_LENGTH), primary_key = True, nullable = False),
+-    Column('version', Integer, primary_key = True, nullable = False),
+-    Column('ressource_id', Integer, ForeignKey(ressources.c.id)),
+-    Column('type_id', Integer, ForeignKey(wiki_item_types.c.id)),
++wiki_item = Table('fw_wiki_item', md,
++    Column('wiki_item_id', Integer, Sequence('fw_wiki_item_seq'), primary_key = True, nullable = False),
++    Column('name', Unicode(DEFAULT_STRING_LENGTH), unique = 'fw_i_wiki_item_unique', nullable = False),
++    Column('version', Integer, unique = 'fw_i_wiki_item_unique', nullable = False),
++    Column('wiki_id', Integer, ForeignKey(wiki.c.wiki_id), unique = 'fw_i_wiki_item_unique', nullable = False),
++    Column('type_id', Integer, ForeignKey(wiki_item_type.c.wiki_item_type_id), nullable = False),
++    Column('text_content', Unicode),
++    Column('binary_content', Binary),
++    Column('cache', PickleType),
+     Column('created', DateTime, default = datetime.utcnow, nullable = False),
+-    Column('deleted', DateTime),
+-    Column('text_content', Unicode),
+-    Column('binary_content', Unicode),
+-    Column('parsing_cache', PickleType))
++    Column('deleted', DateTime))
++
++wiki_registry = Table('fw_wiki_registry', md,
++    Column('wiki_registry_id', Integer, Sequence('fw_wiki_registry_seq'), primary_key = True, nullable = False),
++    Column('wiki_id', Integer, ForeignKey(wiki.c.wiki_id), unique = 'fw_wiki_reg_unique'),
++    Column('key', Unicode(DEFAULT_STRING_LENGTH), unique = 'fw_wiki_reg_unique'),
++    Column('type', String(1)),
++    Column('value_string', Unicode(DEFAULT_STRING_LENGTH)),
++    Column('value_integer', Integer),
++    Column('value_boolean', Boolean),
++    Column('value_datetime', DateTime))
++    
+
+Deleted: trunk/fellowiki/templates/default.kid
+===================================================================
+--- trunk/fellowiki/templates/default.kid	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/templates/default.kid	2006-11-19 17:57:44 UTC (rev 32)
+@@ -1,8 +0,0 @@
+-&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Strict//EN&quot; &quot;<A HREF="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd</A>&quot;&gt;
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:py=&quot;<A HREF="http://purl.org/kid/ns#">http://purl.org/kid/ns#</A>&quot;&gt;
+-&lt;head&gt;
+-&lt;meta content=&quot;text/html; charset=utf-8&quot; http-equiv=&quot;Content-Type&quot; /&gt;
+-&lt;title&gt;&lt;div py:replace='page_title'&gt;Page title.&lt;/div&gt;&lt;/title&gt;
+-&lt;/head&gt;
+-&lt;body&gt;&lt;div py:replace='page_body'&gt;Page body.&lt;/div&gt;&lt;/body&gt;
+-&lt;/html&gt;
+
+Modified: trunk/fellowiki/templates/login.kid
+===================================================================
+--- trunk/fellowiki/templates/login.kid	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/templates/login.kid	2006-11-19 17:57:44 UTC (rev 32)
+@@ -1,113 +1,77 @@
+-&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot;
+-    &quot;<A HREF="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd</A>&quot;&gt;
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;
+-    xmlns:py=&quot;<A HREF="http://purl.org/kid/ns#">http://purl.org/kid/ns#</A>&quot;
+-    py:extends=&quot;'master.kid'&quot;&gt;
++&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot; &quot;<A HREF="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd</A>&quot;&gt;
++&lt;!--! 
++Copyright (c) 2006 Jan Niklas Fingerle
+ 
+-&lt;head&gt;
+-    &lt;meta content=&quot;text/html; charset=UTF-8&quot;
+-        http-equiv=&quot;content-type&quot; py:replace=&quot;''&quot;/&gt;
+-    &lt;title&gt;Login&lt;/title&gt;
+-    &lt;style type=&quot;text/css&quot;&gt;
+-        #loginBox
+-        {
+-            width: 30%;
+-            margin: auto;
+-            margin-top: 10%;
+-            padding-left: 10%;
+-            padding-right: 10%;
+-            padding-top: 5%;
+-            padding-bottom: 5%;
+-            font-family: verdana;
+-            font-size: 10px;
+-            background-color: #eee;
+-            border: 2px solid #ccc;
+-        }
++This source code file is based on a TurboGears &quot;quickstarted&quot; project.
++The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++and contributors.
+ 
+-        #loginBox h1
+-        {
+-            font-size: 42px;
+-            font-family: &quot;Trebuchet MS&quot;;
+-            margin: 0;
+-            color: #ddd;
+-        }
++Permission is hereby granted, free of charge, to any person obtaining a
++copy of this software and associated documentation files (the &quot;Software&quot;),
++to deal in the Software without restriction, including without limitation
++the rights to use, copy, modify, merge, publish, distribute, sublicense,
++and/or sell copies of the Software, and to permit persons to whom the
++Software is furnished to do so, subject to the following conditions:
+ 
+-        #loginBox p
+-        {
+-            position: relative;
+-            top: -1.5em;
+-            padding-left: 4em;
+-            font-size: 12px;
+-            margin: 0;
+-            color: #666;
+-        }
++The above copyright notice and this permission notice shall be included in
++all copies or substantial portions of the Software.
+ 
+-        #loginBox table
+-        {
+-            table-layout: fixed;
+-            border-spacing: 0;
+-            width: 100%;
+-        }
++THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++DEALINGS IN THE SOFTWARE.
++--&gt;
+ 
+-        #loginBox td.label
+-        {
+-            width: 33%;
+-            text-align: right;
+-        }
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;
++      xmlns:py=&quot;<A HREF="http://purl.org/kid/ns#">http://purl.org/kid/ns#</A>&quot;
++      py:extends=&quot;'master.kid'&quot;&gt;
+ 
+-        #loginBox td.field
+-        {
+-            width: 66%;
+-        }
++    &lt;head&gt;
++        &lt;meta content=&quot;text/html; charset=UTF-8&quot;
++              http-equiv=&quot;content-type&quot; /&gt;
++        &lt;title&gt;Login&lt;/title&gt;
++    &lt;/head&gt;
+ 
+-        #loginBox td.field input
+-        {
+-            width: 100%;
+-        }
++    &lt;body&gt;
++        &lt;div id=&quot;loginBox&quot;&gt;
++            &lt;h1&gt;Login&lt;/h1&gt;
++            &lt;p&gt;${message}&lt;/p&gt;
++            &lt;form action=&quot;${previous_url}&quot; method=&quot;POST&quot;&gt;
++                &lt;table&gt;
++                    &lt;tr&gt;
++                        &lt;td class=&quot;label&quot;&gt;
++                            &lt;label for=&quot;user_name&quot;&gt;User Name:&lt;/label&gt;
++                        &lt;/td&gt;
++                        &lt;td class=&quot;field&quot;&gt;
++                            &lt;input type=&quot;text&quot; id=&quot;user_name&quot; name=&quot;user_name&quot;/&gt;
++                        &lt;/td&gt;
++                    &lt;/tr&gt;
++                    &lt;tr&gt;
++                        &lt;td class=&quot;label&quot;&gt;
++                            &lt;label for=&quot;password&quot;&gt;Password:&lt;/label&gt;
++                        &lt;/td&gt;
++                        &lt;td class=&quot;field&quot;&gt;
++                            &lt;input type=&quot;password&quot; 
++                                   id=&quot;password&quot; 
++                                   name=&quot;password&quot;/&gt;
++                        &lt;/td&gt;
++                    &lt;/tr&gt;
++                    &lt;tr&gt;
++                        &lt;td colspan=&quot;2&quot; class=&quot;buttons&quot;&gt;
++                            &lt;input type=&quot;submit&quot; name=&quot;login&quot; value=&quot;Login&quot;/&gt;
++                        &lt;/td&gt;
++                    &lt;/tr&gt;
++                &lt;/table&gt;
+ 
+-        #loginBox td.buttons
+-        {
+-            text-align: right;
+-        }
+-
+-    &lt;/style&gt;
+-&lt;/head&gt;
+-
+-&lt;body&gt;
+-    &lt;div id=&quot;loginBox&quot;&gt;
+-        &lt;h1&gt;Login&lt;/h1&gt;
+-        &lt;p&gt;${message}&lt;/p&gt;
+-        &lt;form action=&quot;${previous_url}&quot; method=&quot;POST&quot;&gt;
+-            &lt;table&gt;
+-                &lt;tr&gt;
+-                    &lt;td class=&quot;label&quot;&gt;
+-                        &lt;label for=&quot;user_name&quot;&gt;User Name:&lt;/label&gt;
+-                    &lt;/td&gt;
+-                    &lt;td class=&quot;field&quot;&gt;
+-                        &lt;input type=&quot;text&quot; id=&quot;user_name&quot; name=&quot;user_name&quot;/&gt;
+-                    &lt;/td&gt;
+-                &lt;/tr&gt;
+-                &lt;tr&gt;
+-                    &lt;td class=&quot;label&quot;&gt;
+-                        &lt;label for=&quot;password&quot;&gt;Password:&lt;/label&gt;
+-                    &lt;/td&gt;
+-                    &lt;td class=&quot;field&quot;&gt;
+-                        &lt;input type=&quot;password&quot; id=&quot;password&quot; name=&quot;password&quot;/&gt;
+-                    &lt;/td&gt;
+-                &lt;/tr&gt;
+-                &lt;tr&gt;
+-                    &lt;td colspan=&quot;2&quot; class=&quot;buttons&quot;&gt;
+-                        &lt;input type=&quot;submit&quot; name=&quot;login&quot; value=&quot;Login&quot;/&gt;
+-                    &lt;/td&gt;
+-                &lt;/tr&gt;
+-            &lt;/table&gt;
+-
+-            &lt;input py:if=&quot;forward_url&quot; type=&quot;hidden&quot; name=&quot;forward_url&quot;
+-                value=&quot;${forward_url}&quot;/&gt;
++                &lt;input py:if=&quot;forward_url&quot; type=&quot;hidden&quot; name=&quot;forward_url&quot;
++                       value=&quot;${forward_url}&quot;/&gt;
+                 
+-            &lt;input py:for=&quot;name,value in original_parameters.items()&quot;
+-                type=&quot;hidden&quot; name=&quot;${name}&quot; value=&quot;${value}&quot;/&gt;
+-        &lt;/form&gt;
+-    &lt;/div&gt;
+-&lt;/body&gt;
++                &lt;input py:for=&quot;name,value in original_parameters.items()&quot;
++                       type=&quot;hidden&quot; name=&quot;${name}&quot; value=&quot;${value}&quot;/&gt;
++            &lt;/form&gt;
++        &lt;/div&gt;
++    &lt;/body&gt;
+ &lt;/html&gt;
+
+Modified: trunk/fellowiki/templates/master.kid
+===================================================================
+--- trunk/fellowiki/templates/master.kid	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/templates/master.kid	2006-11-19 17:57:44 UTC (rev 32)
+@@ -1,46 +1,53 @@
+-&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot; &quot;<A HREF="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd</A>&quot;&gt;
+-&lt;?python import sitetemplate ?&gt;
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:py=&quot;<A HREF="http://purl.org/kid/ns#">http://purl.org/kid/ns#</A>&quot; py:extends=&quot;sitetemplate&quot;&gt;
+-
+-&lt;head py:match=&quot;item.tag=='{<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>}head'&quot; py:attrs=&quot;item.items()&quot;&gt;
+-    &lt;meta content=&quot;text/html; charset=UTF-8&quot; http-equiv=&quot;content-type&quot; py:replace=&quot;''&quot;/&gt;
+-    &lt;title py:replace=&quot;''&quot;&gt;Your title goes here&lt;/title&gt;
+-    &lt;meta py:replace=&quot;item[:]&quot;/&gt;
+-    &lt;style type=&quot;text/css&quot;&gt;
+-        #pageLogin
+-        {
+-            font-size: 10px;
+-            font-family: verdana;
+-            text-align: right;
+-        }
+-    &lt;/style&gt;
+-    &lt;style type=&quot;text/css&quot; media=&quot;screen&quot;&gt;
+<A HREF="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">- at import</A> &quot;/static/css/style.css&quot;;
+-&lt;/style&gt;
+-&lt;/head&gt;
+-
+-&lt;body py:match=&quot;item.tag=='{<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>}body'&quot; py:attrs=&quot;item.items()&quot;&gt;
+-    &lt;div py:if=&quot;tg.config('identity.on',False) and not 'logging_in' in locals()&quot;
+-        id=&quot;pageLogin&quot;&gt;
+-        &lt;span py:if=&quot;tg.identity.anonymous&quot;&gt;
+-            &lt;a href=&quot;/login&quot;&gt;Login&lt;/a&gt;
+-        &lt;/span&gt;
+-        &lt;span py:if=&quot;not tg.identity.anonymous&quot;&gt;
+-            Welcome ${tg.identity.user.display_name}.
+-            &lt;a href=&quot;/logout&quot;&gt;Logout&lt;/a&gt;
+-        &lt;/span&gt;
+-    &lt;/div&gt;
+-
+-    &lt;div py:if=&quot;tg_flash&quot; class=&quot;flash&quot; py:content=&quot;tg_flash&quot;&gt;&lt;/div&gt;
+-
+-    &lt;div py:replace=&quot;[item.text]+item[:]&quot;/&gt;
+-
+-	&lt;!-- End of main_content --&gt;
+-&lt;div id=&quot;footer&quot;&gt; &lt;img src=&quot;/static/images/under_the_hood_blue.png&quot; /&gt;
+-  &lt;p&gt;TurboGears is a open source front-to-back web development
+-    framework written in Python&lt;/p&gt;
+-  &lt;p&gt;Copyright &copy; 2006 Kevin Dangoor&lt;/p&gt;
+-&lt;/div&gt;
+-&lt;/body&gt;
+-
+-&lt;/html&gt;
++&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot; &quot;<A HREF="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd</A>&quot;&gt;
++&lt;!--! 
++Copyright (c) 2006 Jan Niklas Fingerle
++
++This source code file is based on a TurboGears &quot;quickstarted&quot; project.
++The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++and contributors.
++
++Permission is hereby granted, free of charge, to any person obtaining a
++copy of this software and associated documentation files (the &quot;Software&quot;),
++to deal in the Software without restriction, including without limitation
++the rights to use, copy, modify, merge, publish, distribute, sublicense,
++and/or sell copies of the Software, and to permit persons to whom the
++Software is furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in
++all copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++DEALINGS IN THE SOFTWARE.
++--&gt;
++
++&lt;?python import sitetemplate ?&gt;
++
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:py=&quot;<A HREF="http://purl.org/kid/ns#">http://purl.org/kid/ns#</A>&quot; py:extends=&quot;sitetemplate&quot;&gt;
++
++    &lt;head py:match=&quot;item.tag=='{<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>}head'&quot; py:attrs=&quot;item.items()&quot;&gt;
++        &lt;title py:replace=&quot;''&quot;&gt;Your title goes here&lt;/title&gt;
++        &lt;meta py:replace=&quot;item[:]&quot;/&gt;
++        &lt;style type=&quot;text/css&quot;&gt;
++            #pageLogin
++            {
++                font-size: 10px;
++                font-family: verdana;
++                text-align: right;
++            }
++        &lt;/style&gt;
++        &lt;style type=&quot;text/css&quot; media=&quot;screen&quot;&gt;
++            @import &quot;/static/css/style.css&quot;;
++        &lt;/style&gt;
++    &lt;/head&gt;
++
++    &lt;body py:match=&quot;item.tag=='{<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>}body'&quot; py:attrs=&quot;item.items()&quot;&gt;
++        &lt;div py:if=&quot;tg_flash&quot; class=&quot;flash&quot; py:content=&quot;tg_flash&quot;/&gt;
++        &lt;div py:replace=&quot;[item.text]+item[:]&quot;/&gt;
++    &lt;/body&gt;
++
++&lt;/html&gt;
+
+Deleted: trunk/fellowiki/templates/welcome.kid
+===================================================================
+--- trunk/fellowiki/templates/welcome.kid	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/templates/welcome.kid	2006-11-19 17:57:44 UTC (rev 32)
+@@ -1,50 +0,0 @@
+-&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot; &quot;<A HREF="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd</A>&quot;&gt;
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:py=&quot;<A HREF="http://purl.org/kid/ns#">http://purl.org/kid/ns#</A>&quot;
+-    py:extends=&quot;'master.kid'&quot;&gt;
+-&lt;head&gt;
+-&lt;meta content=&quot;text/html; charset=utf-8&quot; http-equiv=&quot;Content-Type&quot; py:replace=&quot;''&quot;/&gt;
+-&lt;title&gt;Welcome to TurboGears&lt;/title&gt;
+-&lt;/head&gt;
+-&lt;body&gt;
+-&lt;div id=&quot;header&quot;&gt;&nbsp;&lt;/div&gt;
+-&lt;div id=&quot;main_content&quot;&gt;
+-  &lt;div id=&quot;status_block&quot;&gt;Your TurboGears application is now running.&lt;/div&gt;
+-  &lt;!--h1&gt;Take steps to dive right in:&lt;/h1--&gt;
+-  &lt;div id=&quot;sidebar&quot;&gt;
+-    &lt;h2&gt;Learn more&lt;/h2&gt;
+-    Learn more about TurboGears and take part in its
+-    development
+-    &lt;ul class=&quot;links&quot;&gt;
+-      &lt;li&gt;&lt;a href=&quot;<A HREF="http://www.turbogears.org">http://www.turbogears.org</A>&quot;&gt;Official website&lt;/a&gt;&lt;/li&gt;
+-      &lt;li&gt;&lt;a href=&quot;<A HREF="http://docs.turbogears.org">http://docs.turbogears.org</A>&quot;&gt;Documentation&lt;/a&gt;&lt;/li&gt;
+-      &lt;li&gt;&lt;a href=&quot;<A HREF="http://trac.turbogears.org/turbogears/">http://trac.turbogears.org/turbogears/</A>&quot;&gt;Trac
+-        (bugs/suggestions)&lt;/a&gt;&lt;/li&gt;
+-      &lt;li&gt;&lt;a href=&quot;<A HREF="http://groups.google.com/group/turbogears">http://groups.google.com/group/turbogears</A>&quot;&gt; Mailing list&lt;/a&gt; &lt;/li&gt;
+-    &lt;/ul&gt;
+-  &lt;/div&gt;
+-  &lt;div id=&quot;getting_started&quot;&gt;
+-    &lt;ol id=&quot;getting_started_steps&quot;&gt;
+-      &lt;li class=&quot;getting_started&quot;&gt;
+-        &lt;h3&gt;Model&lt;/h3&gt;
+-        &lt;p&gt; &lt;a href=&quot;<A HREF="http://docs.turbogears.org/1.0/GettingStarted/DefineDatabase">http://docs.turbogears.org/1.0/GettingStarted/DefineDatabase</A>&quot;&gt;Design models&lt;/a&gt; in the &lt;span class=&quot;code&quot;&gt;model.py&lt;/span&gt;.&lt;br/&gt;
+-          Edit &lt;span class=&quot;code&quot;&gt;dev.cfg&lt;/span&gt; to &lt;a href=&quot;<A HREF="http://docs.turbogears.org/1.0/GettingStarted/UseDatabase">http://docs.turbogears.org/1.0/GettingStarted/UseDatabase</A>&quot;&gt;use a different backend&lt;/a&gt;, or start with a pre-configured SQLite database. &lt;br/&gt;
+-          Use script &lt;span class=&quot;code&quot;&gt;tg-admin sql create&lt;/span&gt; to create the database tables.&lt;/p&gt;
+-      &lt;/li&gt;
+-      &lt;li class=&quot;getting_started&quot;&gt;
+-        &lt;h3&gt;View&lt;/h3&gt;
+-        &lt;p&gt; Edit &lt;a href=&quot;<A HREF="http://docs.turbogears.org/1.0/GettingStarted/Kid">http://docs.turbogears.org/1.0/GettingStarted/Kid</A>&quot;&gt;html-like templates&lt;/a&gt; in the &lt;span class=&quot;code&quot;&gt;/templates&lt;/span&gt; folder;&lt;br/&gt;
+-        Put all &lt;a href=&quot;<A HREF="http://docs.turbogears.org/1.0/StaticFiles">http://docs.turbogears.org/1.0/StaticFiles</A>&quot;&gt;static contents&lt;/a&gt; in the &lt;span class=&quot;code&quot;&gt;/static&lt;/span&gt; folder. &lt;/p&gt;
+-      &lt;/li&gt;
+-      &lt;li class=&quot;getting_started&quot;&gt;
+-        &lt;h3&gt;Controller&lt;/h3&gt;
+-        &lt;p&gt; Edit &lt;span class=&quot;code&quot;&gt; controllers.py&lt;/span&gt; and &lt;a href=&quot;<A HREF="http://docs.turbogears.org/1.0/GettingStarted/CherryPy">http://docs.turbogears.org/1.0/GettingStarted/CherryPy</A>&quot;&gt;build your
+-          website structure&lt;/a&gt; with the simplicity of Python objects. &lt;br/&gt;
+-          TurboGears will automatically reload itself when you modify your project. &lt;/p&gt;
+-      &lt;/li&gt;
+-    &lt;/ol&gt;
+-    &lt;div class=&quot;notice&quot;&gt; If you create something cool, please &lt;a href=&quot;<A HREF="http://groups.google.com/group/turbogears">http://groups.google.com/group/turbogears</A>&quot;&gt;let people know&lt;/a&gt;, and consider contributing something back to the &lt;a href=&quot;<A HREF="http://groups.google.com/group/turbogears">http://groups.google.com/group/turbogears</A>&quot;&gt;community&lt;/a&gt;.&lt;/div&gt;
+-  &lt;/div&gt;
+-  &lt;!-- End of getting_started --&gt;
+-&lt;/div&gt;
+-&lt;/body&gt;
+-&lt;/html&gt;
+
+Added: trunk/fellowiki/templates/wiki_edit.kid
+===================================================================
+--- trunk/fellowiki/templates/wiki_edit.kid	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/templates/wiki_edit.kid	2006-11-19 17:57:44 UTC (rev 32)
+@@ -0,0 +1,17 @@
++&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot; &quot;<A HREF="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd</A>&quot;&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:py=&quot;<A HREF="http://purl.org/kid/ns#">http://purl.org/kid/ns#</A>&quot;
++    py:extends=&quot;'master.kid'&quot;&gt;
++&lt;head&gt;
++&lt;title&gt;Title&lt;/title&gt;
++&lt;/head&gt;
++&lt;body&gt;
++&lt;h1&gt;Preview&lt;/h1&gt;
++${preview}
++
++&lt;h1&gt;Edit&lt;/h1&gt;
++
++    &lt;p py:content=&quot;form(data)&quot;&gt;Comment form&lt;/p&gt;
++
++
++&lt;/body&gt;
++&lt;/html&gt;
+
+Added: trunk/fellowiki/templates/wiki_view.kid
+===================================================================
+--- trunk/fellowiki/templates/wiki_view.kid	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/templates/wiki_view.kid	2006-11-19 17:57:44 UTC (rev 32)
+@@ -0,0 +1,16 @@
++&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot; &quot;<A HREF="http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd</A>&quot;&gt;
++
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; 
++      xmlns:py=&quot;<A HREF="http://purl.org/kid/ns#">http://purl.org/kid/ns#</A>&quot;
++      py:extends=&quot;'master.kid'&quot;&gt;
++
++    &lt;head&gt;
++        &lt;title&gt;${title}&lt;/title&gt;
++    &lt;/head&gt;
++    &lt;body&gt;
++        &lt;h1 class='page_name'&gt;&lt;span py:replace=&quot;page_name&quot;&gt;This is the page name&lt;/span&gt;&lt;/h1&gt;
++        &lt;div class='main_content'&gt;&lt;span py:replace=&quot;main_content&quot;&gt;This ist the wiki page main content&lt;/span&gt;&lt;/div&gt;
++        &lt;hr /&gt;
++        &lt;a href=&quot;${edit_link}&quot; py:if=&quot;page_is_editable&quot;&gt;edit this page&lt;/a&gt;
++    &lt;/body&gt;
++&lt;/html&gt;
+
+Modified: trunk/fellowiki/util/assorted.py
+===================================================================
+--- trunk/fellowiki/util/assorted.py	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/util/assorted.py	2006-11-19 17:57:44 UTC (rev 32)
+@@ -27,11 +27,13 @@
+ &quot;&quot;&quot;
+ 
+ import re
++from turbogears import identity
+ 
+ # TODO: howto support CElementTree (portably!, utf8-support?)
+ 
+ from elementtree.ElementTree import Element
+ 
++
+ def attributes_from_dict(dict_):
+     &quot;&quot;&quot;initialize class instance from __init__ arguments
+ 
+@@ -74,12 +76,12 @@
+              ignored.
+ 
+     &quot;&quot;&quot;
+-    
++
+     # The tricky thing is, that the last text (non-element) content of etree_1
+     # resides in the &quot;.tail&quot; of the last contained element if there is one. 
+     # Otherwise, the &quot;.text&quot; is the only content, therefore it is the last
+     # text content.
+-    
++
+     ret = Element(ret_type)
+     if len(etree_1) == 0:
+         ret.text = save_add(etree_1.text, etree_2.text)
+@@ -90,3 +92,10 @@
+         ret.text = etree_1.text
+         ret[:] = etree_1[:-1] + [last_sub] + etree_2[:]
+     return ret
++
++def check_for_permission(perm):
++    &quot;&quot;&quot;check for a permission explicitly&quot;&quot;&quot;
++    if not (perm is None or
++            perm in identity.current.permissions):
++        raise identity.IdentityFailure, &quot;don't have permission %s&quot; % perm
++        
+
+Added: trunk/fellowiki/util/xmlelement.py
+===================================================================
+--- trunk/fellowiki/util/xmlelement.py	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/util/xmlelement.py	2006-11-19 17:57:44 UTC (rev 32)
+@@ -0,0 +1,130 @@
++# pylint: disable-msg=W0613,E0201
++# W0702, W0706: allow argument magic (i.e. attributes_from_dict())
++
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
++&quot;&quot;&quot;
++
++TODO
++    
++&quot;&quot;&quot;
++
++from copy import copy
++import elementtree.ElementTree as ElementTree
++        
++class XMLElement(object):
++    def __init__(self, tag = None, content=None, prepend_to=None,
++                 append_to=None, **attributes):
++        self.tag = tag
++        if content is None:
++            self.content = []
++        else:
++            try:
++                content.pop # check if it's a kind of list
++                self.content = content
++            except AttributeError:
++                self.content = [content]
++        self.attributes = {}
++        
++        for (key, val) in attributes.items():
++            if key[-1:] == '_':
++                self.attributes[key[:-1]] = val
++            else:
++                self.attributes[key] = val
++            
++        self.callback = []
++        self.translations = []
++        
++        if prepend_to is not None:
++            prepend_to.prepend(self)
++        if append_to is not None:
++            append_to.append(self)
++        
++    def clone(self, other):
++        self.tag = other.tag
++        self.content = other.content
++        self.attributes = other.attributes
++        self.callback = other.callback
++        self.translations = other.translations
++        
++    def to_element_tree(self): 
++        xhtml = ElementTree.Element(self.tag)
++        sub_xhtml = None
++        current_textlist = []
++        content = copy(self.content)
++        translations = []
++        
++        for (key, val) in self.attributes.items():
++            xhtml.set(key, str(val))
++        
++        # I want to modify the list, therefore I write this a bit 
++        # more explicitly:
++        while content:
++            item = content.pop(0) 
++            try: # should work, if it's a text list
++                current_textlist.extend(item)
++            except TypeError: # should be an XMLElement
++                if item.tag is None:
++                    content = item.content + content
++                else:
++                    current_text = ''.join(current_textlist)
++                    current_textlist = []
++                    if sub_xhtml is None:
++                        xhtml.text = current_text
++                    else:
++                        sub_xhtml.tail = current_text
++                    sub_xhtml, sub_translations = item.to_element_tree()
++                    xhtml.append(sub_xhtml)
++                    translations.extend(sub_translations)
++        current_text = ''.join(current_textlist)
++        if sub_xhtml is None:
++            xhtml.text = current_text
++        else:
++            sub_xhtml.tail = current_text
++        for translation in self.translations:
++            if translation[1] is None:
++                translations.append((xhtml, 
++                                     translation[0], 
++                                     translation[2]))
++            else:
++                translation[1](xhtml, translation[2])
++        return xhtml, translations
++        
++    def is_empty(self):
++        return not bool(self.content)
++        
++    def is_not_empty(self):
++        return bool(self.content)
++            
++    def append(self, *appendee):
++        self.content.extend(appendee)
++    
++    def prepend(self, *prependee):
++        self.content = list(prependee) + self.content
++        
++    def set(self, key, val):
++        self.attributes[key] = val
++        
++    def get(self, key):
++        return self.attributes[key]
++        
++def SubElement(parent, *args, **kwargs):
++    return XMLElement(append_to=parent, *args, **kwargs)
+
+Added: trunk/fellowiki/widgets/__init__.py
+===================================================================
+--- trunk/fellowiki/widgets/__init__.py	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/widgets/__init__.py	2006-11-19 17:57:44 UTC (rev 32)
+@@ -0,0 +1,19 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
+
+Added: trunk/fellowiki/widgets/forms.py
+===================================================================
+--- trunk/fellowiki/widgets/forms.py	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki/widgets/forms.py	2006-11-19 17:57:44 UTC (rev 32)
+@@ -0,0 +1,71 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# This source code file is based on the TurboGears project's code.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++#
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
++import turbogears.widgets as w
++
++class SubmitPreviewForm(w.Form):
++    name = 'submit_preview_form'
++    member_widgets = ['preview', 'reset']
++    params = ['preview_text', 'reset_text']
++    params_doc = {'preview_text': 'Text for the preview button',
++                  'reset_text': 'Text for the reset button'}
++    preview = w.SubmitButton(name='preview')
++    reset = w.ResetButton()
++    
++    
++class SubmitPreviewTableForm(SubmitPreviewForm):
++    template = &quot;&quot;&quot;
++    &lt;form xmlns:py=&quot;<A HREF="http://purl.org/kid/ns#">http://purl.org/kid/ns#</A>&quot;
++        name=&quot;${name}&quot;
++        action=&quot;${action}&quot;
++        method=&quot;${method}&quot;
++        class=&quot;tableform&quot;
++        py:attrs=&quot;form_attrs&quot;
++    &gt;
++        &lt;div py:for=&quot;field in hidden_fields&quot;
++            py:replace=&quot;field.display(value_for(field), **params_for(field))&quot;
++        /&gt;
++        &lt;table border=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;2&quot; py:attrs=&quot;table_attrs&quot;&gt;
++            &lt;tr py:for=&quot;i, field in enumerate(fields)&quot;
++                class=&quot;${i%2 and 'odd' or 'even'}&quot;
++            &gt;
++                &lt;th&gt;
++                    &lt;label class=&quot;fieldlabel&quot; for=&quot;${field.field_id}&quot; py:content=&quot;field.label&quot; /&gt;
++                &lt;/th&gt;
++                &lt;td&gt;
++                    &lt;span py:replace=&quot;field.display(value_for(field), **params_for(field))&quot; /&gt;
++                    &lt;span py:if=&quot;error_for(field)&quot; class=&quot;fielderror&quot; py:content=&quot;error_for(field)&quot; /&gt;
++                    &lt;span py:if=&quot;field.help_text&quot; class=&quot;fieldhelp&quot; py:content=&quot;field.help_text&quot; /&gt;
++                &lt;/td&gt;
++            &lt;/tr&gt;
++            &lt;tr&gt;
++                &lt;td&gt;&#160;&lt;/td&gt;
++                &lt;td&gt;${submit.display(submit_text)} ${preview.display(preview_text)} ${reset.display(reset_text)}&lt;/td&gt;
++            &lt;/tr&gt;
++        &lt;/table&gt;
++    &lt;/form&gt;
++    &quot;&quot;&quot;
++    params = [&quot;table_attrs&quot;]
++    params_doc = {'table_attrs' : 'Extra (X)HTML attributes for the Table tag'}
++    table_attrs = {}
+
+Copied: trunk/fellowiki-www.py (from rev 31, trunk/fellowiki.py)
+===================================================================
+--- trunk/fellowiki.py	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki-www.py	2006-11-19 17:57:44 UTC (rev 32)
+@@ -0,0 +1,125 @@
++#!/usr/bin/python2.4
++# Copyright (c) 2006 Jan Niklas Fingerle
++#
++# This source code file is based on a TurboGears &quot;quickstarted&quot; project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
++import pkg_resources
++pkg_resources.require(&quot;TurboGears&quot;)
++
++from optparse import OptionParser
++from os.path import join, exists, dirname
++
++import cherrypy
++import turbogears
++from turbogears.database import session
++from sqlalchemy.exceptions import SQLError
++
++from fellowiki.model import DBVersion, initialize
++
++def get_configuration():
++    parser = OptionParser()
++    parser.add_option(&quot;-c&quot;, &quot;--config&quot;, dest=&quot;config_file&quot;, type='string',
++                  help=&quot;read configuration from FILE&quot;, metavar=&quot;FILE&quot;)
++    parser.add_option(&quot;-u&quot;, &quot;--database &quot;, dest=&quot;db_uri&quot;, type='string',
++                  help=&quot;data base URI&quot;, metavar=&quot;URI&quot;)
++    parser.add_option(&quot;-b&quot;, &quot;--bind&quot;, dest=&quot;server_host&quot;, type='string',
++                  help=&quot;bind server to HOST&quot;, metavar=&quot;HOST&quot;)
++    parser.add_option(&quot;-p&quot;, &quot;--port&quot;, dest=&quot;server_port&quot;, type='int',
++                  help=&quot;bind server to PORT&quot;, metavar=&quot;PORT&quot;)
++    parser.add_option(&quot;--generate-tables&quot;, dest=&quot;generate_tables&quot;, 
++                  action='store_true', default=False,
++                  help=&quot;generate fellowiki data base tables&quot;)
++    parser.add_option(&quot;--update-tables&quot;, dest=&quot;update_tables&quot;, 
++                  action='store_true', default=False,
++                  help=&quot;update fellowiki data base tables - not yet supported&quot;)
++                  
++    (options, args) = parser.parse_args()
++    
++    if len(args) &lt;&gt; 0:
++        parser.error(&quot;positional parameters supplied, but not expected&quot;)
++                      
++    return options
++
++
++def check_database(options):
++    cherrypy.log('DB URI is %s' % cherrypy.config.get('sqlalchemy.dburi'), 'DB', 0)
++    if cherrypy.config.get('sqlalchemy.dburi') in ['<A HREF="sqlite://">sqlite://</A>', '<A HREF="sqlite://:memory:">sqlite://:memory:</A>', 
++                                         '<A HREF="sqlite:///">sqlite:///</A>', '<A HREF="sqlite:///:memory:">sqlite:///:memory:</A>']:
++        # SQLite data bases require one DBApi per Thread. Cherrypy is 
++        # multithreaded. Each thread will get its own *empty* memory DB, which
++        # is not what we want, therefore...
++        cherrypy.log(&quot;FelloWiki does not support SQLite memory data bases.&quot;, 'DB', 2)
++        return False
++    
++    try: 
++        versions = DBVersion.select()
++        if options.generate_tables:
++            cherrypy.log('generation of data base tables requested, but '+
++                         'schema version table exists', 'DB', 1)
++            return True
++    except SQLError:
++        if options.generate_tables:
++            cherrypy.log('generating data base tables, as requested', 'DB', 0)
++            initialize()
++            session.flush()
++            
++        else:
++            cherrypy.log(&quot;The FelloWiki data base tables seem not to be &quot; 
++                         + &quot;installed. Please run FelloWiki with the flag &quot; 
++                         + &quot;'--generate-tables' to create all needed tables.&quot;, 'DB', 2)
++            return False
++        
++    return True
++
++def config_turbogears(options):
++    if options.config_file is not None:
++        turbogears.config.update_config(configfile=options.config_file, 
++            modulename=&quot;fellowiki.config&quot;)
++    elif exists(join(dirname(__file__), &quot;setup.py&quot;)):
++        turbogears.config.update_config(configfile=join(dirname(__file__), &quot;dev.cfg&quot;),
++            modulename=&quot;fellowiki.config&quot;)
++    elif exists(&quot;/etc/fellowiki.cfg&quot;):
++        turbogears.config.update_config(configfile=&quot;/etc/fellowiki.cfg&quot;,
++            modulename=&quot;fellowiki.config&quot;)
++
++    new_conf = {}
++    
++    if options.server_host is not None:
++        new_conf['server.socket_host'] = options.server_host
++    if options.server_port is not None:
++        new_conf['server.socket_port'] = options.server_port
++    if options.db_uri is not None:   
++        new_conf['sqlalchemy.dburi'] = options.db_uri
++        
++    turbogears.config.update({'global': new_conf})
++
++
++def start_web_server():
++    options = get_configuration()
++    config_turbogears(options)
++    if check_database(options):
++        from fellowiki.controllers import FelloWikiRoot
++        turbogears.start_server(FelloWikiRoot())
++      
++if __name__ == '__main__':
++    start_web_server()
+
+Deleted: trunk/fellowiki.py
+===================================================================
+--- trunk/fellowiki.py	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/fellowiki.py	2006-11-19 17:57:44 UTC (rev 32)
+@@ -1,130 +0,0 @@
+-#!/usr/bin/python2.4
+-# Copyright (c) 2006 Jan Niklas Fingerle
+-#
+-# This source code file is based on a TurboGears &quot;quickstarted&quot; project.
+-# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
+-# and contributors.
+-# 
+-# Permission is hereby granted, free of charge, to any person obtaining a
+-# copy of this software and associated documentation files (the &quot;Software&quot;),
+-# to deal in the Software without restriction, including without limitation
+-# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+-# and/or sell copies of the Software, and to permit persons to whom the
+-# Software is furnished to do so, subject to the following conditions:
+-#
+-# The above copyright notice and this permission notice shall be included in
+-# all copies or substantial portions of the Software.
+-#
+-# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+-# DEALINGS IN THE SOFTWARE.
+-
+-import pkg_resources
+-pkg_resources.require(&quot;TurboGears&quot;)
+-
+-from optparse import OptionParser
+-from os.path import join, exists, dirname
+-
+-import cherrypy
+-import turbogears
+-from sqlalchemy.exceptions import SQLError
+-
+-from fellowiki.model import DBVersion
+-
+-def get_configuration():
+-    parser = OptionParser()
+-    parser.add_option(&quot;-c&quot;, &quot;--config&quot;, dest=&quot;config_file&quot;, type='string',
+-                  help=&quot;read configuration from FILE&quot;, metavar=&quot;FILE&quot;)
+-    parser.add_option(&quot;-u&quot;, &quot;--database &quot;, dest=&quot;db_uri&quot;, type='string',
+-                  help=&quot;data base URI&quot;, metavar=&quot;URI&quot;)
+-    parser.add_option(&quot;-b&quot;, &quot;--bind&quot;, dest=&quot;server_host&quot;, type='string',
+-                  help=&quot;bind server to HOST&quot;, metavar=&quot;HOST&quot;)
+-    parser.add_option(&quot;-p&quot;, &quot;--port&quot;, dest=&quot;server_port&quot;, type='int',
+-                  help=&quot;bind server to PORT&quot;, metavar=&quot;PORT&quot;)
+-    parser.add_option(&quot;--generate-tables&quot;, dest=&quot;generate_tables&quot;, 
+-                  action='store_true', default=False,
+-                  help=&quot;generate fellowiki data base tables&quot;)
+-    parser.add_option(&quot;--update-tables&quot;, dest=&quot;update_tables&quot;, 
+-                  action='store_true', default=False,
+-                  help=&quot;update fellowiki data base tables - not yet supported&quot;)
+-                  
+-    (options, args) = parser.parse_args()
+-    
+-    if len(args) &lt;&gt; 0:
+-        parser.error(&quot;positional parameters supplied, but not expected&quot;)
+-                      
+-    return options
+-
+-
+-def check_database(options):
+-    cherrypy.log('DB URI is %s' % cherrypy.config.get('sqlalchemy.dburi'), 'DB', 0)
+-    if cherrypy.config.get('sqlalchemy.dburi') in ['<A HREF="sqlite://">sqlite://</A>', '<A HREF="sqlite://:memory:">sqlite://:memory:</A>', 
+-                                         '<A HREF="sqlite:///">sqlite:///</A>', '<A HREF="sqlite:///:memory:">sqlite:///:memory:</A>']:
+-        # SQLite data bases require one DBApi per Thread. Cherrypy is 
+-        # multithreaded. Each thread will get its own *empty* memory DB, which
+-        # is not what we want, therefore...
+-        cherrypy.log(&quot;FelloWiki does not support SQLite memory data bases.&quot;, 'DB', 2)
+-        return False
+-    
+-    try: 
+-        versions = DBVersion.select()
+-        if options.generate_tables:
+-            cherrypy.log('generation of data base tables requested, but '+
+-                         'schema version table exists', 'DB', 1)
+-            return True
+-    except SQLError:
+-        if options.generate_tables:
+-            cherrypy.log('generating data base tables, as requested', 'DB', 0)
+-            
+-            from turbogears.database import metadata, get_engine, session
+-            
+-            engine = get_engine()
+-            
+-            metadata.create_all(engine=engine)
+-            DBVersion('FelloWiki - Base', 1)
+-            session.flush()
+-            
+-        else:
+-            cherrypy.log(&quot;The FelloWiki data base tables seem not to be &quot; 
+-                         + &quot;installed. Please run FelloWiki with the flag &quot; 
+-                         + &quot;'--generate-tables' to create all needed tables.&quot;, 'DB', 2)
+-            return False
+-        
+-    return True
+-
+-def config_turbogears(options):
+-    if options.config_file is not None:
+-        turbogears.config.update_config(configfile=options.config_file, 
+-            modulename=&quot;fellowiki.config&quot;)
+-    elif exists(join(dirname(__file__), &quot;setup.py&quot;)):
+-        turbogears.config.update_config(configfile=join(dirname(__file__), &quot;dev.cfg&quot;),
+-            modulename=&quot;fellowiki.config&quot;)
+-    elif exists(&quot;/etc/fellowiki.cfg&quot;):
+-        turbogears.config.update_config(configfile=&quot;/etc/fellowiki.cfg&quot;,
+-            modulename=&quot;fellowiki.config&quot;)
+-
+-    new_conf = {}
+-    
+-    if options.server_host is not None:
+-        new_conf['server.socket_host'] = options.server_host
+-    if options.server_port is not None:
+-        new_conf['server.socket_port'] = options.server_port
+-    if options.db_uri is not None:   
+-        new_conf['sqlalchemy.dburi'] = options.db_uri
+-        
+-    turbogears.config.update({'global': new_conf})
+-
+-
+-def start_web_server():
+-    options = get_configuration()
+-    config_turbogears(options)
+-    if check_database(options):
+-        from fellowiki.controllers import FelloWikiRoot
+-        turbogears.start_server(FelloWikiRoot())
+-      
+-if __name__ == '__main__':
+-    start_web_server()
+
+Modified: trunk/setup.py
+===================================================================
+--- trunk/setup.py	2006-09-10 23:39:54 UTC (rev 31)
++++ trunk/setup.py	2006-11-19 17:57:44 UTC (rev 32)
+@@ -32,7 +32,7 @@
+ 
+ setup(
+     name=&quot;FelloWiki&quot;,
+-    version=&quot;pre0.01&quot;,
++    version=&quot;0.01-dev20061118&quot;,
+     
+     description='Yet another wiki engine',
+     long_description='Yet another wiki engine - still heavily in alpha',
+@@ -46,7 +46,7 @@
+     install_requires = [
+         &quot;TurboGears &gt;= 1.0b1&quot;,
+     ],
+-    scripts = [&quot;start-fellowiki.py&quot;],
++    scripts = [&quot;fellowiki.py&quot;],
+     zip_safe=False,
+     packages=find_packages(),
+     package_data = find_package_data(where='fellowiki',
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="000031.html">[fellowiki-svncheckins] r33 - pjm trunk
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#30">[ date ]</a>
+              <a href="thread.html#30">[ thread ]</a>
+              <a href="subject.html#30">[ subject ]</a>
+              <a href="author.html#30">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

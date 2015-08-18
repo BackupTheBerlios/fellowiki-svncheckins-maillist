@@ -1,0 +1,253 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r22 - in trunk/fellowiki/wiki: . tests tests/tests/simple_markup
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-June/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r22%20-%20in%20trunk/fellowiki/wiki%3A%20.%20tests%20tests/tests/simple_markup&In-Reply-To=%3C200606101019.k5AAJ8X4013203%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000019.html">
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r22 - in trunk/fellowiki/wiki: . tests tests/tests/simple_markup</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r22%20-%20in%20trunk/fellowiki/wiki%3A%20.%20tests%20tests/tests/simple_markup&In-Reply-To=%3C200606101019.k5AAJ8X4013203%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r22 - in trunk/fellowiki/wiki: . tests tests/tests/simple_markup">fingerle at berlios.de
+       </A><BR>
+    <I>Sat Jun 10 12:19:08 CEST 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000019.html">[fellowiki-svncheckins] r21 - in trunk/fellowiki/wiki: . tests tests/tests/simple_markup
+</A></li>
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#20">[ date ]</a>
+              <a href="thread.html#20">[ thread ]</a>
+              <a href="subject.html#20">[ subject ]</a>
+              <a href="author.html#20">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-06-10 12:19:08 +0200 (Sat, 10 Jun 2006)
+New Revision: 22
+
+Added:
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_different_configs.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_invalid.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_simple.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_escapes.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_parms.complete.xml
+Modified:
+   trunk/fellowiki/wiki/parser.py
+   trunk/fellowiki/wiki/tests/test_parser.py
+   trunk/fellowiki/wiki/tests/tests/simple_markup/macros_different_configs.wiki
+Log:
+- wiki parser: finished macro handling
+
+
+Modified: trunk/fellowiki/wiki/parser.py
+===================================================================
+--- trunk/fellowiki/wiki/parser.py	2006-06-09 19:22:53 UTC (rev 21)
++++ trunk/fellowiki/wiki/parser.py	2006-06-10 10:19:08 UTC (rev 22)
+@@ -105,12 +105,10 @@
+             sub_xhtml.tail = current_text
+         if self.translation is not None:
+             if self.translation[1] is None:
+-                print 'deferred: %s' % self.translation[0]
+                 translations.append((xhtml, 
+                                      self.translation[0], 
+                                      self.translation[2]))
+             else:
+-                print 'not deferred: %s' % self.translation[0]
+                 self.translation[1](xhtml,  self.translation[2])
+         return xhtml, translations
+         
+@@ -494,29 +492,30 @@
+     def render(self, new_token):
+         PrefixToken.render(self, new_token)
+         
++        
++        
++##class HeadlineToken(PrefixToken): 
++##    def do_prefix(self, new_token):
++##        new_token.xhtml.tag = 'h%i' % (len(self.token) - 1)
++##        self.tokens.insert(0, BeetweenParagraphsXHTML(new_token.xhtml, 
++##                                                      self.token))
++        
+ class MacroToken(Token): 
+     def render(self, new_token):
+-        xhtml = XMLElement('span')
+-        xhtml.append(self.text)
++        if not self.block_level:
++            new_token.prepend(self.xhtml)
+         
+-        if self.proc is not None:
+-            xhtml.translation = (self.proc, 
+-                                 self.proc_not_deferred,
+-                                 self.parameter)
+-            xhtml.attributes['class'] = 'macro_resolved'
+-            xhtml.append(' --&gt; &quot;%s(%s)&quot;' % (self.proc, unicode(self.parameter)))
+-        else:
+-            xhtml.attributes['class'] = 'macro_unresolved'
+-            
+-        new_token.prepend(xhtml)
+-        
+     def evaluate(self, result, tokens, state, procs):
+         Token.evaluate(self, result, tokens, state, procs)
+         
+         self.proc = None
+         self.proc_not_deferred = None
+         self.parameter = []
++        self.xhtml = XMLElement('span')
++        self.xhtml.append(self.text)
++        self.block_level = False
+         
++        
+         match_obj = re.match(r'\{\{(([^\\\}\n\|]|\\.|\}[^\\\}\n\|]|\}\\.)*)' \
+                              r'\|(([^\\\}\n]|\\.|\}[^\\\}\n]|\}\\.)*)\}\}', 
+                              self.text)
+@@ -533,6 +532,7 @@
+         try:
+             this_proc = procs[command]
+         except KeyError:
++            self.xhtml.attributes['class'] = 'macro_unresolved'
+             return
+         
+         self.proc = command
+@@ -553,6 +553,17 @@
+         if not this_proc.get(DEFERRED):
+             self.proc_not_deferred = this_proc[PROC]
+             
++        self.xhtml.translation = (self.proc, 
++                                  self.proc_not_deferred,
++                                  self.parameter)
++        self.xhtml.attributes['class'] = 'macro_resolved'
++        
++        if this_proc.get(BLOCK_LEVEL):
++            self.block_level = True
++            self.xhtml.tag = 'p'
++            self.tokens.insert(0, BeetweenParagraphsXHTML(self.xhtml, self.token))
++            
++            
+ class LinkToken(Token): 
+     pass
+ class EmbeddedLinkToken(LinkToken): 
+@@ -672,6 +683,5 @@
+     def evaluate(self, tree):
+         tree_  = deepcopy(tree)
+         for trans in tree_[1]:
+-            print 'translating deferred %s' % trans[1]
+             self.procs[trans[1]][PROC](trans[0], *trans[2])
+         return tree_[0]
+
+Modified: trunk/fellowiki/wiki/tests/test_parser.py
+===================================================================
+--- trunk/fellowiki/wiki/tests/test_parser.py	2006-06-09 19:22:53 UTC (rev 21)
++++ trunk/fellowiki/wiki/tests/test_parser.py	2006-06-10 10:19:08 UTC (rev 22)
+@@ -69,19 +69,19 @@
+ 
+ def _macro_test_proc(macro_name):
+     def new_test_proc(element, *args):
+-        element.tag = 'span'
+-        element.attrib = {'class': 'test_macro_class'}
+-        element.text = '{MACRO %s: %s}' % (macro_name, unicode(args))
++        element.text = None
++        xhtml = SubElement(element, 'span', {'class': 'test_macro_class'}) 
++        xhtml.text = '{MACRO %s: %s}' % (macro_name, unicode(args))
+     return new_test_proc
+ 
+ procs = {MACRO + 'macro default': {PROC: _macro_test_proc('default macro'),
+                                    SPLIT: True,
+                                    ESCAPE: True},
+-         MACRO + 'macro ohne split': {PROC: _macro_test_proc('kein split'),
++         MACRO + 'macro no split': {PROC: _macro_test_proc('no split'),
+                                       ESCAPE: True},
+-         MACRO + 'macro ohne escape': {PROC: _macro_test_proc('kein escape'),
++         MACRO + 'macro no escape': {PROC: _macro_test_proc('no escape'),
+                                        SPLIT: True},
+-         MACRO + 'macro ohne s/e': {PROC: _macro_test_proc('kein split, escape')},
++         MACRO + 'macro w/o s/e': {PROC: _macro_test_proc('no split, escape')},
+          MACRO + 'macro deferred': {PROC: _macro_test_proc('deferred'),
+                                     SPLIT: True,
+                                     ESCAPE: True,
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_different_configs.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/macros_different_configs.complete.xml	2006-06-09 19:22:53 UTC (rev 21)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_different_configs.complete.xml	2006-06-10 10:19:08 UTC (rev 22)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;&lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO default macro: ([u'12 ', u'ab,cd', u'ef', u' gh'],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO no split: ([u'12 , ab,cd,ef ,  gh'],)}&lt;/span&gt;&lt;/span&gt; &lt;/p&gt;&lt;p class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO block level: ([u'12 ', u'ab,cd', u'ef', u' gh'],)}&lt;/span&gt;&lt;/p&gt;&lt;p&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO no escape: ([u' 12\\ ', u' ab\\,cd', u'ef ', u' \\ gh '],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO no split, escape: ([u' 12\\ , ab\\,cd,ef , \\ gh '],)}&lt;/span&gt;&lt;/span&gt; &lt;/p&gt;&lt;p class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO DEFERRED and block level: (u'12 ', u'ab,cd', u'ef', u' gh')}&lt;/span&gt;&lt;/p&gt;&lt;p&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO DEFERRE!
+ D: (u'12 ', u'ab,cd', u'ef', u' gh')}&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_different_configs.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/macros_different_configs.wiki	2006-06-09 19:22:53 UTC (rev 21)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_different_configs.wiki	2006-06-10 10:19:08 UTC (rev 22)
+@@ -1 +1 @@
+-{{ macro default | 12\ , ab\,cd,ef , \ gh }} {{ macro ohne split | 12\ , ab\,cd,ef , \ gh }} {{ macro block level | 12\ , ab\,cd,ef , \ gh }} {{ macro ohne escape | 12\ , ab\,cd,ef , \ gh }} {{ macro ohne s/e | 12\ , ab\,cd,ef , \ gh }} {{ macro b/l, def | 12\ , ab\,cd,ef , \ gh }} {{ macro deferred | 12\ , ab\,cd,ef , \ gh }}
++{{ macro default | 12\ , ab\,cd,ef , \ gh }} {{ macro no split | 12\ , ab\,cd,ef , \ gh }} {{ macro block level | 12\ , ab\,cd,ef , \ gh }} {{ macro no escape | 12\ , ab\,cd,ef , \ gh }} {{ macro w/o s/e | 12\ , ab\,cd,ef , \ gh }} {{ macro b/l, def | 12\ , ab\,cd,ef , \ gh }} {{ macro deferred | 12\ , ab\,cd,ef , \ gh }}
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_invalid.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/macros_invalid.complete.xml	2006-06-09 19:22:53 UTC (rev 21)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_invalid.complete.xml	2006-06-10 10:19:08 UTC (rev 22)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;{testmacro} &lt;span class=&quot;macro_unresolved&quot;&gt;{{no macro}}&lt;/span&gt; &lt;span class=&quot;macro_unresolved&quot;&gt;{{ no macro | 1, 2, 3 }}&lt;/span&gt; {{testmacro}} {{testmacro}} {{testmacro}} {{testmacro}}&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_simple.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/macros_simple.complete.xml	2006-06-09 19:22:53 UTC (rev 21)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_simple.complete.xml	2006-06-10 10:19:08 UTC (rev 22)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;&lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 0: ([],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 1: ([],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 2: ([],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_unresolved&quot;&gt;{{{testmacro}}&lt;/span&gt;}&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_escapes.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_escapes.complete.xml	2006-06-09 19:22:53 UTC (rev 21)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_escapes.complete.xml	2006-06-10 10:19:08 UTC (rev 22)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;&lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 10: ([u'12 | 13 | 14', u'15, 16', u' 17'],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 11: ([],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 12: ([],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 13: ([],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 14: ([],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 0: ([u'a '],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 0: ([u'a\\'],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 0: ([u'a\\ '],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;mac!
+ ro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 0: ([u'a\\\\'],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 0: ([u'a\\\\ '],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_unresolved&quot;&gt;{{\{testmacro\}}}&lt;/span&gt;&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_parms.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_parms.complete.xml	2006-06-09 19:22:53 UTC (rev 21)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/macros_with_parms.complete.xml	2006-06-10 10:19:08 UTC (rev 22)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;&lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 3: ([u'parm'],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 4: ([u'parm'],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 5: ([u'parm1', u'parm2'],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 6: ([u'parameter 1', u'parameter 2'],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 7: ([u'123', u'456.789'],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 8: ([u'a', u'b', u'c', u'd', u'e'],)}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;macro_resolved&quot;&gt;&lt;span class=&quot;test_macro_class&quot;&gt;{MACRO testmacro 9: ([u'1', u'2', u'3', u'4.56'],)}&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000019.html">[fellowiki-svncheckins] r21 - in trunk/fellowiki/wiki: . tests tests/tests/simple_markup
+</A></li>
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#20">[ date ]</a>
+              <a href="thread.html#20">[ thread ]</a>
+              <a href="subject.html#20">[ subject ]</a>
+              <a href="author.html#20">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

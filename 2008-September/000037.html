@@ -1,0 +1,1312 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r39 - in trunk: . shared templates
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2008-September/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r39%20-%20in%20trunk%3A%20.%20shared%20templates&In-Reply-To=%3C200809032149.m83LnWWo029423%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000036.html">
+   <LINK REL="Next"  HREF="000038.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r39 - in trunk: . shared templates</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r39%20-%20in%20trunk%3A%20.%20shared%20templates&In-Reply-To=%3C200809032149.m83LnWWo029423%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r39 - in trunk: . shared templates">fingerle at mail.berlios.de
+       </A><BR>
+    <I>Wed Sep  3 23:49:32 CEST 2008</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000036.html">[fellowiki-svncheckins] r38 - / trunk
+</A></li>
+        <LI>Next message: <A HREF="000038.html">[fellowiki-svncheckins] r40 - /
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#37">[ date ]</a>
+              <a href="thread.html#37">[ thread ]</a>
+              <a href="subject.html#37">[ subject ]</a>
+              <a href="author.html#37">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2008-09-03 23:49:31 +0200 (Wed, 03 Sep 2008)
+New Revision: 39
+
+Added:
+   trunk/__init__.py
+   trunk/actions.py
+   trunk/application.py
+   trunk/database.py
+   trunk/shared/
+   trunk/shared/style.css
+   trunk/specialpages.py
+   trunk/templates/
+   trunk/templates/action_diff.html
+   trunk/templates/action_edit.html
+   trunk/templates/action_log.html
+   trunk/templates/action_revert.html
+   trunk/templates/action_show.html
+   trunk/templates/layout.html
+   trunk/templates/macros.xml
+   trunk/templates/missing_action.html
+   trunk/templates/page_index.html
+   trunk/templates/page_missing.html
+   trunk/templates/recent_changes.html
+   trunk/utils.py
+Log:
+starting over: Basing new efforts on pocoo werkzeug sample application
+&quot;simplewiki&quot;. Checking in simplewiki code.
+
+
+Added: trunk/__init__.py
+===================================================================
+--- trunk/__init__.py	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/__init__.py	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,17 @@
++# -*- coding: utf-8 -*-
++&quot;&quot;&quot;
++    simplewiki
++    ~~~~~~~~~~
++
++    Very simple wiki application based on Genshi, Werkzeug and SQLAlchemy.
++    Additionally the creoleparser is used for the wiki markup.
++
++    This example application requires Python 2.4 or higher, primarly beacause
++    the creoleparser requires Python 2.4 .  Additionally the code uses some
++    decorators or generator expressions.
++
++
++    :copyright: Copyright 2007 by Armin Ronacher.
++    :license: BSD.
++&quot;&quot;&quot;
++from simplewiki.application import SimpleWiki
+
+Added: trunk/actions.py
+===================================================================
+--- trunk/actions.py	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/actions.py	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,186 @@
++# -*- coding: utf-8 -*-
++&quot;&quot;&quot;
++    simplewiki.actions
++    ~~~~~~~~~~~~~~~~~~
++
++    The per page actions.  The actions are defined in the URL with the
++    `action` parameter and directly dispatched to the functions in this
++    module.  In the module the actions are prefixed with 'on_', so be
++    careful not to name any other objects in the module with the same
++    prefix unless you want to act them as actions.
++
++    :copyright: Copyright 2007 by Armin Ronacher.
++    :license: BSD.
++&quot;&quot;&quot;
++from difflib import unified_diff
++from simplewiki.utils import Response, generate_template, parse_creole, \
++     href, redirect, format_datetime
++from simplewiki.database import RevisionedPage, Page, Revision, session
++
++
++def on_show(request, page_name):
++    &quot;&quot;&quot;Displays the page the user requests.&quot;&quot;&quot;
++    revision_id = request.args.get('rev', type=int)
++    query = RevisionedPage.query.filter_by(name=page_name)
++    if revision_id:
++        query = query.filter_by(revision_id=revision_id)
++        revision_requested = True
++    else:
++        query = query.order_by(RevisionedPage.revision_id.desc())
++        revision_requested = False
++    page = query.first()
++    if page is None:
++        return page_missing(request, page_name, revision_requested)
++    return Response(generate_template('action_show.html',
++        page=page
++    ))
++
++
++def on_edit(request, page_name):
++    &quot;&quot;&quot;Edit the current revision of a page.&quot;&quot;&quot;
++    change_note = error = ''
++    revision = Revision.query.filter(
++        (Page.name == page_name) &amp;
++        (Page.page_id == Revision.page_id)
++    ).order_by(Revision.revision_id.desc()).first()
++    if revision is None:
++        page = None
++    else:
++        page = revision.page
++
++    if request.method == 'POST':
++        text = request.form.get('text')
++        if request.form.get('cancel') or \
++           revision and revision.text == text:
++            return redirect(href(page.name))
++        elif not text:
++            error = 'You cannot save empty revisions.'
++        else:
++            change_note = request.form.get('change_note', '')
++            if page is None:
++                page = Page(page_name)
++            revision = Revision(page, text, change_note)
++            session.commit()
++            return redirect(href(page.name))
++
++    return Response(generate_template('action_edit.html',
++        revision=revision,
++        page=page,
++        new=page is None,
++        page_name=page_name,
++        change_note=change_note,
++        error=error
++    ))
++
++
++def on_log(request, page_name):
++    &quot;&quot;&quot;Show the list of recent changes.&quot;&quot;&quot;
++    page = Page.query.filter_by(name=page_name).first()
++    if page is None:
++        return page_missing(request, page_name, False)
++    return Response(generate_template('action_log.html',
++        page=page
++    ))
++
++
++def on_diff(request, page_name):
++    &quot;&quot;&quot;Show the diff between two revisions.&quot;&quot;&quot;
++    old = request.args.get('old', type=int)
++    new = request.args.get('new', type=int)
++    error = ''
++    diff = page = old_rev = new_rev = None
++
++    if not (old and new):
++        error = 'No revisions specified.'
++    else:
++        revisions = dict((x.revision_id, x) for x in Revision.query.filter(
++            (Revision.revision_id.in_((old, new))) &amp;
++            (Revision.page_id == Page.page_id) &amp;
++            (Page.name == page_name)
++        ))
++        if len(revisions) != 2:
++            error = 'At least one of the revisions requested ' \
++                    'does not exist.'
++        else:
++            new_rev = revisions[new]
++            old_rev = revisions[old]
++            page = old_rev.page
++            diff = unified_diff(
++                (old_rev.text + '\n').splitlines(True),
++                (new_rev.text + '\n').splitlines(True),
++                page.name, page.name,
++                format_datetime(old_rev.timestamp),
++                format_datetime(new_rev.timestamp),
++                3
++            )
++
++    return Response(generate_template('action_diff.html',
++        error=error,
++        old_revision=old_rev,
++        new_revision=new_rev,
++        page=page,
++        diff=diff
++    ))
++
++
++def on_revert(request, page_name):
++    &quot;&quot;&quot;Revert an old revision.&quot;&quot;&quot;
++    rev_id = request.args.get('rev', type=int)
++
++    old_revision = page = None
++    error = 'No such revision'
++
++    if request.method == 'POST' and request.form.get('cancel'):
++        return redirect(href(page_name))
++
++    if rev_id:
++        old_revision = Revision.query.filter(
++            (Revision.revision_id == rev_id) &amp;
++            (Revision.page_id == Page.page_id) &amp;
++            (Page.name == page_name)
++        ).first()
++        if old_revision:
++            new_revision = Revision.query.filter(
++                (Revision.page_id == Page.page_id) &amp;
++                (Page.name == page_name)
++            ).order_by(Revision.revision_id.desc()).first()
++            if old_revision == new_revision:
++                error = 'You tried to revert the current active ' \
++                        'revision.'
++            elif old_revision.text == new_revision.text:
++                error = 'There are no changes between the current ' \
++                        'revision and the revision you want to ' \
++                        'restore.'
++            else:
++                error = ''
++                page = old_revision.page
++                if request.method == 'POST':
++                    change_note = request.form.get('change_note', '')
++                    change_note = 'revert' + (change_note and ': ' +
++                                              change_note or '')
++                    revision = Revision(page, old_revision.text,
++                                        change_note)
++                    session.commit()
++                    return redirect(href(page_name))
++
++    return Response(generate_template('action_revert.html',
++        error=error,
++        old_revision=old_revision,
++        page=page
++    ))
++
++
++def page_missing(request, page_name, revision_requested, protected=False):
++    &quot;&quot;&quot;Displayed if page or revision does not exist.&quot;&quot;&quot;
++    return Response(generate_template('page_missing.html',
++        page_name=page_name,
++        revision_requested=revision_requested,
++        protected=protected
++    ), status=404)
++
++
++def missing_action(request, action):
++    &quot;&quot;&quot;Displayed if a user tried to access a action that does not exist.&quot;&quot;&quot;
++    return Response(generate_template('missing_action.html',
++        action=action
++    ), status=404)
+
+Added: trunk/application.py
+===================================================================
+--- trunk/application.py	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/application.py	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,97 @@
++# -*- coding: utf-8 -*-
++&quot;&quot;&quot;
++    simplewiki.application
++    ~~~~~~~~~~~~~~~~~~~~~~
++
++    This module implements the wiki WSGI application which dispatches
++    requests to specific wiki pages and actions.
++
++
++    :copyright: Copyright 2007 by Armin Ronacher.
++    :license: BSD.
++&quot;&quot;&quot;
++from os import path
++from sqlalchemy import create_engine
++from werkzeug import ClosingIterator, SharedDataMiddleware, redirect
++from simplewiki.utils import Request, Response, local, local_manager, href
++from simplewiki.database import session, metadata
++from simplewiki import actions
++from simplewiki.specialpages import pages, page_not_found
++
++
++#: path to shared data
++SHARED_DATA = path.join(path.dirname(__file__), 'shared')
++
++
++class SimpleWiki(object):
++    &quot;&quot;&quot;
++    Our central WSGI application.
++    &quot;&quot;&quot;
++
++    def __init__(self, database_uri):
++        self.database_engine = create_engine(database_uri)
++
++        # apply our middlewares.   we apply the middlewars *inside* the
++        # application and not outside of it so that we never lose the
++        # reference to the `SimpleWiki` object.
++        self._dispatch = SharedDataMiddleware(self.dispatch_request, {
++            '/_shared':     SHARED_DATA
++        })
++
++        # free the context locals at the end of the request
++        self._dispatch = local_manager.make_middleware(self._dispatch)
++
++    def init_database(self):
++        &quot;&quot;&quot;Called from the management script to generate the db.&quot;&quot;&quot;
++        metadata.create_all(bind=self.database_engine)
++
++    def bind_to_context(self):
++        &quot;&quot;&quot;
++        Useful for the shell.  Binds the application to the current active
++        context.  It's automatically called by the shell command.
++        &quot;&quot;&quot;
++        local.application = self
++
++    def dispatch_request(self, environ, start_response):
++        &quot;&quot;&quot;Dispatch an incoming request.&quot;&quot;&quot;
++        # set up all the stuff we want to have for this request.  That is
++        # creating a request object, propagating the application to the
++        # current context and instanciating the database session.
++        self.bind_to_context()
++        request = Request(environ)
++        request.bind_to_context()
++
++        # get the current action from the url and normalize the page name
++        # which is just the request path
++        action_name = request.args.get('action') or 'show'
++        page_name = u'_'.join([x for x in request.path.strip('/')
++                               .split() if x])
++
++        # redirect to the Main_Page if the user requested the index
++        if not page_name:
++            response = redirect(href('Main_Page'))
++
++        # check special pages
++        elif page_name.startswith('Special:'):
++            if page_name[8:] not in pages:
++                response = page_not_found(request, page_name)
++            else:
++                response = pages[page_name[8:]](request)
++
++        # get the callback function for the requested action from the
++        # action module.  It's &quot;on_&quot; + the action name.  If it doesn't
++        # exists call the missing_action method from the same module.
++        else:
++            action = getattr(actions, 'on_' + action_name, None)
++            if action is None:
++                response = actions.missing_action(request, action_name)
++            else:
++                response = action(request, page_name)
++
++        # make sure the session is removed properly
++        return ClosingIterator(response(environ, start_response),
++                               session.remove)
++
++    def __call__(self, environ, start_response):
++        &quot;&quot;&quot;Just forward a WSGI call to the first internal middleware.&quot;&quot;&quot;
++        return self._dispatch(environ, start_response)
+
+Added: trunk/database.py
+===================================================================
+--- trunk/database.py	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/database.py	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,127 @@
++# -*- coding: utf-8 -*-
++&quot;&quot;&quot;
++    simplewiki.database
++    ~~~~~~~~~~~~~~~~~~~
++
++    The database.
++
++    :copyright: Copyright 2007 by Armin Ronacher.
++    :license: BSD.
++&quot;&quot;&quot;
++from datetime import datetime
++from sqlalchemy import Table, Column, Integer, String, DateTime, \
++     ForeignKey, MetaData, join
++from sqlalchemy.orm import relation, create_session, scoped_session
++from simplewiki.utils import application, local_manager, parse_creole
++
++
++# create a global metadata
++metadata = MetaData()
++
++
++def new_db_session():
++    &quot;&quot;&quot;
++    This function creates a new session if there is no session yet for
++    the current context.  It looks up the application and if it finds
++    one it creates a session bound to the active database engine in that
++    application.  If there is no application bound to the context it
++    raises an exception.
++    &quot;&quot;&quot;
++    return create_session(application.database_engine, autoflush=True,
++                          transactional=True)
++
++
++# and create a new global session factory.  Calling this object gives
++# you the current active session
++session = scoped_session(new_db_session, local_manager.get_ident)
++
++
++# our database tables.
++page_table = Table('pages', metadata,
++    Column('page_id', Integer, primary_key=True),
++    Column('name', String(60), unique=True)
++)
++
++revision_table = Table('revisions', metadata,
++    Column('revision_id', Integer, primary_key=True),
++    Column('page_id', Integer, ForeignKey('pages.page_id')),
++    Column('timestamp', DateTime),
++    Column('text', String),
++    Column('change_note', String(200))
++)
++
++
++class Revision(object):
++    &quot;&quot;&quot;
++    Represents one revision of a page.
++    This is useful for editing particular revision of pages or creating
++    new revisions.  It's also used for the diff system and the revision
++    log.
++    &quot;&quot;&quot;
++
++    def __init__(self, page, text, change_note='', timestamp=None):
++        if isinstance(page, (int, long)):
++            self.page_id = page
++        else:
++            self.page = page
++        self.text = text
++        self.change_note = change_note
++        self.timestamp = timestamp or datetime.utcnow()
++
++    def render(self):
++        &quot;&quot;&quot;Render the page text into a genshi stream.&quot;&quot;&quot;
++        return parse_creole(self.text)
++
++    def __repr__(self):
++        return '&lt;%s %r:%r&gt;' % (
++            self.__class__.__name__,
++            self.page_id,
++            self.revision_id
++        )
++
++
++class Page(object):
++    &quot;&quot;&quot;
++    Represents a simple page without any revisions.  This is for example
++    used in the page index where the page contents are not relevant.
++    &quot;&quot;&quot;
++
++    def __init__(self, name):
++        self.name = name
++
++    @property
++    def title(self):
++        return self.name.replace('_', ' ')
++
++    def __repr__(self):
++        return '&lt;%s %r&gt;' % (self.__class__.__name__, self.name)
++
++
++class RevisionedPage(Page, Revision):
++    &quot;&quot;&quot;
++    Represents a wiki page with a revision.  Thanks to multiple inhertiance
++    and the ability of SQLAlchemy to map to joins we can combine `Page` and
++    `Revision` into one class here.
++    &quot;&quot;&quot;
++
++    def __init__(self):
++        raise TypeError('cannot create WikiPage instances, use the Page and '
++                        'Revision classes for data manipulation.')
++
++    def __repr__(self):
++        return '&lt;%s %r:%r&gt;' % (
++            self.__class__.__name__,
++            self.name,
++            self.revision_id
++        )
++
++
++# setup mappers
++session.mapper(Revision, revision_table)
++session.mapper(Page, page_table, properties=dict(
++    revisions=relation(Revision, backref='page',
++                       order_by=Revision.revision_id.desc())
++))
++session.mapper(RevisionedPage, join(page_table, revision_table), properties=dict(
++    page_id=[page_table.c.page_id, revision_table.c.page_id],
++))
+
+Added: trunk/shared/style.css
+===================================================================
+--- trunk/shared/style.css	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/shared/style.css	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,210 @@
++body {
++    font-family: 'Luxi Sans', 'Lucida Sans', 'Trebuchet MS', sans-serif;
++    margin: 2em 1em 2em 1em;
++    padding: 0;
++    background: #1C0424;
++}
++
++a {
++    color: #6A2F7E;
++}
++
++a:hover {
++    color: #3D0F4D;
++}
++
++pre {
++    border: 1px solid #ccc;
++    background-color: white;
++    font-family: 'Consolas', 'Monaco', 'Bitstream Vera Sans', monospace;
++    font-size: 0.9em;
++    padding: 0.3em;
++}
++
++table {
++    border: 2px solid #ccc;
++    border-collapse: collapse;
++}
++
++table td, table th {
++    border: 1px solid #ccc;
++    padding: 0.4em;
++}
++
++div.bodywrapper {
++    margin: 0 auto 0 auto;
++    max-width: 50em;
++    background: #F1EBF3;
++    border: 1px solid #4C1068;
++    padding: 0;
++    color: #111;
++}
++
++div.header {
++    background-color: #320846;
++    color: white;
++}
++
++div.header h1 {
++    margin: 0;
++    padding: 0.4em;
++    font-size: 1.7em;
++}
++
++div.header h1 a {
++    text-decoration: none;
++    color: white;
++}
++
++div.header h1 a:hover {
++    color: #6A2F7E;
++}
++
++div.contents {
++    padding: 1em;
++    margin: 0;
++    border: 1px solid #3D0F4D;
++}
++
++div.footer {
++    padding: 0.5em;
++    background: #15031B;
++    color: white;
++    font-size: 0.8em;
++    text-align: right;
++    color: white;
++}
++
++div.contents h1, div.contents h2, div.contents h3, div.contents h4,
++div.contents h5 {
++    margin: 0;
++    padding: 0.3em 0 0.2em 0;
++    color: #3D0F4D;
++}
++
++div.contents h1 { font-size: 1.7em; }
++div.contents h2 { font-size: 1.6em; }
++div.contents h3 { font-size: 1.4em; }
++div.contents h4 { font-size: 1.2em; }
++div.contents h5 { font-size: 1em; }
++
++div.contents p {
++    margin: 0;
++    padding: 0.3em 0 0.3em 0;
++    line-height: 1.5em;
++}
++
++div.contents div.navigation {
++    padding: 0 0 0.3em 0;
++    margin: 0 0 0.3em 0;
++    border-bottom: 1px solid #6A2F7E;
++    font-size: 0.85em;
++    color: #555;
++}
++
++div.contents div.navigation a {
++    padding: 0 0.2em 0 0.2em;
++    font-weight: bold;
++    color: #555;
++}
++
++div.contents div.navigation a:hover {
++    color: #6A2F7E;
++}
++
++div.contents div.navigation a.active {
++    background-color: #ccc;
++    text-decoration: none;
++}
++
++div.contents div.page_meta {
++    font-size: 0.7em;
++    color: #555;
++    float: right;
++}
++
++textarea {
++    width: 99%;
++    font-family: 'Consolas', 'Monaco', 'Bitstream Vera Sans', monospace;
++    font-size: 0.9em;
++    padding: 0.3em;
++    margin: 0.5em 0 0.5em 0;
++}
++
++input {
++    font-family: 'Luxi Sans', 'Lucida Sans', 'Trebuchet MS', sans-serif;
++}
++
++table.revisions, table.changes {
++    border-collapse: collapse;
++    border: 1px solid #6A2F7E;
++    background: #fdfdfd;
++    width: 100%;
++    margin: 1em 0 0.5em 0;
++}
++
++table.revisions th, table.changes th {
++    background-color: #6A2F7E;
++    color: white;
++    padding: 0.1em 0.6em 0.1em 0.6em;
++    font-size: 0.8em;
++    border: none;
++}
++
++table.revisions td, table.changes td {
++    padding: 0.2em 0.5em 0.2em 0.5em;
++    font-size: 0.9em;
++    border: none;
++}
++
++table.revisions .timestamp, table.changes .timestamp {
++    text-align: left;
++    width: 10em;
++}
++
++table.revisions td.timestamp, table.changes td.timestamp {
++    color: #444;
++}
++
++table.revisions .change_note, table.changes .change_note {
++    text-align: left;
++}
++
++table.revisions td.change_note, table.changes td.change_note {
++    font-style: italic;
++}
++
++table.revisions th.diff input {
++    background-color: #3D0F4D;
++    color: white;
++    border: 1px solid #1C0424;
++}
++
++table.revisions .diff {
++    width: 5em;
++    text-align: right;
++}
++
++table.revisions .actions {
++    width: 8em;
++    text-align: left;
++}
++
++table.revisions td.actions {
++    font-size: 0.75em;
++}
++
++table.revisions tr.odd, table.changes tr.odd {
++    background-color: #f7f7f7;
++}
++
++pre.udiff {
++    overflow: auto;
++    font-size: 0.75em;
++}
++
++div.pagination {
++    font-size: 0.9em;
++    padding: 0.5em 0 0.5em 0;
++    text-align: center;
++}
+
+Added: trunk/specialpages.py
+===================================================================
+--- trunk/specialpages.py	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/specialpages.py	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,49 @@
++# -*- coding: utf-8 -*-
++&quot;&quot;&quot;
++    simplewiki.specialpages
++    ~~~~~~~~~~~~~~~~~~~~~~~
++
++    This module contains special pages such as the recent changes page.
++
++
++    :copyright: Copyright 2007 by Armin Ronacher.
++    :license: BSD.
++&quot;&quot;&quot;
++from simplewiki.utils import Response, Pagination, generate_template, href
++from simplewiki.database import RevisionedPage, Page
++from simplewiki.actions import page_missing
++
++
++
++def page_index(request):
++    &quot;&quot;&quot;Index of all pages.&quot;&quot;&quot;
++    letters = {}
++    for page in Page.query.order_by(Page.name):
++        letters.setdefault(page.name.capitalize()[0], []).append(page)
++    return Response(generate_template('page_index.html',
++        letters=sorted(letters.items())
++    ))
++
++
++def recent_changes(request):
++    &quot;&quot;&quot;Display the recent changes.&quot;&quot;&quot;
++    page = max(1, request.args.get('page', type=int))
++    query = RevisionedPage.query \
++        .order_by(RevisionedPage.revision_id.desc())
++    return Response(generate_template('recent_changes.html',
++        pagination=Pagination(query, 20, page, 'Special:Recent_Changes')
++    ))
++
++
++def page_not_found(request, page_name):
++    &quot;&quot;&quot;
++    Displays an error message if a user tried to access
++    a not existing special page.
++    &quot;&quot;&quot;
++    return page_missing(request, page_name, True)
++
++
++pages = {
++    'Index':            page_index,
++    'Recent_Changes':   recent_changes
++}
+
+Added: trunk/templates/action_diff.html
+===================================================================
+--- trunk/templates/action_diff.html	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/templates/action_diff.html	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,27 @@
++&lt;?python
++  page_action = 'log'
++?&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:xi=&quot;<A HREF="http://www.w3.org/2001/XInclude">http://www.w3.org/2001/XInclude</A>&quot;
++      xmlns:py=&quot;<A HREF="http://genshi.edgewall.org/">http://genshi.edgewall.org/</A>&quot;&gt;&lt;xi:include href=&quot;layout.html&quot; /&gt;
++  &lt;head&gt;
++    &lt;title&gt;View Diff&lt;/title&gt;
++  &lt;/head&gt;
++  &lt;body&gt;
++    &lt;py:if test=&quot;not error&quot;&gt;
++    &lt;h1&gt;Diff for &#8220;&lt;a href=&quot;${href(page.name)}&quot;&gt;${page.title}&lt;/a&gt;&#8221;&lt;/h1&gt;
++      &lt;p&gt;
++        Below you can see the differences between the revision from
++        &lt;a href=&quot;${href(page.name, rev=old_revision.revision_id)}&quot;
++        &gt;${format_datetime(old_revision.timestamp)}&lt;/a&gt; and the
++        revision from &lt;a href=&quot;${href(page.name, rev=new_revision.revision_id)}&quot;
++        &gt;${format_datetime(new_revision.timestamp)}&lt;/a&gt; in unified
++        diff format.
++      &lt;/p&gt;
++      &lt;pre class=&quot;udiff&quot;&gt;${diff}&lt;/pre&gt;
++    &lt;/py:if&gt;
++    &lt;py:if test=&quot;error&quot;&gt;
++      &lt;h1&gt;Cannot Display Diff&lt;/h1&gt;
++      &lt;p class=&quot;error&quot; py:if=&quot;error&quot;&gt;${error}&lt;/p&gt;
++    &lt;/py:if&gt;
++  &lt;/body&gt;
++&lt;/html&gt;
+
+Added: trunk/templates/action_edit.html
+===================================================================
+--- trunk/templates/action_edit.html	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/templates/action_edit.html	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,26 @@
++&lt;?python
++  hide_navigation = new
++  page_action = 'edit'
++?&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:xi=&quot;<A HREF="http://www.w3.org/2001/XInclude">http://www.w3.org/2001/XInclude</A>&quot;
++      xmlns:py=&quot;<A HREF="http://genshi.edgewall.org/">http://genshi.edgewall.org/</A>&quot;&gt;&lt;xi:include href=&quot;layout.html&quot; /&gt;
++  &lt;head&gt;
++    &lt;title&gt;${new and 'Create' or 'Edit'} Page&lt;/title&gt;
++  &lt;/head&gt;
++  &lt;body&gt;
++    &lt;h1&gt;${new and 'Create' or 'Edit'} &#8220;${page.title or page_name}&#8221;&lt;/h1&gt;
++    &lt;p&gt;
++      You can now ${new and 'create' or 'modify'} the page contents.  To
++      format your text you can use &lt;a href=&quot;<A HREF="http://www.wikicreole.org/">http://www.wikicreole.org/</A>&quot;&gt;creole markup&lt;/a&gt;.
++    &lt;/p&gt;
++    &lt;p class=&quot;error&quot; py:if=&quot;error&quot;&gt;${error}&lt;/p&gt;
++    &lt;form action=&quot;&quot; method=&quot;post&quot;&gt;
++      &lt;textarea name=&quot;text&quot; rows=&quot;15&quot; cols=&quot;50&quot;&gt;${revision.text}&lt;/textarea&gt;
++      &lt;div class=&quot;actions&quot;&gt;
++        &lt;input type=&quot;text&quot; name=&quot;change_note&quot; value=&quot;${change_note}&quot; size=&quot;50&quot; /&gt;
++        &lt;input type=&quot;submit&quot; value=&quot;Save&quot; /&gt;
++        &lt;input type=&quot;submit&quot; name=&quot;cancel&quot; value=&quot;Cancel&quot; /&gt;
++      &lt;/div&gt;
++    &lt;/form&gt;
++  &lt;/body&gt;
++&lt;/html&gt;
+
+Added: trunk/templates/action_log.html
+===================================================================
+--- trunk/templates/action_log.html	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/templates/action_log.html	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,44 @@
++&lt;?python
++  page_action = 'log'
++?&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:xi=&quot;<A HREF="http://www.w3.org/2001/XInclude">http://www.w3.org/2001/XInclude</A>&quot;
++      xmlns:py=&quot;<A HREF="http://genshi.edgewall.org/">http://genshi.edgewall.org/</A>&quot;&gt;&lt;xi:include href=&quot;layout.html&quot; /&gt;
++  &lt;head&gt;
++    &lt;title&gt;Revisions for &#8220;${page.title}&#8221;&lt;/title&gt;
++  &lt;/head&gt;
++  &lt;body&gt;
++    &lt;h1&gt;Revisions for &#8220;&lt;a href=&quot;${href(page.name)}&quot;&gt;${page.title}&lt;/a&gt;&#8221;&lt;/h1&gt;
++    &lt;p&gt;
++      In this list you can see all the revisions of the requested page.
++    &lt;/p&gt;
++    &lt;form action=&quot;${href(page.name)}&quot; method=&quot;get&quot;&gt;
++      &lt;input type=&quot;hidden&quot; name=&quot;action&quot; value=&quot;diff&quot; /&gt;
++      &lt;table class=&quot;revisions&quot;&gt;
++        &lt;tr&gt;
++          &lt;th class=&quot;timestamp&quot;&gt;Date&lt;/th&gt;
++          &lt;th class=&quot;change_note&quot;&gt;Change Note&lt;/th&gt;
++          &lt;th class=&quot;diff&quot;&gt;&lt;input type=&quot;submit&quot; value=&quot;Diff&quot; /&gt;&lt;/th&gt;
++          &lt;th class=&quot;actions&quot;&gt;Actions&lt;/th&gt;
++        &lt;/tr&gt;
++        &lt;tr py:for=&quot;idx, revision in enumerate(page.revisions)&quot;
++            class=&quot;${idx % 2 == 1 and 'even' or 'odd'}&quot;&gt;
++          &lt;td class=&quot;timestamp&quot;&gt;${format_datetime(revision.timestamp)}&lt;/td&gt;
++          &lt;td class=&quot;change_note&quot;&gt;${revision.change_note}&lt;/td&gt;
++          &lt;td class=&quot;diff&quot;&gt;
++            &lt;input type=&quot;radio&quot; name=&quot;old&quot; value=&quot;${revision.revision_id}&quot;
++                   checked=&quot;${idx == 1 and 'checked' or None}&quot; /&gt;
++            &lt;input type=&quot;radio&quot; name=&quot;new&quot; value=&quot;${revision.revision_id}&quot;
++                   checked=&quot;${idx == 0 and 'checked' or None}&quot; /&gt;
++          &lt;/td&gt;
++          &lt;td class=&quot;actions&quot;&gt;
++            &lt;a href=&quot;${href(page.name, rev=revision.revision_id)}&quot;&gt;show&lt;/a&gt;
++            &lt;py:if test=&quot;idx&quot;&gt;|
++              &lt;a href=&quot;${href(page.name, rev=revision.revision_id,
++                              action='revert')}&quot;&gt;revert&lt;/a&gt;
++            &lt;/py:if&gt;
++          &lt;/td&gt;
++        &lt;/tr&gt;
++      &lt;/table&gt;
++    &lt;/form&gt;
++  &lt;/body&gt;
++&lt;/html&gt;
+
+Added: trunk/templates/action_revert.html
+===================================================================
+--- trunk/templates/action_revert.html	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/templates/action_revert.html	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,31 @@
++&lt;?python
++  page_action = 'log'
++?&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:xi=&quot;<A HREF="http://www.w3.org/2001/XInclude">http://www.w3.org/2001/XInclude</A>&quot;
++      xmlns:py=&quot;<A HREF="http://genshi.edgewall.org/">http://genshi.edgewall.org/</A>&quot;&gt;&lt;xi:include href=&quot;layout.html&quot; /&gt;
++  &lt;head&gt;
++    &lt;title&gt;Revert Old Revision&lt;/title&gt;
++  &lt;/head&gt;
++  &lt;body&gt;
++    &lt;py:if test=&quot;not error&quot;&gt;
++    &lt;h1&gt;Revert Old Revision of &#8220;&lt;a href=&quot;${href(page.name)}&quot;&gt;${page.title}&lt;/a&gt;&#8221;&lt;/h1&gt;
++      &lt;p&gt;
++        If you want to restore the old revision from
++        &lt;a href=&quot;${href(page.name, rev=old_revision.revision_id)}&quot;
++        &gt;${format_datetime(old_revision.timestamp)}&lt;/a&gt; enter your change
++        note and click &#8220;Revert&#8221;.
++      &lt;/p&gt;
++      &lt;form action=&quot;&quot; method=&quot;post&quot;&gt;
++        &lt;div class=&quot;actions&quot;&gt;
++          &lt;input type=&quot;text&quot; name=&quot;change_note&quot; value=&quot;${change_note}&quot; size=&quot;50&quot; /&gt;
++          &lt;input type=&quot;submit&quot; value=&quot;Revert&quot; /&gt;
++          &lt;input type=&quot;submit&quot; name=&quot;cancel&quot; value=&quot;Cancel&quot; /&gt;
++        &lt;/div&gt;
++      &lt;/form&gt;
++    &lt;/py:if&gt;
++    &lt;py:if test=&quot;error&quot;&gt;
++      &lt;h2&gt;Cannot Revert&lt;/h2&gt;
++      &lt;p class=&quot;error&quot; py:if=&quot;error&quot;&gt;${error}&lt;/p&gt;
++    &lt;/py:if&gt;
++  &lt;/body&gt;
++&lt;/html&gt;
+
+Added: trunk/templates/action_show.html
+===================================================================
+--- trunk/templates/action_show.html	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/templates/action_show.html	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,12 @@
++&lt;?python
++  page_action = 'show'
++?&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:xi=&quot;<A HREF="http://www.w3.org/2001/XInclude">http://www.w3.org/2001/XInclude</A>&quot;
++      xmlns:py=&quot;<A HREF="http://genshi.edgewall.org/">http://genshi.edgewall.org/</A>&quot;&gt;&lt;xi:include href=&quot;layout.html&quot; /&gt;
++  &lt;head&gt;
++    &lt;title&gt;${page.title}&lt;/title&gt;
++  &lt;/head&gt;
++  &lt;body&gt;
++    ${page.render()}
++  &lt;/body&gt;
++&lt;/html&gt;
+
+Added: trunk/templates/layout.html
+===================================================================
+--- trunk/templates/layout.html	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/templates/layout.html	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,46 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:py=&quot;<A HREF="http://genshi.edgewall.org/">http://genshi.edgewall.org/</A>&quot;
++      xmlns:xi=&quot;<A HREF="http://www.w3.org/2001/XInclude">http://www.w3.org/2001/XInclude</A>&quot; py:strip=&quot;&quot;&gt;
++  &lt;xi:include href=&quot;macros.xml&quot; /&gt;
++  &lt;py:match path=&quot;head&quot; once=&quot;true&quot;&gt;
++    &lt;head py:attrs=&quot;select('@*')&quot;&gt;
++      &lt;title py:with=&quot;title = list(select('title/text()'))&quot;&gt;&lt;py:if
++        test=&quot;title&quot;&gt;${title} &#8212; &lt;/py:if&gt;SimpleWiki&lt;/title&gt;
++      &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;${href('_shared', 'style.css')}&quot; /&gt;
++      ${select('*[local-name()!=&quot;title&quot;]')}
++    &lt;/head&gt;
++  &lt;/py:match&gt;
++  &lt;py:match path=&quot;body&quot; once=&quot;true&quot;&gt;
++    &lt;body py:attrs=&quot;select('@*')&quot;&gt;
++      &lt;div class=&quot;bodywrapper&quot;&gt;
++        &lt;div class=&quot;header&quot;&gt;
++          &lt;h1&gt;&lt;a href=&quot;${href()}&quot;&gt;Simple Wiki&lt;/a&gt;&lt;/h1&gt;
++        &lt;/div&gt;
++        &lt;div class=&quot;contents&quot;&gt;
++          &lt;div class=&quot;page_meta&quot; py:if=&quot;not hide_navigation and page.timestamp&quot;&gt;
++            &lt;a href=&quot;${href(page.name, rev=page.revision_id)}&quot;&gt;This revision&lt;/a&gt;
++            was created on ${format_datetime(page.timestamp)}.
++          &lt;/div&gt;
++          &lt;div class=&quot;navigation&quot;&gt;
++            &lt;py:if test=&quot;not hide_navigation&quot;&gt;
++              &lt;py:for each=&quot;id, href, title in (
++                ('show', href(page.name), 'show'),
++                ('edit', href(page.name, action='edit'), 'edit'),
++                ('log', href(page.name, action='log'), 'log')
++              )&quot;&gt;
++                &lt;a href=&quot;${href}&quot; class=&quot;${id == page_action and 'active' or
++                  None}&quot;&gt;${title}&lt;/a&gt; |
++              &lt;/py:for&gt;
++            &lt;/py:if&gt;
++            &lt;a href=&quot;${href()}&quot;&gt;main&lt;/a&gt; |
++            &lt;a href=&quot;${href('Special:Index')}&quot;&gt;index&lt;/a&gt; |
++            &lt;a href=&quot;${href('Special:Recent_Changes')}&quot;&gt;changes&lt;/a&gt;
++          &lt;/div&gt;
++          ${select('*|text()')}
++        &lt;/div&gt;
++        &lt;div class=&quot;footer&quot;&gt;
++          Werkzeug Example Wiki Application
++        &lt;/div&gt;
++      &lt;/div&gt;
++    &lt;/body&gt;
++  &lt;/py:match&gt;
++&lt;/html&gt;
+
+Added: trunk/templates/macros.xml
+===================================================================
+--- trunk/templates/macros.xml	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/templates/macros.xml	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,18 @@
++&lt;div xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:py=&quot;<A HREF="http://genshi.edgewall.org/">http://genshi.edgewall.org/</A>&quot;
++     py:strip=&quot;&quot;&gt;
++  
++  &lt;py:def function=&quot;render_pagination(pagination)&quot;&gt;
++    &lt;div class=&quot;pagination&quot; py:if=&quot;pagination.pages &gt; 1&quot;&gt;
++      &lt;py:choose test=&quot;pagination.has_previous&quot;&gt;
++        &lt;a href=&quot;${pagination.previous}&quot; py:when=&quot;True&quot;&gt;&laquo; Previous&lt;/a&gt;
++        &lt;span class=&quot;inactive&quot; py:when=&quot;False&quot;&gt;&laquo; Previous&lt;/span&gt;
++      &lt;/py:choose&gt;
++      | &lt;span class=&quot;active&quot;&gt;${pagination.page}&lt;/span&gt; |
++      &lt;py:choose test=&quot;pagination.has_next&quot;&gt;
++        &lt;a href=&quot;${pagination.next}&quot; py:when=&quot;True&quot;&gt;Next &raquo;&lt;/a&gt;
++        &lt;span class=&quot;inactive&quot; py:when=&quot;False&quot;&gt;Next &raquo;&lt;/span&gt;
++      &lt;/py:choose&gt;
++    &lt;/div&gt;
++  &lt;/py:def&gt;
++
++&lt;/div&gt;
+
+Added: trunk/templates/missing_action.html
+===================================================================
+--- trunk/templates/missing_action.html	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/templates/missing_action.html	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,12 @@
++&lt;?python hide_navigation = True ?&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:xi=&quot;<A HREF="http://www.w3.org/2001/XInclude">http://www.w3.org/2001/XInclude</A>&quot;
++      xmlns:py=&quot;<A HREF="http://genshi.edgewall.org/">http://genshi.edgewall.org/</A>&quot;&gt;&lt;xi:include href=&quot;layout.html&quot; /&gt;
++  &lt;head&gt;
++    &lt;title&gt;Action Not Found&lt;/title&gt;
++  &lt;/head&gt;
++  &lt;body&gt;
++    &lt;h1&gt;Action &#8220;${action}&#8221; Not Found&lt;/h1&gt;
++    &lt;p&gt;The requested action does not exist.&lt;/p&gt;
++    &lt;p&gt;Try to &lt;a href=&quot;?&quot;&gt;access the same URL&lt;/a&gt; without parameters.&lt;/p&gt;
++  &lt;/body&gt;
++&lt;/html&gt;
+
+Added: trunk/templates/page_index.html
+===================================================================
+--- trunk/templates/page_index.html	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/templates/page_index.html	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,18 @@
++&lt;?python
++  hide_navigation = True
++?&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:xi=&quot;<A HREF="http://www.w3.org/2001/XInclude">http://www.w3.org/2001/XInclude</A>&quot;
++      xmlns:py=&quot;<A HREF="http://genshi.edgewall.org/">http://genshi.edgewall.org/</A>&quot;&gt;&lt;xi:include href=&quot;layout.html&quot; /&gt;
++  &lt;head&gt;
++    &lt;title&gt;Index&lt;/title&gt;
++  &lt;/head&gt;
++  &lt;body&gt;
++    &lt;h1&gt;Index&lt;/h1&gt;
++    &lt;py:for each=&quot;letter, pages in letters&quot;&gt;
++      &lt;h2 id=&quot;${letter}&quot;&gt;&lt;a href=&quot;#${letter}&quot;&gt;${letter}&lt;/a&gt;&lt;/h2&gt;
++      &lt;ul&gt;
++        &lt;li py:for=&quot;page in pages&quot;&gt;&lt;a href=&quot;${href(page.name)}&quot;&gt;${page.title}&lt;/a&gt;&lt;/li&gt;
++      &lt;/ul&gt;
++    &lt;/py:for&gt;
++  &lt;/body&gt;
++&lt;/html&gt;
+
+Added: trunk/templates/page_missing.html
+===================================================================
+--- trunk/templates/page_missing.html	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/templates/page_missing.html	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,24 @@
++&lt;?python
++  hide_navigation = True
++?&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:xi=&quot;<A HREF="http://www.w3.org/2001/XInclude">http://www.w3.org/2001/XInclude</A>&quot;
++      xmlns:py=&quot;<A HREF="http://genshi.edgewall.org/">http://genshi.edgewall.org/</A>&quot;&gt;&lt;xi:include href=&quot;layout.html&quot; /&gt;
++  &lt;head&gt;
++    &lt;title&gt;Page Not Found&lt;/title&gt;
++  &lt;/head&gt;
++  &lt;body&gt;
++    &lt;h1&gt;Page Not Found&lt;/h1&gt;
++    &lt;p&gt;The page you requested does not exist.&lt;/p&gt;
++    &lt;p py:if=&quot;revision_requested&quot;&gt;
++      It also could be that there is no such revision of that page.
++    &lt;/p&gt;
++    &lt;p py:if=&quot;not protected&quot;&gt;
++      Feel free to &lt;a href=&quot;${href(page_name, action='edit'
++      )}&quot;&gt;create such a page&lt;/a&gt;.
++    &lt;/p&gt;
++    &lt;p py:if=&quot;protected&quot;&gt;
++      Although this page does not exist by now you cannot create it because
++      the system protected the page name for future use.
++    &lt;/p&gt;
++  &lt;/body&gt;
++&lt;/html&gt;
+
+Added: trunk/templates/recent_changes.html
+===================================================================
+--- trunk/templates/recent_changes.html	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/templates/recent_changes.html	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,26 @@
++&lt;?python
++  hide_navigation = True
++?&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot; xmlns:xi=&quot;<A HREF="http://www.w3.org/2001/XInclude">http://www.w3.org/2001/XInclude</A>&quot;
++      xmlns:py=&quot;<A HREF="http://genshi.edgewall.org/">http://genshi.edgewall.org/</A>&quot;&gt;&lt;xi:include href=&quot;layout.html&quot; /&gt;
++  &lt;head&gt;
++    &lt;title&gt;Recent Changes&lt;/title&gt;
++  &lt;/head&gt;
++  &lt;body&gt;
++    &lt;h1&gt;Recent Changes&lt;/h1&gt;
++    &lt;table class=&quot;changes&quot;&gt;
++      &lt;tr&gt;
++        &lt;th class=&quot;timestamp&quot;&gt;Date&lt;/th&gt;
++        &lt;th class=&quot;page&quot;&gt;Page&lt;/th&gt;
++        &lt;th class=&quot;change_note&quot;&gt;Change Note&lt;/th&gt;
++      &lt;/tr&gt;
++      &lt;tr py:for=&quot;idx, entry in enumerate(pagination.entries)&quot;
++          class=&quot;${idx % 2 == 1 and 'even' or 'odd'}&quot;&gt;
++        &lt;td class=&quot;timestamp&quot;&gt;${format_datetime(entry.timestamp)}&lt;/td&gt;
++        &lt;td class=&quot;page&quot;&gt;&lt;a href=&quot;${href(entry.name)}&quot;&gt;${entry.title}&lt;/a&gt;&lt;/td&gt;
++        &lt;td class=&quot;change_note&quot;&gt;${entry.change_note}&lt;/td&gt;
++      &lt;/tr&gt;
++    &lt;/table&gt;
++    ${render_pagination(pagination)}
++  &lt;/body&gt;
++&lt;/html&gt;
+
+Added: trunk/utils.py
+===================================================================
+--- trunk/utils.py	2008-09-03 21:43:05 UTC (rev 38)
++++ trunk/utils.py	2008-09-03 21:49:31 UTC (rev 39)
+@@ -0,0 +1,143 @@
++# -*- coding: utf-8 -*-
++&quot;&quot;&quot;
++    simplewiki.utils
++    ~~~~~~~~~~~~~~~~
++
++    This module implements various utility functions and classes used all
++    over the application.
++
++    :copyright: Copyright 2007 by Armin Ronacher.
++    :license: BSD.
++&quot;&quot;&quot;
++import difflib
++from os import path
++from genshi import Stream
++from genshi.template import TemplateLoader
++from creoleparser import Parser, Creole10
++from werkzeug import BaseRequest, BaseResponse, Local, LocalManager, \
++     url_encode, url_quote, redirect, cached_property
++
++
++# calculate the path to the templates an create the template loader
++TEMPLATE_PATH = path.join(path.dirname(__file__), 'templates')
++template_loader = TemplateLoader(TEMPLATE_PATH, auto_reload=True,
++                                 variable_lookup='lenient')
++
++
++# context locals.  these two objects are use by the application to
++# bind objects to the current context.  A context is defined as the
++# current thread and the current greenlet if there is greenlet support.
++local = Local()
++local_manager = LocalManager([local])
++request = local('request')
++application = local('application')
++
++# create a new creole parser
++creole_parser = Parser(dialect=Creole10(
++    wiki_links_base_url='',
++    wiki_links_path_func=lambda page_name: href(page_name),
++    wiki_links_space_char='_',
++    no_wiki_monospace=True,
++    use_additions=True
++))
++
++
++def generate_template(template_name, **context):
++    &quot;&quot;&quot;Load and generate a template.&quot;&quot;&quot;
++    context.update(
++        href=href,
++        format_datetime=format_datetime
++    )
++    return template_loader.load(template_name).generate(**context)
++
++
++def parse_creole(markup):
++    &quot;&quot;&quot;Parse some creole markup and create a genshi stream.&quot;&quot;&quot;
++    return creole_parser.generate(markup)
++
++
++def href(*args, **kw):
++    &quot;&quot;&quot;
++    Simple function for URL generation.  Position arguments are used for the
++    URL path and keyword arguments are used for the url parameters.
++    &quot;&quot;&quot;
++    result = [(request and request.script_root or '') + '/']
++    for idx, arg in enumerate(args):
++        result.append((idx and '/' or '') + url_quote(arg))
++    if kw:
++        result.append('?' + url_encode(kw))
++    return ''.join(result)
++
++
++def format_datetime(obj):
++    &quot;&quot;&quot;Format a datetime object.&quot;&quot;&quot;
++    return obj.strftime('%Y-%m-%d %H:%M')
++
++
++class Request(BaseRequest):
++    &quot;&quot;&quot;
++    Simple request subclass that allows to bind the object to the
++    current context.
++    &quot;&quot;&quot;
++
++    def bind_to_context(self):
++        local.request = self
++
++
++class Response(BaseResponse):
++    &quot;&quot;&quot;
++    Encapsulates a WSGI response.  Unlike the default response object werkzeug
++    provides, this accepts a genshi stream and will automatically render it
++    to html.  This makes it possible to switch to xhtml or html5 easily.
++    &quot;&quot;&quot;
++
++    default_mimetype = 'text/html'
++
++    def __init__(self, response=None, status=200, headers=None, mimetype=None,
++                 content_type=None):
++        if isinstance(response, Stream):
++            response = response.render('html', encoding=None, doctype='html')
++        BaseResponse.__init__(self, response, status, headers, mimetype,
++                              content_type)
++
++
++class Pagination(object):
++    &quot;&quot;&quot;
++    Paginate a SQLAlchemy query object.
++    &quot;&quot;&quot;
++
++    def __init__(self, query, per_page, page, link):
++        self.query = query
++        self.per_page = per_page
++        self.page = page
++        self.link = link
++        self._count = None
++
++    @cached_property
++    def entries(self):
++        return self.query.offset((self.page - 1) * self.per_page) \
++                         .limit(self.per_page).all()
++
++    @property
++    def has_previous(self):
++        return self.page &gt; 1
++
++    @property
++    def has_next(self):
++        return self.page &lt; self.pages
++
++    @property
++    def previous(self):
++        return href(self.link, page=self.page - 1)
++
++    @property
++    def next(self):
++        return href(self.link, page=self.page + 1)
++
++    @cached_property
++    def count(self):
++        return self.query.count()
++
++    @property
++    def pages(self):
++        return max(0, self.count - 1) // self.per_page + 1
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000036.html">[fellowiki-svncheckins] r38 - / trunk
+</A></li>
+	<LI>Next message: <A HREF="000038.html">[fellowiki-svncheckins] r40 - /
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#37">[ date ]</a>
+              <a href="thread.html#37">[ thread ]</a>
+              <a href="subject.html#37">[ subject ]</a>
+              <a href="author.html#37">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

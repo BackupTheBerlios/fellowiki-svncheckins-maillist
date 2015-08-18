@@ -1,0 +1,667 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r26 - in trunk/fellowiki/wiki: .	tests/tests/simple_markup
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-July/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r26%20-%20in%20trunk/fellowiki/wiki%3A%20.%0A%09tests/tests/simple_markup&In-Reply-To=%3C200607300120.k6U1KfQm015358%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000023.html">
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r26 - in trunk/fellowiki/wiki: .	tests/tests/simple_markup</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r26%20-%20in%20trunk/fellowiki/wiki%3A%20.%0A%09tests/tests/simple_markup&In-Reply-To=%3C200607300120.k6U1KfQm015358%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r26 - in trunk/fellowiki/wiki: .	tests/tests/simple_markup">fingerle at mail.berlios.de
+       </A><BR>
+    <I>Sun Jul 30 03:20:41 CEST 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000023.html">[fellowiki-svncheckins] r25 - in trunk/fellowiki/wiki: . tests	tests/tests/mixed_markup tests/tests/simple_markup
+</A></li>
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#24">[ date ]</a>
+              <a href="thread.html#24">[ thread ]</a>
+              <a href="subject.html#24">[ subject ]</a>
+              <a href="author.html#24">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-07-30 03:20:10 +0200 (Sun, 30 Jul 2006)
+New Revision: 26
+
+Added:
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.no_test_procs.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.wiki
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.no_test_procs.xml
+Modified:
+   trunk/fellowiki/wiki/parser.py
+   trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.wiki
+Log:
+- wiki parser: added table handling
+
+
+Modified: trunk/fellowiki/wiki/parser.py
+===================================================================
+--- trunk/fellowiki/wiki/parser.py	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/parser.py	2006-07-30 01:20:10 UTC (rev 26)
+@@ -39,6 +39,7 @@
+ 
+ PREFIX_COUNT = &quot;prefix count&quot;
+ ENCAPSULATE_MARKUP = &quot;encapsulate markup&quot;
++ENCAPSULATE_TABLE = &quot;encapsulate table&quot;
+ SWITCH_MARKUP = &quot;switch markup&quot;
+ EMBED_MARKUP = &quot;embed markup&quot;
+ 
+@@ -79,6 +80,13 @@
+         self.callback = []
+         self.translations = []
+         
++    def clone(self, other):
++        self.tag = other.tag
++        self.content = other.content
++        self.attributes = other.attributes
++        self.callback = other.callback
++        self.translations = other.translations
++        
+     def to_element_tree(self): 
+         xhtml = ElementTree.Element(self.tag)
+         sub_xhtml = None
+@@ -195,6 +203,7 @@
+             result.append(new_token)
+         if not isinstance(self, EndToken):
+             result.append(self)
++            
+ 
+ class ResultToken(Token):
+     def __init__(self):
+@@ -254,7 +263,7 @@
+     def evaluate(self, result, tokens, state, procs):
+         Token.evaluate(self, result, tokens, state, procs)
+         if self.type == '(':
+-           state[self.STATE] = state.get(self.STATE, 0) + 1
++            state[self.STATE] = state.get(self.STATE, 0) + 1
+         
+     def match_is_open(self):
+         if self.type == ')':
+@@ -265,12 +274,17 @@
+         return (self.state.get(self.STATE, 0) == 1 and
+                 self.type == ')' and isinstance(match, EncapsulateToken) and 
+                 self.STATE == match.STATE and self.text == match.text and 
+-                match.type == '(')
++                match.type in ('(', '_'))
+             
+     def close(self, match, new_token):
+-        self.state[self.STATE] = self.state.get(self.STATE, 0) - 1
+-        self.tokens.insert(0, new_token)
+-    
++        if match.type == '(':
++            self.state[self.STATE] = self.state.get(self.STATE, 0) - 1
++        self.insert_result(match, new_token)    
++            
++    def insert_result(self, match, result_token):
++        self.tokens.insert(0, result_token)
++   
++   
+ class EncapsulateMarkupToken(EncapsulateToken):
+     def __init__(self, token, *args, **kwargs):
+         EncapsulateToken.__init__(self, token, *args, **kwargs)
+@@ -384,9 +398,14 @@
+             LineBreakOutputToken.close(self, match, new_token)
+         else:
+             if new_token.xhtml.is_not_empty():
+-               new_token.xhtml.tag = 'p'
+-               match.xhtml.append(new_token.xhtml)
++                new_token.xhtml.tag = 'p'
++               
++                x, _ = match.xhtml.to_element_tree()
++                
++                match.xhtml.append(new_token.xhtml)
++                x, _ = match.xhtml.to_element_tree()
+             self.tokens.insert(0, match)
++            x, _ = match.xhtml.to_element_tree()
+             self.do_extended_close(match)
+             
+     def do_extended_close(self, inserted_token):
+@@ -401,14 +420,121 @@
+         embed.append(self.text)
+         inserted_token.xhtml.append(embed)
+ 
+-class BeetweenParagraphsXHTML(ParagraphToken):
++class BetweenParagraphsXHTML(ParagraphToken):
+     def __init__(self, xhtml, token):
+         ParagraphToken.__init__(self, token)
+-        self._xhtml = xhtml
++        self.xhtml = xhtml
+     
+     def do_extended_close(self, inserted_token):
+-        inserted_token.xhtml.append(self._xhtml)
++        inserted_token.xhtml.append(self.xhtml)
+ 
++
++def _lists_to_table(table_lists):
++    col_num = max([len(row) for row in table_lists])
++    xhtml_table = XMLElement('table')
++    xhtml_table.attributes['class'] = 'wiki-table'
++    for row in table_lists:
++        xhtml_row = XMLElement('tr')
++        xhtml_table.append(xhtml_row)
++        
++        for item in row:
++            if item is None:
++                if xhtml_row.is_empty():
++                    xhtml_item = XMLElement('td')
++                    xhtml_row.append(xhtml_item)
++                else:
++                    attributes = xhtml_row.content[-1].attributes
++                    attributes['colspan'] = str(int(attributes.get('colspan', 1)) + 1)
++            else:
++                item.xhtml.tag = 'td'
++                xhtml_row.append(item.xhtml)
++        
++        attributes = xhtml_row.content[-1].attributes
++        colspan = int(attributes.get('colspan', 1)) + col_num - len(row)
++        if colspan &gt; 1:
++            attributes['colspan'] = str(colspan)
++    return xhtml_table
++                                  
++ 
++class TableResultToken(ParagraphToken):
++    def __init__(self, table_rows, token):
++        ParagraphToken.__init__(self, token)
++        self.rows = table_rows
++        self.table_xhtml = XMLElement('table')
++        self.xhtml.append(self.table_xhtml) ## ugly, but works
++            
++    def evaluate(self, result, tokens, state, procs):  
++        if (len(tokens) &gt;= 2 and type(tokens[0]) == LineBreakToken and
++            type(tokens[1]) == TableResultToken):
++            next_token = tokens.pop(0)
++            next_token = tokens.pop(0)
++            self.token += next_token.token
++            self.rows.extend(next_token.rows)
++        else:
++            xhtml = _lists_to_table(self.rows)
++            self.table_xhtml.clone(xhtml) ## ugly, again
++        LineBreakOutputToken.evaluate(self, result, tokens, state, procs)
++            
++    def do_extended_close(self, inserted_token):
++        inserted_token.xhtml.append(*self.xhtml.content)
++
++
++class TableToken(EncapsulateToken): 
++    def __init__(self, token, *args, **kwargs):
++        EncapsulateToken.__init__(self, token, *args, **kwargs)
++        self.STATE = ENCAPSULATE_TABLE
++        self.table_row = []
++        self.table_rows = []
++        self.consumed_whitespace_left = False
++        self.consumed_whitespace_right = False
++        
++    def evaluate(self, result, tokens, state, procs):  
++        ## there can be only one WhitespaceToken in a row
++        if len(result) &gt; 0 and type(result[-1]) == WhitespaceToken:
++            self.consumed_whitespace_left = True
++            result.pop()
++            self.token = ' ' +  self.token
++        if len(tokens) &gt; 0 and type(tokens[0]) == WhitespaceToken:
++            tokens.pop(0)
++            self.consumed_whitespace_right = True
++            self.token = self.token + ' '
++        if self.type == '_' and len(tokens) &gt; 0 and \
++                isinstance(tokens[0], LineBreakToken):
++            self.type = ')'
++        EncapsulateToken.evaluate(self, result, tokens, state, procs)
++            
++    def render(self, new_token):
++        EncapsulateToken.render(self, new_token)
++        if len(self.table_rows) &gt; 0:
++            self.result.append(TableResultToken(self.table_rows,''))
++        
++    def insert_result(self, match, result_token):
++        if match.type == '(':
++            if (len(self.tokens) &gt;= 2 and type(self.tokens[0]) == LineBreakToken and
++                  type(self.tokens[1]) == TableToken and self.tokens[1].type == '('):
++                self.tokens.pop(0)
++                new_table = self.tokens[0]
++                new_table.table_rows = self.table_rows
++                        
++            else:
++                self.tokens.insert(0, TableResultToken(self.table_rows, 
++                                                          self.token))
++        elif match.type == '_':
++            self.tokens.insert(0, self)
++        
++    def close(self, match, new_token):
++        if new_token.xhtml.is_not_empty() or \
++                    self.consumed_whitespace_left or \
++                    match.consumed_whitespace_right:
++            self.table_row.insert(0, new_token)
++        else:
++            self.table_row.insert(0, None)
++        if match.type == '(':
++            self.table_rows = match.table_rows
++            self.table_rows.append(self.table_row)
++        EncapsulateToken.close(self, match, new_token)
++ 
++
+ class StructureModifyToken(Token): 
+ #modifiziert letzte geoeffnete struktur, wird dann wegfallen lassen =&gt; keine
+ # preference
+@@ -442,7 +568,7 @@
+ class HeadlineToken(PrefixToken): 
+     def do_prefix(self, new_token):
+         new_token.xhtml.tag = 'h%i' % (len(self.token) - 1)
+-        self.tokens.insert(0, BeetweenParagraphsXHTML(new_token.xhtml, 
++        self.tokens.insert(0, BetweenParagraphsXHTML(new_token.xhtml, 
+                                                       self.token))
+ 
+ class ListResultToken(ParagraphToken):
+@@ -560,7 +686,7 @@
+         if this_proc.get(BLOCK_LEVEL):
+             self.block_level = True
+             self.xhtml.tag = 'p'
+-            self.tokens.insert(0, BeetweenParagraphsXHTML(self.xhtml, self.token))
++            self.tokens.insert(0, BetweenParagraphsXHTML(self.xhtml, self.token))
+             
+ def check_and_normalize_url(url, allowed_schemes):
+     scheme, location, path, query, fragment = urlsplit(url)
+@@ -755,8 +881,6 @@
+                 span.attributes['class'] = 'image_unresolved'
+                 self.xhtml.append(span)
+     
+-class TableToken(Token): 
+-    pass
+ 
+ def token_factory(token_cls, *args, **kw_args):
+     def new_token(_, token):
+@@ -803,10 +927,10 @@
+               # lists
+               (10, r'^[#*-]+[ \t]', token_factory(ListToken, preference=30)),
+               # tables
+-              (10, r'^\|', token_factory(TableToken, type='(', preference=0)),
++              (10, r'^\|', token_factory(TableToken, type='(', preference=30)),
+               (10, r'\|$', token_factory(TableToken, type=')', 
+-                    preference=0)),
+-              (90, r'\|', token_factory(TableToken, type='_', preference=0)),
++                    preference=30)),
++              (11, r'\|', token_factory(TableToken, type='_', preference=30)),
+               # macros
+               (10, r'\{\{([^\\\}\n]|\\.|\}(?=[^\}]))*\}\}', 
+                     token_factory(MacroToken, preference=20)),
+@@ -819,7 +943,7 @@
+                      preference = 0, html_tag='hr',cut_left=4)),
+               # what's left 
+               (90, r'[ \t]+', token_factory(WhitespaceToken)),
+-              (99, r'.', token_factory(TextToken))
++              (99, r'.[a-zA-Z0-9]*', token_factory(TextToken))
+               ]
+ 
+     def __init__(self, procs):
+@@ -830,6 +954,7 @@
+         self.procs = procs
+ 
+     def parse(self, text):
++        import time
+         tokens = self.scanner.scan(''.join(['\n\n', text, '\n\n']))
+         
+         if tokens[1] != '':
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.complete.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.complete.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;|(1) 1 this|1 isn't|1 a|1 table |(1) 2 this|2 isn't|2 a|2 table |(1) 3 this|3 isn't|3 a|3 table&lt;/p&gt;&lt;p&gt;(2) 1 this|1 isn't|1 a|1 table| (2) 2 this|2 isn't|2 a|2 table| (2) 3 this|3 isn't|3 a|3 table|&lt;/p&gt;&lt;p&gt;|(3) 1 this|1 isn't|1 a|1 table| |(3) 2 this|2 isn't|2 a|2 table| |(3) 3 this|3 isn't|3 a|3 table|&lt;/p&gt;&lt;p&gt;| (4) 1 this | 1 isn't | 1 a | 1 table | | (4) 2 this | 2 isn't | 2 a | 2 table | | (4) 3 this | 3 isn't | 3 a | 3 table |&lt;/p&gt;&lt;p&gt;|(5) 1 this|1 isn't|1 a|1 table|&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(5) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(5) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(6) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(6) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;|(6) 3 this|3 isn't|3 a|3 table|&lt;/p&gt;&lt;p&gt;|(7) 1 this|1 isn't|1!
+  a|1 table&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(7) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;|(7) 3 this|3 isn't|3 a|3 table&lt;/p&gt;&lt;p&gt;|before|before&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(8) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(8) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(8) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;before|before|&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(9) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(9) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(9) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(10) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(10) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(10) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;|after|after&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(11) 1 this&lt;!
+ /td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(11)!
+  2 this&lt;
+/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(11) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;after|after|&lt;/p&gt;&lt;p&gt;|before|before&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(12) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(12) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(12) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;|after|after&lt;/p&gt;&lt;p&gt;before|before|&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(13) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(13) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(13) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;after|after|&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.no_test_procs.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;|(1) 1 this|1 isn't|1 a|1 table |(1) 2 this|2 isn't|2 a|2 table |(1) 3 this|3 isn't|3 a|3 table&lt;/p&gt;&lt;p&gt;(2) 1 this|1 isn't|1 a|1 table| (2) 2 this|2 isn't|2 a|2 table| (2) 3 this|3 isn't|3 a|3 table|&lt;/p&gt;&lt;p&gt;|(3) 1 this|1 isn't|1 a|1 table| |(3) 2 this|2 isn't|2 a|2 table| |(3) 3 this|3 isn't|3 a|3 table|&lt;/p&gt;&lt;p&gt;| (4) 1 this | 1 isn't | 1 a | 1 table | | (4) 2 this | 2 isn't | 2 a | 2 table | | (4) 3 this | 3 isn't | 3 a | 3 table |&lt;/p&gt;&lt;p&gt;|(5) 1 this|1 isn't|1 a|1 table|&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(5) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(5) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(6) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(6) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;|(6) 3 this|3 isn't|3 a|3 table|&lt;/p&gt;&lt;p&gt;|(7) 1 this|1 isn't|1!
+  a|1 table&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(7) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;|(7) 3 this|3 isn't|3 a|3 table&lt;/p&gt;&lt;p&gt;|before|before&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(8) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(8) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(8) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;before|before|&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(9) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(9) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(9) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(10) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(10) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(10) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;|after|after&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(11) 1 this&lt;!
+ /td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(11)!
+  2 this&lt;
+/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(11) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;after|after|&lt;/p&gt;&lt;p&gt;|before|before&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(12) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(12) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(12) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;|after|after&lt;/p&gt;&lt;p&gt;before|before|&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(13) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(13) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(13) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;after|after|&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.wiki	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective.wiki	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1,59 @@
++|(1) 1 this|1 isn't|1 a|1 table
++|(1) 2 this|2 isn't|2 a|2 table
++|(1) 3 this|3 isn't|3 a|3 table
++
++(2) 1 this|1 isn't|1 a|1 table|
++(2) 2 this|2 isn't|2 a|2 table|
++(2) 3 this|3 isn't|3 a|3 table|
++
++ |(3) 1 this|1 isn't|1 a|1 table|
++ |(3) 2 this|2 isn't|2 a|2 table|
++ |(3) 3 this|3 isn't|3 a|3 table|
++
++ | (4) 1 this | 1 isn't | 1 a | 1 table |
++ | (4) 2 this | 2 isn't | 2 a | 2 table |
++ | (4) 3 this | 3 isn't | 3 a | 3 table |
++
++ |(5) 1 this|1 isn't|1 a|1 table|
++|(5) 2 this|2 is|2 a|2 table|
++|(5) 3 this|3 is|3 a|3 table|
++
++|(6) 1 this|1 is|1 a|1 table|
++|(6) 2 this|2 is|2 a|2 table|
++ |(6) 3 this|3 isn't|3 a|3 table|
++
++|(7) 1 this|1 isn't|1 a|1 table
++|(7) 2 this|2 is|2 a|2 table|
++|(7) 3 this|3 isn't|3 a|3 table
++
++|before|before
++|(8) 1 this|1 is|1 a|1 table|
++|(8) 2 this|2 is|2 a|2 table|
++|(8) 3 this|3 is|3 a|3 table|
++
++before|before|
++|(9) 1 this|1 is|1 a|1 table|
++|(9) 2 this|2 is|2 a|2 table|
++|(9) 3 this|3 is|3 a|3 table|
++
++|(10) 1 this|1 is|1 a|1 table|
++|(10) 2 this|2 is|2 a|2 table|
++|(10) 3 this|3 is|3 a|3 table|
++|after|after
++
++|(11) 1 this|1 is|1 a|1 table|
++|(11) 2 this|2 is|2 a|2 table|
++|(11) 3 this|3 is|3 a|3 table|
++after|after|
++
++|before|before
++|(12) 1 this|1 is|1 a|1 table|
++|(12) 2 this|2 is|2 a|2 table|
++|(12) 3 this|3 is|3 a|3 table|
++|after|after
++
++before|before|
++|(13) 1 this|1 is|1 a|1 table|
++|(13) 2 this|2 is|2 a|2 table|
++|(13) 3 this|3 is|3 a|3 table|
++after|after|
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.complete.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.complete.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;before |before|before&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(1) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(1) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(1) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;after&lt;/p&gt;&lt;p&gt;before before|before|&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(2) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(2) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(2) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;after&lt;/p&gt;&lt;p&gt;before&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(3) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(3) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(3) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;|after|after after&lt;/p&gt;&lt;p&gt;before&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;!
+ &lt;td&gt;(4) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(4) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(4) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;after|after| after&lt;/p&gt;&lt;p&gt;before |before|before&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(5) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(5) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(5) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;|after|after after&lt;/p&gt;&lt;p&gt;before before|before|&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(6) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(6) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(6) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;after|after| after&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.no_test_procs.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;before |before|before&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(1) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(1) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(1) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;after&lt;/p&gt;&lt;p&gt;before before|before|&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(2) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(2) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(2) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;after&lt;/p&gt;&lt;p&gt;before&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(3) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(3) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(3) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;|after|after after&lt;/p&gt;&lt;p&gt;before&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;!
+ &lt;td&gt;(4) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(4) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(4) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;after|after| after&lt;/p&gt;&lt;p&gt;before |before|before&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(5) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(5) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(5) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;|after|after after&lt;/p&gt;&lt;p&gt;before before|before|&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(6) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(6) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(6) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;after|after| after&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.wiki	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_defective_with_text.wiki	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1,43 @@
++before
++|before|before
++|(1) 1 this|1 is|1 a|1 table|
++|(1) 2 this|2 is|2 a|2 table|
++|(1) 3 this|3 is|3 a|3 table|
++after
++
++before
++before|before|
++|(2) 1 this|1 is|1 a|1 table|
++|(2) 2 this|2 is|2 a|2 table|
++|(2) 3 this|3 is|3 a|3 table|
++after
++
++before
++|(3) 1 this|1 is|1 a|1 table|
++|(3) 2 this|2 is|2 a|2 table|
++|(3) 3 this|3 is|3 a|3 table|
++|after|after
++after
++
++before
++|(4) 1 this|1 is|1 a|1 table|
++|(4) 2 this|2 is|2 a|2 table|
++|(4) 3 this|3 is|3 a|3 table|
++after|after|
++after
++
++before
++|before|before
++|(5) 1 this|1 is|1 a|1 table|
++|(5) 2 this|2 is|2 a|2 table|
++|(5) 3 this|3 is|3 a|3 table|
++|after|after
++after
++
++before
++before|before|
++|(6) 1 this|1 is|1 a|1 table|
++|(6) 2 this|2 is|2 a|2 table|
++|(6) 3 this|3 is|3 a|3 table|
++after|after|
++after
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.complete.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.complete.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(1) 1 this&lt;/td&gt;&lt;td colspan=&quot;3&quot;&gt;1 is&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(1) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td colspan=&quot;2&quot;&gt;2 a&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(1) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(2) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(2) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td colspan=&quot;2&quot;&gt;2 a&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(2) 3 this&lt;/td&gt;&lt;td colspan=&quot;3&quot;&gt;3 is&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(3) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(3) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td colspan=&quot;2&quot;&gt;2 a&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(3) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(4) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td colspan=&quot;2&quot;&gt;1 a&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(4) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(4) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td colsp!
+ an=&quot;2&quot;&gt;3 a&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(5) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;(5) 2 this&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(5) 3 this&lt;/td&gt;&lt;td colspan=&quot;2&quot;&gt;3 is&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td /&gt;&lt;td&gt;(6) 1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;(6) 2 this&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(6) 3 this&lt;/td&gt;&lt;td colspan=&quot;2&quot;&gt;3 is&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;(7) 1 this&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;(7) 2 this&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;(7) 3 this&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;(8) 1 this&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(8) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;(8) 3 this&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class!
+ =&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td /&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/!
+ td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;2 this&lt;/td&gt;&lt;td /&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td /&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.no_test_procs.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(1) 1 this&lt;/td&gt;&lt;td colspan=&quot;3&quot;&gt;1 is&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(1) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td colspan=&quot;2&quot;&gt;2 a&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(1) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(2) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(2) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td colspan=&quot;2&quot;&gt;2 a&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(2) 3 this&lt;/td&gt;&lt;td colspan=&quot;3&quot;&gt;3 is&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(3) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(3) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td colspan=&quot;2&quot;&gt;2 a&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(3) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(4) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td colspan=&quot;2&quot;&gt;1 a&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(4) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(4) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td colsp!
+ an=&quot;2&quot;&gt;3 a&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(5) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;(5) 2 this&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(5) 3 this&lt;/td&gt;&lt;td colspan=&quot;2&quot;&gt;3 is&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td /&gt;&lt;td&gt;(6) 1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;(6) 2 this&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(6) 3 this&lt;/td&gt;&lt;td colspan=&quot;2&quot;&gt;3 is&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;(7) 1 this&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;(7) 2 this&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;(7) 3 this&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;(8) 1 this&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(8) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan=&quot;2&quot;&gt;(8) 3 this&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class!
+ =&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td /&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/!
+ td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;2 this&lt;/td&gt;&lt;td /&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td /&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.wiki	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_empty_cells.wiki	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1,35 @@
++|(1) 1 this|1 is|
++|(1) 2 this|2 is|2 a|
++|(1) 3 this|3 is|3 a|3 table|
++
++|(2) 1 this|1 is|1 a|1 table|
++|(2) 2 this|2 is|2 a|
++|(2) 3 this|3 is|
++
++|(3) 1 this|1 is|1 a|1 table|
++|(3) 2 this|2 is|2 a|
++|(3) 3 this|3 is|3 a|3 table|
++
++|(4) 1 this|1 is|1 a|
++|(4) 2 this|2 is|2 a|2 table|
++|(4) 3 this|3 is|3 a|
++
++|(5) 1 this|1 is|1 a|1 table|
++|(5) 2 this||2 a|2 table|
++|(5) 3 this|3 is||3 table|
++
++||(6) 1 is|1 a|1 table|
++|(6) 2 this||2 a|2 table|
++|(6) 3 this|3 is||3 table|
++
++|(7) 1 this||1 a|1 table|
++|(7) 2 this||2 a|2 table|
++|(7) 3 this||3 a|3 table|
++
++|(8) 1 this||1 a|1 table|
++|(8) 2 this|2 is|2 a|2 table|
++|(8) 3 this||3 a|3 table|
++
++| |1 is|1 a|1 table|
++|2 this|  |2 a|2 table|
++|3 this|3 is|   |3 table|
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.complete.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.complete.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(1) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(1) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(1) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(2) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(2) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(2) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(3) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(3) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(3) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(4) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(4) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/!
+ tr&gt;&lt;tr&gt;&lt;td&gt;(4) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;(5) before&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(5) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(5) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(5) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;(5) after&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.no_test_procs.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.no_test_procs.xml	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.no_test_procs.xml	2006-07-30 01:20:10 UTC (rev 26)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(1) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(1) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(1) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(2) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(2) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(2) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(3) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(3) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(3) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(4) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(4) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/!
+ tr&gt;&lt;tr&gt;&lt;td&gt;(4) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;(5) before&lt;/p&gt;&lt;table class=&quot;wiki-table&quot;&gt;&lt;tr&gt;&lt;td&gt;(5) 1 this&lt;/td&gt;&lt;td&gt;1 is&lt;/td&gt;&lt;td&gt;1 a&lt;/td&gt;&lt;td&gt;1 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(5) 2 this&lt;/td&gt;&lt;td&gt;2 is&lt;/td&gt;&lt;td&gt;2 a&lt;/td&gt;&lt;td&gt;2 table&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;(5) 3 this&lt;/td&gt;&lt;td&gt;3 is&lt;/td&gt;&lt;td&gt;3 a&lt;/td&gt;&lt;td&gt;3 table&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;(5) after&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.wiki	2006-07-23 01:14:00 UTC (rev 25)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/tables_simple.wiki	2006-07-30 01:20:10 UTC (rev 26)
+@@ -1,61 +1,21 @@
+-|this|is|a|table|
+-|this|is|a|table|
+-|this|is|a|table|
++|(1) 1 this|1 is|1 a|1 table|
++|(1) 2 this|2 is|2 a|2 table|
++|(1) 3 this|3 is|3 a|3 table|
+ 
+-|this|is|a|table| 
+-|this|is|a|table|  
+-|this|is|a|table|   
++|(2) 1 this|1 is|1 a|1 table|  
++|(2) 2 this|2 is|2 a|2 table|  
++|(2) 3 this|3 is|3 a|3 table|  
+ 
+-before
+-|this|is|a|table|
+-|this|is|a|table|
+-|this|is|a|table|
+-after
++| (3) 1 this | 1 is | 1 a | 1 table |
++| (3) 2 this | 2 is | 2 a | 2 table |
++| (3) 3 this | 3 is | 3 a | 3 table |
+ 
+-|this|is|
+-|this|is|a|
+-|this|is|a|table|
++|  (4)  1  this  |  1  is  |  1  a  |  1  table  |
++|  (4)  2  this  |  2  is  |  2  a  |  2  table  |
++|  (4)  3  this  |  3  is  |  3  a  |  3  table  |
+ 
+-|this|is|a|table|
+-|this|is|a|
+-|this|is|
+-
+-|this|is|a|table|
+-|this|is|a|
+-|this|is|a|table|
+-
+-|this|is|a|
+-|this|is|a|table|
+-|this|is|a|
+-
+-|this|is|a|table|
+-|this||a|table|
+-|this|is||table|
+-
+-||is|a|table|
+-|this||a|table|
+-|this|is||table|
+-
+-|this||a|table|
+-|this||a|table|
+-|this||a|table|
+-
+-|this||a|table|
+-|this|is|a|table|
+-|this||a|table|
+-
+- |this|isn't|a|table|
+- |this|isn't|a|table|
+- |this|isn't|a|table|
+-
+- |this|isn't|a|table|
+-|this|is|a|table|
+-|this|is|a|table|
+-
+-|this|isn't|a|table
+-|this|isn't|a|table
+-|this|isn't|a|table
+-
+-|this|isn't|a|table
+-|this|is|a|table|
+-|this|isn't|a|table
++(5) before
++|(5) 1 this|1 is|1 a|1 table|
++|(5) 2 this|2 is|2 a|2 table|
++|(5) 3 this|3 is|3 a|3 table|
++(5) after
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000023.html">[fellowiki-svncheckins] r25 - in trunk/fellowiki/wiki: . tests	tests/tests/mixed_markup tests/tests/simple_markup
+</A></li>
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#24">[ date ]</a>
+              <a href="thread.html#24">[ thread ]</a>
+              <a href="subject.html#24">[ subject ]</a>
+              <a href="author.html#24">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

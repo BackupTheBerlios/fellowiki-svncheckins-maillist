@@ -1,0 +1,404 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r28 - in trunk/fellowiki: .	wiki/tests/tests/mixed_markup wiki/tests/tests/simple_markup
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-September/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r28%20-%20in%20trunk/fellowiki%3A%20.%0A%09wiki/tests/tests/mixed_markup%20wiki/tests/tests/simple_markup&In-Reply-To=%3C200609101407.k8AE7Nwk028453%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="000027.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r28 - in trunk/fellowiki: .	wiki/tests/tests/mixed_markup wiki/tests/tests/simple_markup</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r28%20-%20in%20trunk/fellowiki%3A%20.%0A%09wiki/tests/tests/mixed_markup%20wiki/tests/tests/simple_markup&In-Reply-To=%3C200609101407.k8AE7Nwk028453%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r28 - in trunk/fellowiki: .	wiki/tests/tests/mixed_markup wiki/tests/tests/simple_markup">fingerle at mail.berlios.de
+       </A><BR>
+    <I>Sun Sep 10 16:07:23 CEST 2006</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="000027.html">[fellowiki-svncheckins] r29 - in trunk: . fellowiki	fellowiki/config fellowiki/controllers	fellowiki/controllers/wikiparser fellowiki/model	fellowiki/static fellowiki/static/css fellowiki/static/images	fellowiki/templates fellowiki/tests
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#26">[ date ]</a>
+              <a href="thread.html#26">[ thread ]</a>
+              <a href="subject.html#26">[ subject ]</a>
+              <a href="author.html#26">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-09-10 16:07:21 +0200 (Sun, 10 Sep 2006)
+New Revision: 28
+
+Modified:
+   trunk/fellowiki/__init__.py
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/lists_combined.extension_lists.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/pre_with_non_pre.extension_escaped_text.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/bold_block.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/some_special_markup_with_blanks.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_block.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_block.extension_text_style_simple.xml
+Log:
+- wiki parser: - finished modified paragraphs
+               - finished modified tables
+               - changed handling of whitespace in some places
+               - started some refactoring
+               - put all non-essential markup into extensions
+               - added tests for extensions, 25 still failing
+               
+- wiki parser is now *essentially* feature complete, i.e. the wiki syntax
+  is completed, but the following is still missing:
+    - some more refactoring
+    - docstrings, pylintifying
+    - performance tuning, possibly using pyrex and some C-Extensions;
+      this isn't the biggest priority...
+
+
+Modified: trunk/fellowiki/__init__.py
+===================================================================
+--- trunk/fellowiki/__init__.py	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/__init__.py	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1,30 +0,0 @@
+-# Copyright (c) 2006 Jan Niklas Fingerle
+-# 
+-# Permission is hereby granted, free of charge, to any person obtaining a
+-# copy of this software and associated documentation files (the &quot;Software&quot;),
+-# to deal in the Software without restriction, including without limitation
+-# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+-# and/or sell copies of the Software, and to permit persons to whom the
+-# Software is furnished to do so, subject to the following conditions:
+-#
+-# The above copyright notice and this permission notice shall be included in
+-# all copies or substantial portions of the Software.
+-#
+-# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+-# DEALINGS IN THE SOFTWARE.
+-
+-&quot;&quot;&quot;fellowiki main package
+-
+-This main package doesn't do anything special, it's just there to contain
+-the subpackages:
+-
+-    - wiki:  the wiki engine
+-    - util:  utility functions used in the other sub-packages except &quot;tests&quot;
+-    - tests: tests (mainly unit tests) for the fellowiki package
+-    
+-&quot;&quot;&quot;
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold[*bold*bold*]non-bold*non-bold&lt;/p&gt;&lt;p&gt;non-bold[*bold*bold*]non-bold*bold*non-bold&lt;/p&gt;&lt;p&gt;non-bold*non-bold[*bold*bold*]non-bold&lt;/p&gt;&lt;p&gt;non-bold*bold*non-bold[*bold*bold*]non-bold&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold*bold&lt;/b&gt;non-bold*non-bold&lt;/p&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold*bold&lt;/b&gt;non-bold*bold*non-bold&lt;/p&gt;&lt;p&gt;non-bold*non-bold&lt;b class=&quot;bold&quot;&gt;bold*bold&lt;/b&gt;non-bold&lt;/p&gt;&lt;p&gt;non-bold*bold*non-bold&lt;b class=&quot;bold&quot;&gt;bold*bold&lt;/b&gt;non-bold&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold[*bold*bold*]non-bold*non-bold&lt;/p&gt;&lt;p&gt;non-bold[*bold*bold*]non-bold*bold*non-bold&lt;/p&gt;&lt;p&gt;non-bold*non-bold[*bold*bold*]non-bold&lt;/p&gt;&lt;p&gt;non-bold*bold*non-bold[*bold*bold*]non-bold&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold[&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;bold&lt;b class=&quot;bold&quot;&gt;]non-bold&lt;/b&gt;non-bold&lt;/p&gt;&lt;p&gt;non-bold[&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;bold&lt;b class=&quot;bold&quot;&gt;]non-bold&lt;/b&gt;bold*non-bold&lt;/p&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;non-bold[&lt;/b&gt;bold&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;]non-bold&lt;/p&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;non-bold[&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;bold*]non-bold&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold[*bold*bold*bold*]non-bold&lt;/p&gt;&lt;p&gt;non-bold*non-bold[*bold*]non-bold*non-bold&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;bold*bold*bold&lt;/b&gt;non-bold&lt;/p&gt;&lt;p&gt;non-bold*non-bold&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;non-bold*non-bold&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold[*bold*bold*bold*]non-bold&lt;/p&gt;&lt;p&gt;non-bold*non-bold[*bold*]non-bold*non-bold&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold[&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;bold&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;]non-bold&lt;/p&gt;&lt;p&gt;non-bold&lt;b class=&quot;bold&quot;&gt;non-bold[&lt;/b&gt;bold&lt;b class=&quot;bold&quot;&gt;]non-bold&lt;/b&gt;non-bold&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-italic[/italic/italic/]non-italic/non-italic&lt;/p&gt;&lt;p&gt;non-italic[/italic/italic/]non-italic/italic/non-italic&lt;/p&gt;&lt;p&gt;non-italic/non-italic[/italic/italic/]non-italic&lt;/p&gt;&lt;p&gt;non-italic/italic/non-italic[/italic/italic/]non-italic&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic/italic&lt;/em&gt;non-italic/non-italic&lt;/p&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic/italic&lt;/em&gt;non-italic/italic/non-italic&lt;/p&gt;&lt;p&gt;non-italic/non-italic&lt;em class=&quot;italic&quot;&gt;italic/italic&lt;/em&gt;non-italic&lt;/p&gt;&lt;p&gt;non-italic/italic/non-italic&lt;em class=&quot;italic&quot;&gt;italic/italic&lt;/em&gt;non-italic&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-italic[/italic/italic/]non-italic/non-italic&lt;/p&gt;&lt;p&gt;non-italic[/italic/italic/]non-italic/italic/non-italic&lt;/p&gt;&lt;p&gt;non-italic/non-italic[/italic/italic/]non-italic&lt;/p&gt;&lt;p&gt;non-italic/italic/non-italic[/italic/italic/]non-italic&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-italic[&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;italic&lt;em class=&quot;italic&quot;&gt;]non-italic&lt;/em&gt;non-italic&lt;/p&gt;&lt;p&gt;non-italic[&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;italic&lt;em class=&quot;italic&quot;&gt;]non-italic&lt;/em&gt;italic/non-italic&lt;/p&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;non-italic[&lt;/em&gt;italic&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;]non-italic&lt;/p&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;non-italic[&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;italic/]non-italic&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-italic[/italic/italic/italic/]non-italic&lt;/p&gt;&lt;p&gt;non-italic/non-italic[/italic/]non-italic/non-italic&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;italic/italic/italic&lt;/em&gt;non-italic&lt;/p&gt;&lt;p&gt;non-italic/non-italic&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;non-italic/non-italic&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-italic[/italic/italic/italic/]non-italic&lt;/p&gt;&lt;p&gt;non-italic/non-italic[/italic/]non-italic/non-italic&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-italic[&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;italic&lt;em class=&quot;italic&quot;&gt;italic&lt;/em&gt;]non-italic&lt;/p&gt;&lt;p&gt;non-italic&lt;em class=&quot;italic&quot;&gt;non-italic[&lt;/em&gt;italic&lt;em class=&quot;italic&quot;&gt;]non-italic&lt;/em&gt;non-italic&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/lists_combined.extension_lists.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/lists_combined.extension_lists.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/lists_combined.extension_lists.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;# item 1 #* item 1.* #* item 1.* #*- item 1.*.- #*- item 1.*.- #*- item 1.*.- # item 2 #- item 2.- #-* item 2.-.* #-* item 2.-.* #-* item 2.-.* #- item 2.- #- item 2.- # item 3&lt;/p&gt;&lt;p&gt;* item * *# item *.1 *# item *.2 *#- item *.2.- *#- item *.2.- *#- item *.2.- * item * *# item *.1 *# item *.2 *- item *.- *- item *.- *-# item *.-.1 *-# item *.-.2 *-# item *.-.3 *- item *.- *-# item *.-.1&lt;/p&gt;&lt;p&gt;- item - -# item -.1 -# item -.2 -#* item -.2.* -#* item -.2.* -#* item -.2.* - item - -# item -.1 -# item -.2 -* item -.* -* item -.* -*# item -.*.1 -*# item -.*.2 -*# item -.*.3 -* item -.* -*# item -.*.1 - item -&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item 1&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 1.*&lt;/li&gt;&lt;li&gt;item 1.*&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 1.*.-&lt;/li&gt;&lt;li&gt;item 1.*.-&lt;/li&gt;&lt;li&gt;item 1.*.-&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item 2&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item 2.-&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item 2.-.*&lt;/li&gt;&lt;li&gt;item 2.-.*&lt;/li&gt;&lt;li&gt;item 2.-.*&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item 2.-&lt;/li&gt;&lt;li&gt;item 2.-&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item 3&lt;/li&gt;&lt;/ol&gt;&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item *&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item *.1&lt;/li&gt;&lt;li&gt;item *.2&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item *.2.-&lt;/li&gt;&lt;li&gt;item *.2.-&lt;/li&gt;&lt;li&gt;item *.2.-&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;li&gt;item *&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item *.1&lt;/li&gt;&lt;li&gt;item *.2&lt;/li&gt;&lt;/ol&gt;&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item *.-&lt;/li&gt;&lt;li&gt;item *.-&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item *.-.1&lt;/li&gt;&lt;li&gt;item *.-.2&lt;/li&gt;&lt;li&gt;item *.-.3&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;li&gt;item *.-&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item *.-.1&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;ul class=&quot;dash&quot;&gt;&lt;li&gt;item -&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item -.1&lt;/li&gt;&lt;li&gt;item !
+ -.2&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item -.2.*&lt;/li&gt;&lt;li&gt;item -.2.*&lt;/li&gt;&lt;li&gt;item -.2.*&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;li&gt;item -&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item -.1&lt;/li&gt;&lt;li&gt;item -.2&lt;/li&gt;&lt;/ol&gt;&lt;ul class=&quot;bullet&quot;&gt;&lt;li&gt;item -.*&lt;/li&gt;&lt;li&gt;item -.*&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item -.*.1&lt;/li&gt;&lt;li&gt;item -.*.2&lt;/li&gt;&lt;li&gt;item -.*.3&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;li&gt;item -.*&lt;ol class=&quot;ordered&quot;&gt;&lt;li&gt;item -.*.1&lt;/li&gt;&lt;/ol&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;item -&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/pre_with_non_pre.extension_escaped_text.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/pre_with_non_pre.extension_escaped_text.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/pre_with_non_pre.extension_escaped_text.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1,5 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;[@preformatted text. [@preformatted text. &lt;&amp;&gt; \[@preformatted text.\@]&lt;/p&gt;&lt;p&gt;\\\preformatted text.@] non-preformatted text.@]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;pre&gt;preformatted text.
++[@preformatted text. &lt;&amp;&gt;
++[@preformatted text.@]
++
++\preformatted text.&lt;/pre&gt;&lt;p&gt;non-preformatted text.@]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter[=typewriter=typewriter=]non-typewriter=non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter[=typewriter=typewriter=]non-typewriter=typewriter=non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter=non-typewriter[=typewriter=typewriter=]non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter=typewriter=non-typewriter[=typewriter=typewriter=]non-typewriter&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter=typewriter&lt;/tt&gt;non-typewriter=non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter=typewriter&lt;/tt&gt;non-typewriter=typewriter=non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter=non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter=typewriter&lt;/tt&gt;non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter=typewriter=non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter=typewriter&lt;/tt&gt;non-typewriter&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter[=typewriter=typewriter=]non-typewriter=non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter[=typewriter=typewriter=]non-typewriter=typewriter=non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter=non-typewriter[=typewriter=typewriter=]non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter=typewriter=non-typewriter[=typewriter=typewriter=]non-typewriter&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter[&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;typewriter&lt;tt class=&quot;typewriter&quot;&gt;]non-typewriter&lt;/tt&gt;non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter[&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;typewriter&lt;tt class=&quot;typewriter&quot;&gt;]non-typewriter&lt;/tt&gt;typewriter=non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;non-typewriter[&lt;/tt&gt;typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;]non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;non-typewriter[&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;typewriter=]non-typewriter&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter[=typewriter=typewriter=typewriter=]non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter=non-typewriter[=typewriter=]non-typewriter=non-typewriter&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter=typewriter=typewriter&lt;/tt&gt;non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter=non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;non-typewriter=non-typewriter&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter[=typewriter=typewriter=typewriter=]non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter=non-typewriter[=typewriter=]non-typewriter=non-typewriter&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter[&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;typewriter&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;]non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter&lt;tt class=&quot;typewriter&quot;&gt;non-typewriter[&lt;/tt&gt;typewriter&lt;tt class=&quot;typewriter&quot;&gt;]non-typewriter&lt;/tt&gt;non-typewriter&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined[_underlined_underlined_]non-underlined_non-underlined&lt;/p&gt;&lt;p&gt;non-underlined[_underlined_underlined_]non-underlined_underlined_non-underlined&lt;/p&gt;&lt;p&gt;non-underlined_non-underlined[_underlined_underlined_]non-underlined&lt;/p&gt;&lt;p&gt;non-underlined_underlined_non-underlined[_underlined_underlined_]non-underlined&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined_underlined&lt;/span&gt;non-underlined_non-underlined&lt;/p&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined_underlined&lt;/span&gt;non-underlined_underlined_non-underlined&lt;/p&gt;&lt;p&gt;non-underlined_non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined_underlined&lt;/span&gt;non-underlined&lt;/p&gt;&lt;p&gt;non-underlined_underlined_non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined_underlined&lt;/span&gt;non-underlined&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined[_underlined_underlined_]non-underlined_non-underlined&lt;/p&gt;&lt;p&gt;non-underlined[_underlined_underlined_]non-underlined_underlined_non-underlined&lt;/p&gt;&lt;p&gt;non-underlined_non-underlined[_underlined_underlined_]non-underlined&lt;/p&gt;&lt;p&gt;non-underlined_underlined_non-underlined[_underlined_underlined_]non-underlined&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined[&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;underlined&lt;span class=&quot;underlined&quot;&gt;]non-underlined&lt;/span&gt;non-underlined&lt;/p&gt;&lt;p&gt;non-underlined[&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;underlined&lt;span class=&quot;underlined&quot;&gt;]non-underlined&lt;/span&gt;underlined_non-underlined&lt;/p&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;non-underlined[&lt;/span&gt;underlined&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;]non-underlined&lt;/p&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;non-underlined[&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;underlined_]non-underlined&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined[_underlined_underlined_underlined_]non-underlined&lt;/p&gt;&lt;p&gt;non-underlined_non-underlined[_underlined_]non-underlined_non-underlined&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined_underlined_underlined&lt;/span&gt;non-underlined&lt;/p&gt;&lt;p&gt;non-underlined_non-underlined&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;non-underlined_non-underlined&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined[_underlined_underlined_underlined_]non-underlined&lt;/p&gt;&lt;p&gt;non-underlined_non-underlined[_underlined_]non-underlined_non-underlined&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined[&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;underlined&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;]non-underlined&lt;/p&gt;&lt;p&gt;non-underlined&lt;span class=&quot;underlined&quot;&gt;non-underlined[&lt;/span&gt;underlined&lt;span class=&quot;underlined&quot;&gt;]non-underlined&lt;/span&gt;non-underlined&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/bold_block.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/bold_block.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/bold_block.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold[*bold*]non-bold&lt;/p&gt;&lt;p&gt;non-bold[*bold bold*]non-bold&lt;/p&gt;&lt;p&gt;non-bold[*bold[*bold*]non-bold&lt;/p&gt;&lt;p&gt;non-bold[*bold*]non-bold*]non-bold&lt;/p&gt;&lt;p&gt;non-bold[*bold[*bold*]non-bold*]non-bold&lt;/p&gt;&lt;p&gt;empty: [**]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-bold[&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;]non-bold&lt;/p&gt;&lt;p&gt;non-bold[*bold bold*]non-bold&lt;/p&gt;&lt;p&gt;non-bold[&lt;b class=&quot;bold&quot;&gt;bold[&lt;/b&gt;bold*]non-bold&lt;/p&gt;&lt;p&gt;non-bold[&lt;b class=&quot;bold&quot;&gt;bold&lt;/b&gt;]non-bold*]non-bold&lt;/p&gt;&lt;p&gt;non-bold[&lt;b class=&quot;bold&quot;&gt;bold[&lt;/b&gt;bold&lt;b class=&quot;bold&quot;&gt;]non-bold&lt;/b&gt;]non-bold&lt;/p&gt;&lt;p&gt;empty: [**]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;[[[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;?&amp;#223;&amp;#196;&amp;#214;&amp;#220;=123&amp;amp;&amp;#223;&amp;#228;&amp;#246;&amp;#252;=456">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456</A> ]]] [[[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;?&amp;#223;&amp;#196;&amp;#214;&amp;#220;=123&amp;amp;&amp;#223;&amp;#228;&amp;#246;&amp;#252;=456">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456</A> || &#223; ]]] [[[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;?&amp;#223;&amp;#196;&amp;#214;&amp;#220;=123&amp;amp;&amp;#223;&amp;#228;&amp;#246;&amp;#252;=456">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456</A> &gt;&gt; <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;;type=a">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a</A> ]]] [[[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;?&amp;#223;&amp;#196;&amp;#214;&amp;#220;=123&amp;amp;&amp;#223;&amp;#228;&amp;#246;&amp;#252;=456">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456</A> || &#223; &gt;&gt; <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228!">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&amp;#228!</A>
+ ;&#246;&#252;;type=a ]]] [[[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;;type=a">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a</A> ]]] [[[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;;type=a">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a</A> || &#223; ]]] [[[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;;type=a">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a</A> &gt;&gt; <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;?&amp;#223;&amp;#196;&amp;#214;&amp;#220;=123&amp;amp;&amp;#223;&amp;#228;&amp;#246;&amp;#252;=456">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456</A> ]]] [[[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;;type=a">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a</A> || &#223; &gt;&gt; <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;?&amp;#223;&amp;#196;&amp;#214;&amp;#220;=123&amp;amp;&amp;#223;&amp;#228;&amp;#246;&amp;#252;=456">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456</A> ]]]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;[[[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid&lt;em">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;?&#223;&#196;&#214;&#220;&lt;tt class=&quot;typewriter&quot;&gt;123&amp;&#223;&#228;&#246;&#252;&lt;/tt&gt;456 ]]] [[[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid&lt;em">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;?&#223;&#196;&#214;&#220;&lt;tt class=&quot;typewriter&quot;&gt;123&amp;&#223;&#228;&#246;&#252;&lt;/tt&gt;456 || &#223; ]]] [[[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid&lt;em">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;?&#223;&#196;&#214;&#220;&lt;tt class=&quot;typewriter&quot;&gt;123&amp;&#223;&#228;&#246;&#252;&lt;/tt&gt;456 &gt;&gt; <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid&lt;em">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;;type=a ]]] [[[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid&lt;em">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&amp;#23!
+ 4;&lt;/em&gt;&#228;&#246;&#252;?&#223;&#196;&#214;&#220;&lt;tt class=&quot;typewriter&quot;&gt;123&amp;&#223;&#228;&#246;&#252;&lt;/tt&gt;456 || &#223; &gt;&gt; <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid&lt;em">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;;type=a ]]] [[[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid&lt;em">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;;type=a ]]] [[[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid&lt;em">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;;type=a || &#223; ]]] [[[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid&lt;em">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;;type=a &gt;&gt; <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid&lt;em">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;?&#223;&#196;&#214;&#220;&lt;tt class=&quot;typewriter&quot;&gt;123&amp;&#223;&#228;&#246;&#252;&lt;/tt&gt;456 ]]] [[[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid&lt;em">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&amp;#22!
+ 8;&#246;&#252;;type=a || &#223; &gt;&gt; <A HREF="http://&amp;#228;&amp;#246;&amp;#!">http://&#228;&#246;&amp;#!</A>
+ 252;:&amp;#2
+23;@www.m&#252;ller.invalid&lt;em class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;?&#223;&#196;&#214;&#220;&lt;tt class=&quot;typewriter&quot;&gt;123&amp;&#223;&#228;&#246;&#252;&lt;/tt&gt;456 ]]]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;[[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;;type=a">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a</A> ]] [[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;@ftp.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;;type=a">ftp://&#228;&#246;&#252;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a</A> ]] [[ <A HREF="ftp://ftp.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;;type=a">ftp://ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a</A> ]] [[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;</A> ]] [[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid/">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/</A>]] [[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid</A> ]] [[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;%EE%AB%ac%cB%De:&amp;#223;%EE%AB%ac%cB%De@ftp.m&amp;#252;ller.invalid">ftp://&#228;&#246;&#252;%EE%AB%ac%cB%De:&#223;%EE%AB%ac%cB%De@ftp.m&#252;ller.invalid</A> ]] [[ <A HREF="ftp://ftp.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;">ftp://ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;</A> ]] [[ <A HREF="ftp://ftp.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;/%EE%AB%ac%cB%De">ftp://ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;/%EE%AB%ac%cB%De</A> ]] [[ <A HREF="ftp://ftp.m&amp;#252;ller.invalid/">ftp://ftp.m&#252;ller.invalid/</A>]] [[ <A HREF="ftp://ftp.m&amp;#252;ller.invalid">ftp://ftp.m&#252;ller.invalid</A> ]] [[ <A HREF="ftp://ftp.m&amp;#252;ller.invalid.%E!">ftp://ftp.m&#252;ller.invalid.%E!</A>
+ E ]] [[ ftp.m&#252;ller.invalid ]] [[ &#228;&#246;&#252; &gt;&gt; <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;;type=a">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a</A> ]]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;[[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid&lt;em">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;;type=a ]] [[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;@ftp.m&amp;#252;ller.invalid&lt;em">ftp://&#228;&#246;&#252;@ftp.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;;type=a ]] [[ <A HREF="ftp://ftp.m&amp;#252;ller.invalid&lt;em">ftp://ftp.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;;type=a ]] [[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid&lt;em">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252; ]] [[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid/">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/</A>]] [[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid</A> ]] [[ <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;%EE%AB%ac%cB%De:&amp;#223;%EE%AB%ac%cB%De@ftp.m&amp;#252;ller.invalid">ftp://&#228;&#246;&#252;%EE%AB%ac%cB%De:&#223;%EE%AB%ac%cB%De@ftp.m&#252;ller.invalid</A> ]] [[ <A HREF="ftp://ftp.m&amp;#252;ller.invalid&lt;em">ftp://ftp.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252; ]] [[ <A HREF="ftp://ftp.m&amp;#252;ller.invalid&lt;em">ftp://ftp.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&amp;!
+ #252;/%EE%AB%ac%cB%De ]] [[ <A HREF="ftp://ftp.m&amp;#252;ller.invalid/">ftp://ftp.m&#252;ller.invalid/</A>]] [[ <A HREF="ftp://ftp.m&amp;#252;ller.invalid">ftp://ftp.m&#252;ller.invalid</A> ]] [[ <A HREF="ftp://ftp.m&amp;#252;ller.invalid.%EE">ftp://ftp.m&#252;ller.invalid.%EE</A> ]] [[ ftp.m&#252;ller.invalid ]] [[ &#228;&#246;&#252; &gt;&gt; <A HREF="ftp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@ftp.m&amp;#252;ller.invalid&lt;em">ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;;type=a ]]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;[[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;?&amp;#223;&amp;#196;&amp;#214;&amp;#220;=123&amp;amp;&amp;#223;&amp;#228;&amp;#246;&amp;#252;=456">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456</A> ]] [[ <A HREF="hTtP://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;?&amp;#223;&amp;#196;&amp;#214;&amp;#220;=123&amp;amp;&amp;#223;&amp;#228;&amp;#246;&amp;#252;=456">hTtP://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456</A> ]] [[ <A HREF="HtTp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;?&amp;#223;&amp;#196;&amp;#214;&amp;#220;=123&amp;amp;&amp;#223;&amp;#228;&amp;#246;&amp;#252;=456">HtTp://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456</A> ]] [[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;@www.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;?&amp;#223;&amp;#196;&amp;#214;&amp;#220;=123&amp;amp;&amp;#223;&amp;#228;&amp;#246;&amp;#252;=456">http://&#228;&#246;&#252;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456</A> ]] [[ <A HREF="http://www.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;&amp;amp;&amp;#223;&amp;#196;&amp;#214;&amp;#220;=123">http://www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;&amp;&#223;&#196;&#214;&#220;=123</A>]] [[ <A HREF="http://www.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;">http://www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;</A> ]] [[ <A HREF="http://www.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;!">http://www.m&#252;ller.invalid/~&#233;&#232;&amp;!</A>
+ #234;/&#228;&#246;&#252;/%EE%AB%ac%cB%De ]] [[ <A HREF="http://www.m&amp;#252;ller.invalid">http://www.m&#252;ller.invalid</A> ]] [[ <A HREF="http://www.m&amp;#252;ller.invalid.%EE">http://www.m&#252;ller.invalid.%EE</A> ]] [[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid</A> ]] [[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;%EE%AB%ac%cB%De:&amp;#223;%EE%AB%ac%cB%De@www.m&amp;#252;ller.invalid">http://&#228;&#246;&#252;%EE%AB%ac%cB%De:&#223;%EE%AB%ac%cB%De@www.m&#252;ller.invalid</A> ]] [[ www.m&#252;ller.invalid ]] [[ &#228;&#246;&#252; &gt;&gt; <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid/~&amp;#233;&amp;#232;&amp;#234;/&amp;#228;&amp;#246;&amp;#252;?&amp;#223;&amp;#196;&amp;#214;&amp;#220;=123&amp;amp;&amp;#223;&amp;#228;&amp;#246;&amp;#252;=456">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456</A> ]]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;[[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid&lt;em">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;?&#223;&#196;&#214;&#220;&lt;tt class=&quot;typewriter&quot;&gt;123&amp;&#223;&#228;&#246;&#252;&lt;/tt&gt;456 ]] [[ <A HREF="hTtP://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid&lt;em">hTtP://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;?&#223;&#196;&#214;&#220;&lt;tt class=&quot;typewriter&quot;&gt;123&amp;&#223;&#228;&#246;&#252;&lt;/tt&gt;456 ]] [[ <A HREF="HtTp://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid&lt;em">HtTp://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;?&#223;&#196;&#214;&#220;&lt;tt class=&quot;typewriter&quot;&gt;123&amp;&#223;&#228;&#246;&#252;&lt;/tt&gt;456 ]] [[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;@www.m&amp;#252;ller.invalid&lt;em">http://&#228;&#246;&#252;@www.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;?&#223;&#196;&#214;&#220;&lt;tt class=&quot;typewriter&quot;&gt;123&amp;&#223;&#228;&#246;&#252;&lt;/tt&gt;456 ]] [[ <A HREF="http://www.m&amp;#252;ller.invalid&lt;em">http://www.m&#252;ller.invalid&lt;em</A> cla!
+ ss=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;&amp;&#223;&#196;&#214;&#220;=123]] [[ <A HREF="http://www.m&amp;#252;ller.invalid&lt;em">http://www.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252; ]] [[ <A HREF="http://www.m&amp;#252;ller.invalid&lt;em">http://www.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;/%EE%AB%ac%cB%De ]] [[ <A HREF="http://www.m&amp;#252;ller.invalid">http://www.m&#252;ller.invalid</A> ]] [[ <A HREF="http://www.m&amp;#252;ller.invalid.%EE">http://www.m&#252;ller.invalid.%EE</A> ]] [[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid</A> ]] [[ <A HREF="http://&amp;#228;&amp;#246;&amp;#252;%EE%AB%ac%cB%De:&amp;#223;%EE%AB%ac%cB%De@www.m&amp;#252;ller.invalid">http://&#228;&#246;&#252;%EE%AB%ac%cB%De:&#223;%EE%AB%ac%cB%De@www.m&#252;ller.invalid</A> ]] [[ www.m&#252;ller.invalid ]] [[ &#228;&#246;&#252; &gt;&gt; <A HREF="http://&amp;#228;&amp;#246;&amp;#252;:&amp;#223;@www.m&amp;#252;ller.invalid&lt;em">http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid&lt;em</A> class=&quot;italic&quot;&gt;~&#233;&#232;&#234;&lt;/em&gt;&#228;&#246;&#252;?&#223;&#196;&#214;&#220;&lt;tt class=&quot;typewriter&quot;&gt;123&amp;&#223;&#228;&#246;&#252;&lt;/tt&gt;456 ]]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/some_special_markup_with_blanks.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/some_special_markup_with_blanks.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/some_special_markup_with_blanks.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;/test / / test/ / test / &lt;em class=&quot;italic&quot;&gt;test&lt;/em&gt; t&lt;em class=&quot;italic&quot;&gt;es&lt;/em&gt;t&lt;/p&gt;&lt;p&gt;*test * * test* * test * &lt;b class=&quot;bold&quot;&gt;test&lt;/b&gt; t&lt;b class=&quot;bold&quot;&gt;es&lt;/b&gt;t&lt;/p&gt;&lt;p&gt;_test _ _ test_ _ test _ &lt;span class=&quot;underlined&quot;&gt;test&lt;/span&gt; t&lt;span class=&quot;underlined&quot;&gt;es&lt;/span&gt;t&lt;/p&gt;&lt;p&gt;=test = = test= = test = &lt;tt class=&quot;typewriter&quot;&gt;test&lt;/tt&gt; t&lt;tt class=&quot;typewriter&quot;&gt;es&lt;/tt&gt;t&lt;/p&gt;&lt;p&gt;test&lt;em class=&quot;italic&quot;&gt;test test&lt;/em&gt;test &lt;em class=&quot;italic&quot;&gt;test&lt;/em&gt; test &lt;em class=&quot;italic&quot;&gt;test&lt;/em&gt; test&lt;/p&gt;&lt;p&gt;test&lt;b class=&quot;bold&quot;&gt;test test&lt;/b&gt;test &lt;b class=&quot;bold&quot;&gt;test&lt;/b&gt; test &lt;b class=&quot;bold&quot;&gt;test&lt;/b&gt; test&lt;/p&gt;&lt;p&gt;test&lt;span class=&quot;underlined&quot;&gt;test test&lt;/span&gt;test &lt;span class=&quot;underlined&quot;&gt;test&lt;/span&gt; test &lt;span class=&quot;underlined&quot;&gt;test&lt;/span&gt; test&lt;/p&gt;&lt;p&gt;test&lt;tt class=&quot;typewriter&quot;&gt;test test&lt;/tt&gt;test &lt;tt class=&quot;typewriter&quot;&gt;test&lt;/tt&gt; test &lt;tt class=&quot;typewriter&quot;&gt;test&lt;/tt&gt; test&lt;/p&gt;&lt;p&gt;test&lt;span class=&quot;sing!
+ le_quotes&quot;&gt;test test&lt;/span&gt;test &lt;span class=&quot;single_quotes&quot;&gt;test&lt;/span&gt; test &lt;span class=&quot;single_quotes&quot;&gt;test&lt;/span&gt; test&lt;/p&gt;&lt;p&gt;test&lt;span class=&quot;double_quotes&quot;&gt;test test&lt;/span&gt;test &lt;span class=&quot;double_quotes&quot;&gt;test&lt;/span&gt; test &lt;span class=&quot;double_quotes&quot;&gt;test&lt;/span&gt; test&lt;/p&gt;&lt;p&gt;test&lt;span class=&quot;superscript&quot;&gt;test test&lt;/span&gt;test &lt;span class=&quot;superscript&quot;&gt;test&lt;/span&gt; test &lt;span class=&quot;superscript&quot;&gt;test&lt;/span&gt; test&lt;/p&gt;&lt;p&gt;test&lt;span class=&quot;subscript&quot;&gt;test test&lt;/span&gt;test &lt;span class=&quot;subscript&quot;&gt;test&lt;/span&gt; test &lt;span class=&quot;subscript&quot;&gt;test&lt;/span&gt; test&lt;/p&gt;&lt;p&gt;test&lt;span class=&quot;large&quot;&gt;test test&lt;/span&gt;test &lt;span class=&quot;large&quot;&gt;test&lt;/span&gt; test &lt;span class=&quot;large&quot;&gt;test&lt;/span&gt; test&lt;/p&gt;&lt;p&gt;test&lt;span class=&quot;small&quot;&gt;test test&lt;/span&gt;test &lt;span class=&quot;small&quot;&gt;test&lt;/span&gt; test &lt;span class=&quot;small&quot;&gt;test&lt;/span&gt; test&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;/test / / test/ / test / &lt;em class=&quot;italic&quot;&gt;test&lt;/em&gt; t&lt;em class=&quot;italic&quot;&gt;es&lt;/em&gt;t&lt;/p&gt;&lt;p&gt;*test * * test* * test * &lt;b class=&quot;bold&quot;&gt;test&lt;/b&gt; t&lt;b class=&quot;bold&quot;&gt;es&lt;/b&gt;t&lt;/p&gt;&lt;p&gt;_test _ _ test_ _ test _ &lt;span class=&quot;underlined&quot;&gt;test&lt;/span&gt; t&lt;span class=&quot;underlined&quot;&gt;es&lt;/span&gt;t&lt;/p&gt;&lt;p&gt;=test = = test= = test = &lt;tt class=&quot;typewriter&quot;&gt;test&lt;/tt&gt; t&lt;tt class=&quot;typewriter&quot;&gt;es&lt;/tt&gt;t&lt;/p&gt;&lt;p&gt;test[/ test test /]test [&lt;em class=&quot;italic&quot;&gt;test&lt;/em&gt;] test [/ test /] test&lt;/p&gt;&lt;p&gt;test[* test test *]test [&lt;b class=&quot;bold&quot;&gt;test&lt;/b&gt;] test [* test *] test&lt;/p&gt;&lt;p&gt;test[_ test test _]test [&lt;span class=&quot;underlined&quot;&gt;test&lt;/span&gt;] test [_ test _] test&lt;/p&gt;&lt;p&gt;test[= test test =]test [&lt;tt class=&quot;typewriter&quot;&gt;test&lt;/tt&gt;] test [= test =] test&lt;/p&gt;&lt;p&gt;test[' test test ']test ['test'] test [' test '] test&lt;/p&gt;&lt;p&gt;test[&quot; test test &quot;]test [&quot;test&quot;] test [&quot; test &quot;] test&lt;/p&gt;&lt;p&gt;test[^ test test ^]test [^test^] test [^ test ^] test!
+ &lt;/p&gt;&lt;p&gt;test[, test test ,]test [,test,] test [, test ,] test&lt;/p&gt;&lt;p&gt;test[# test test #]test [#test#] test [# test #] test&lt;/p&gt;&lt;p&gt;test[~ test test ~]test [~test~] test [~ test ~] test&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_block.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_block.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_block.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter[=typewriter=]non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter[=typewriter typewriter=]non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter[=typewriter[=typewriter=]non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter[=typewriter=]non-typewriter=]non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter[=typewriter[=typewriter=]non-typewriter=]non-typewriter&lt;/p&gt;&lt;p&gt;empty: [==]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-typewriter[&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;]non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter[=typewriter typewriter=]non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter[&lt;tt class=&quot;typewriter&quot;&gt;typewriter[&lt;/tt&gt;typewriter=]non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter[&lt;tt class=&quot;typewriter&quot;&gt;typewriter&lt;/tt&gt;]non-typewriter=]non-typewriter&lt;/p&gt;&lt;p&gt;non-typewriter[&lt;tt class=&quot;typewriter&quot;&gt;typewriter[&lt;/tt&gt;typewriter&lt;tt class=&quot;typewriter&quot;&gt;]non-typewriter&lt;/tt&gt;]non-typewriter&lt;/p&gt;&lt;p&gt;empty: [==]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_block.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_block.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_block.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined[_underlined_]non-underlined&lt;/p&gt;&lt;p&gt;non-underlined[_underlined underlined_]non-underlined&lt;/p&gt;&lt;p&gt;non-underlined[_underlined[_underlined_]non-underlined&lt;/p&gt;&lt;p&gt;non-underlined[_underlined_]non-underlined_]non-underlined&lt;/p&gt;&lt;p&gt;non-underlined[_underlined[_underlined_]non-underlined_]non-underlined&lt;/p&gt;&lt;p&gt;empty: [__]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;non-underlined[&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;]non-underlined&lt;/p&gt;&lt;p&gt;non-underlined[_underlined underlined_]non-underlined&lt;/p&gt;&lt;p&gt;non-underlined[&lt;span class=&quot;underlined&quot;&gt;underlined[&lt;/span&gt;underlined_]non-underlined&lt;/p&gt;&lt;p&gt;non-underlined[&lt;span class=&quot;underlined&quot;&gt;underlined&lt;/span&gt;]non-underlined_]non-underlined&lt;/p&gt;&lt;p&gt;non-underlined[&lt;span class=&quot;underlined&quot;&gt;underlined[&lt;/span&gt;underlined&lt;span class=&quot;underlined&quot;&gt;]non-underlined&lt;/span&gt;]non-underlined&lt;/p&gt;&lt;p&gt;empty: [__]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="000027.html">[fellowiki-svncheckins] r29 - in trunk: . fellowiki	fellowiki/config fellowiki/controllers	fellowiki/controllers/wikiparser fellowiki/model	fellowiki/static fellowiki/static/css fellowiki/static/images	fellowiki/templates fellowiki/tests
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#26">[ date ]</a>
+              <a href="thread.html#26">[ thread ]</a>
+              <a href="subject.html#26">[ subject ]</a>
+              <a href="author.html#26">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

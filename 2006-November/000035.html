@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r37 - pjm trunk
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-November/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r37%20-%20pjm%20trunk&In-Reply-To=%3C200611220255.kAM2tplC026137%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000034.html">
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r37 - pjm trunk</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r37%20-%20pjm%20trunk&In-Reply-To=%3C200611220255.kAM2tplC026137%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r37 - pjm trunk">fingerle at mail.berlios.de
+       </A><BR>
+    <I>Wed Nov 22 03:55:51 CET 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000034.html">[fellowiki-svncheckins] r36 - pjm trunk
+</A></li>
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#35">[ date ]</a>
+              <a href="thread.html#35">[ thread ]</a>
+              <a href="subject.html#35">[ subject ]</a>
+              <a href="author.html#35">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-11-22 03:55:51 +0100 (Wed, 22 Nov 2006)
+New Revision: 37
+
+Added:
+   pjm/rollout-trunk-current-upload.sh
+Modified:
+   pjm/rollout-trunk-current.sh
+   trunk/setup.py
+Log:
+Some more changes for setuptools.
+
+
+Added: pjm/rollout-trunk-current-upload.sh
+===================================================================
+--- pjm/rollout-trunk-current-upload.sh	2006-11-22 01:30:01 UTC (rev 36)
++++ pjm/rollout-trunk-current-upload.sh	2006-11-22 02:55:51 UTC (rev 37)
+@@ -0,0 +1,13 @@
++#!/bin/sh
++
++# This is an *example script* which works on my local configuration.
++#
++# Usage: after confirming everything is fine: register and upload
++
++RODIR=~/.fellowiki-rollout-tmp &amp;&amp; \
++DISTDIR=~/src/fellowiki-dist &amp;&amp; \
++CWD=`pwd` &amp;&amp; \
++cd $RODIR &amp;&amp; \
++echo setup.py... &amp;&amp; \
++python2.4 setup.py register sdist --formats=gztar,zip bdist_egg upload &amp;&amp; \
++cd $CWD
+
+
+Property changes on: pjm/rollout-trunk-current-upload.sh
+___________________________________________________________________
+Name: svn:executable
+   + *
+
+Modified: pjm/rollout-trunk-current.sh
+===================================================================
+--- pjm/rollout-trunk-current.sh	2006-11-22 01:30:01 UTC (rev 36)
++++ pjm/rollout-trunk-current.sh	2006-11-22 02:55:51 UTC (rev 37)
+@@ -12,7 +12,7 @@
+ svn co <A HREF="svn://svn.berlios.de/fellowiki/trunk">svn://svn.berlios.de/fellowiki/trunk</A> $RODIR &gt; /dev/null &amp;&amp; \
+ cd $RODIR &amp;&amp; \
+ echo setup.py... &amp;&amp; \
+-python2.4 setup.py egg_info sdist --formats=gztar,zip bdist_egg &gt; /dev/null &amp;&amp; \
++python2.4 setup.py sdist --formats=gztar,zip bdist_egg &gt; /dev/null &amp;&amp; \
+ cd dist &amp;&amp; \
+ echo generated: `ls *` &amp;&amp; \
+ cp * $DISTDIR
+
+Modified: trunk/setup.py
+===================================================================
+--- trunk/setup.py	2006-11-22 01:30:01 UTC (rev 36)
++++ trunk/setup.py	2006-11-22 02:55:51 UTC (rev 37)
+@@ -32,7 +32,7 @@
+ 
+ setup(
+     name=&quot;FelloWiki&quot;,
+-    version=&quot;0.01a1&quot;,
++    version=&quot;0.1a1&quot;,
+     
+     description='Yet another wiki engine',
+     long_description='Yet another wiki engine - still heavily in alpha',
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000034.html">[fellowiki-svncheckins] r36 - pjm trunk
+</A></li>
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#35">[ date ]</a>
+              <a href="thread.html#35">[ thread ]</a>
+              <a href="subject.html#35">[ subject ]</a>
+              <a href="author.html#35">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

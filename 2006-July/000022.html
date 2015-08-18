@@ -1,0 +1,265 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r24 - in trunk/fellowiki/wiki: . tests	tests/tests/simple_markup
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-July/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r24%20-%20in%20trunk/fellowiki/wiki%3A%20.%20tests%0A%09tests/tests/simple_markup&In-Reply-To=%3C200607202339.k6KNd3Zc027331%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000021.html">
+   <LINK REL="Next"  HREF="000023.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r24 - in trunk/fellowiki/wiki: . tests	tests/tests/simple_markup</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r24%20-%20in%20trunk/fellowiki/wiki%3A%20.%20tests%0A%09tests/tests/simple_markup&In-Reply-To=%3C200607202339.k6KNd3Zc027331%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r24 - in trunk/fellowiki/wiki: . tests	tests/tests/simple_markup">fingerle at mail.berlios.de
+       </A><BR>
+    <I>Fri Jul 21 01:39:03 CEST 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000021.html">[fellowiki-svncheckins] r23 - in trunk/fellowiki/wiki: . tests	tests/tests/simple_markup
+</A></li>
+        <LI>Next message: <A HREF="000023.html">[fellowiki-svncheckins] r25 - in trunk/fellowiki/wiki: . tests	tests/tests/mixed_markup tests/tests/simple_markup
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#22">[ date ]</a>
+              <a href="thread.html#22">[ thread ]</a>
+              <a href="subject.html#22">[ subject ]</a>
+              <a href="author.html#22">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-07-21 01:38:55 +0200 (Fri, 21 Jul 2006)
+New Revision: 24
+
+Added:
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.complete.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.complete.xml
+Modified:
+   trunk/fellowiki/wiki/parser.py
+   trunk/fellowiki/wiki/tests/test_parser.py
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.wiki
+Log:
+- some work on encoded external links
+
+
+Modified: trunk/fellowiki/wiki/parser.py
+===================================================================
+--- trunk/fellowiki/wiki/parser.py	2006-07-19 22:17:47 UTC (rev 23)
++++ trunk/fellowiki/wiki/parser.py	2006-07-20 23:38:55 UTC (rev 24)
+@@ -30,6 +30,8 @@
+ import elementtree.ElementTree as ElementTree
+ from fellowiki.util.assorted import attributes_from_dict, \
+       remove_escaping_backslashes, remove_backslashes_and_whitespace
++from urllib import quote, unquote, splitattr, splituser
++from urlparse import urlsplit, urlunsplit    
+       
+ import sre
+ import re
+@@ -49,7 +51,10 @@
+ LINK = 'link'
+ IMAGE_LINK = 'image link'
+ 
++link_allowed_targets = ['http', 'ftp', 'mailto']
++image_link_allowed_targets = ['http', 'ftp']
+ 
++
+ SPECIAL_MARKUP = {'/': ('em', 'italic'),
+                   '*': ('b' , 'bold'),
+                   '_': ('span', 'underlined'),
+@@ -556,6 +561,49 @@
+             self.xhtml.tag = 'p'
+             self.tokens.insert(0, BeetweenParagraphsXHTML(self.xhtml, self.token))
+             
++def check_and_normalize_url(url, allowed_schemes):
++    scheme, location, path, query, fragment = urlsplit(url)
++    
++    if scheme not in allowed_schemes:
++        return None, url
++    
++    if location is not None:
++        user, host = splituser(location)
++        host = host.encode('idna')
++        
++        if user is not None:
++            user = ':'.join([quote(unquote(u.encode('utf-8'))) for u in user.split(':')])
++            location = u'%s@%s' % (user, host)
++        else:
++            location = host
++    
++    if path is not None:
++        path_ = [splitattr(segment) for segment in path.split('/')]
++        path_ = [(quote(unquote(seg.encode('utf-8'))), 
++                    [u'='.join([quote(unquote(p.encode('utf-8'))) for p in parm_.split('=')]) 
++                    for parm_ in parm])    
++                for (seg, parm) in path_]
++        
++        path = []
++        
++        for (segment, parms) in path_:
++            if len(parms) &gt; 0:
++                segment_ = u';'.join([segment, u';'.join(parms)])
++                path.append(segment_)
++            else:
++                path.append(segment)
++                
++        path = u'/'.join(path)
++    
++    if query is not None:
++        query = u'&amp;'.join([u'='.join([quote(unquote(q.encode('utf-8'))) for q in query_.split('=')]) 
++                           for query_ in query.split('&amp;')])
++    
++    if fragment is not None:
++        fragment = quote(unquote(fragment.encode('utf-8')))
++    
++    return scheme, urlunsplit((scheme, location, path, query, fragment))
++            
+ class LinkToken(Token): 
+     def render(self, new_token):
+         new_token.prepend(self.xhtml)
+@@ -579,9 +627,15 @@
+         
+         self.xhtml.append(text)
+         
+-        if re.match(r'(http|ftp)://', target):
+-            self.xhtml.attributes['class'] = 'link_external'
+-            self.xhtml.attributes['href'] = target
++        scheme, url = check_and_normalize_url(target, link_allowed_targets)
++        
++        if scheme is not None:
++            if scheme == 'mailto':
++                self.xhtml.attributes['class'] = 'link_mailto'
++            else:
++                self.xhtml.attributes['class'] = 'link_external'
++            
++            self.xhtml.attributes['href'] = url
+             return
+         
+         try:
+@@ -643,9 +697,14 @@
+         if target is not None:
+             has_target = True
+             target = remove_backslashes_and_whitespace(target)
+-            if re.match(r'(http|ftp)://', target):
+-                self.xhtml.attributes['class'] = 'link_external'
+-                self.xhtml.attributes['href'] = target
++            scheme, url = check_and_normalize_url(target, link_allowed_targets)
++            
++            if scheme is not None:
++                if scheme == 'mailto':
++                    self.xhtml.attributes['class'] = 'link_mailto'
++                else:
++                    self.xhtml.attributes['class'] = 'link_external'
++                self.xhtml.attributes['href'] = url
+             else:    
+                 try:
+                     link_proc = procs[LINK]
+@@ -657,10 +716,12 @@
+                     self.xhtml.tag = 'span'
+                     self.xhtml.attributes['class'] = 'link_unresolved'
+                     
+-        if re.match(r'(http|ftp)://', image):
++        scheme, url = check_and_normalize_url(image, image_link_allowed_targets)
++        
++        if scheme is not None:
+             img = XMLElement('img')
+             img.attributes['class'] = 'img_external'
+-            img.attributes['src'] = image
++            img.attributes['src'] = url
+             
+             img.attributes['alt'] = description
+                 
+
+Modified: trunk/fellowiki/wiki/tests/test_parser.py
+===================================================================
+--- trunk/fellowiki/wiki/tests/test_parser.py	2006-07-19 22:17:47 UTC (rev 23)
++++ trunk/fellowiki/wiki/tests/test_parser.py	2006-07-20 23:38:55 UTC (rev 24)
+@@ -75,15 +75,15 @@
+     return new_test_proc
+     
+ def _link_test_proc(element, target):
+-    if target in ['link1', 'link 2', 'link   3']:
++    if target in ['link1', 'link 2', 'link   3', u'\xc4rger']:
+         element.set('class', '%s_resolved' % element.get('class'))
+-        element.set('href', quote('/view/%s' % target))
++        element.set('href', '/view/%s' % quote(target.encode('utf-8')))
+     else:
+         element.set('class', '%s_unresolved' % element.get('class'))
+-        element.set('href', quote('/edit/%s' % target))
++        element.set('href', '/edit/%s' % quote(target.encode('utf-8')))
+ 
+ def _image_link_test_proc(element, image, description, new_subelement):
+-    if image in ['link1', 'link 2', 'link   3']:
++    if image in ['link1', 'link 2', 'link   3', u'\xe4\xf6\xfc', u'look out for \xe9\xe8\xea']:
+         if new_subelement:
+             xhtml = SubElement(element, 'img')
+         else:
+@@ -91,7 +91,7 @@
+             xhtml.tag = 'img'
+         
+         xhtml.set('class', 'image_internal_resolved')
+-        xhtml.set('src', quote('/view_img/%s' % image))
++        xhtml.set('src', '/view_img/%s' % quote(image.encode('utf-8')))
+         xhtml.set('alt', description)
+         
+     else:
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.complete.xml	2006-07-19 22:17:47 UTC (rev 23)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.complete.xml	2006-07-20 23:38:55 UTC (rev 24)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;&lt;img alt=&quot;&quot; class=&quot;image_internal_resolved&quot; src=&quot;/view_img/look%20out%20for%20%C3%A9%C3%A8%C3%AA&quot; /&gt; &lt;img alt=&quot;&#223;&quot; class=&quot;image_internal_resolved&quot; src=&quot;/view_img/%C3%A4%C3%B6%C3%BC&quot; /&gt; &lt;a class=&quot;link_internal_unresolved&quot; href=&quot;/edit/%C3%A9%C3%A8%C3%AA&quot;&gt;&lt;img alt=&quot;&quot; class=&quot;image_internal_resolved&quot; src=&quot;/view_img/%C3%A4%C3%B6%C3%BC&quot; /&gt;&lt;/a&gt; &lt;a class=&quot;link_internal_unresolved&quot; href=&quot;/edit/%C3%A9%C3%A8%C3%AA&quot;&gt;&lt;img alt=&quot;&#223;&quot; class=&quot;image_internal_resolved&quot; src=&quot;/view_img/%C3%A4%C3%B6%C3%BC&quot; /&gt;&lt;/a&gt;&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.wiki
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.wiki	2006-07-19 22:17:47 UTC (rev 23)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_encoding.wiki	2006-07-20 23:38:55 UTC (rev 24)
+@@ -1,4 +1,4 @@
+ [[[look out for &#233;&#232;&#234;]]]
+-[[[ a&#246;&#252; || &#223; ]]]
++[[[ &#228;&#246;&#252; || &#223; ]]]
+ [[[ &#228;&#246;&#252; &gt;&gt; &#233;&#232;&#234; ]]]
+ [[[ &#228;&#246;&#252; || &#223; &gt;&gt; &#233;&#232;&#234; ]]]
+\ No newline at end of file
+
+Added: trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.complete.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.complete.xml	2006-07-19 22:17:47 UTC (rev 23)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_encoding.complete.xml	2006-07-20 23:38:55 UTC (rev 24)
+@@ -0,0 +1 @@
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;&lt;a class=&quot;link_internal_resolved&quot; href=&quot;/view/%C3%84rger&quot;&gt;&#196;rger&lt;/a&gt; &lt;a class=&quot;link_internal_unresolved&quot; href=&quot;/edit/M%C3%B6glichkeit&quot;&gt;M&#246;glichkeit&lt;/a&gt; &lt;a class=&quot;link_internal_unresolved&quot; href=&quot;/edit/%C3%9Cberheblichkeit&quot;&gt;&#220;berheblichkeit&lt;/a&gt; &lt;a class=&quot;link_internal_unresolved&quot; href=&quot;/edit/d%C3%A4mlich&quot;&gt;d&#228;mlich&lt;/a&gt; &lt;a class=&quot;link_internal_unresolved&quot; href=&quot;/edit/%C3%B6fters&quot;&gt;&#246;fters&lt;/a&gt; &lt;a class=&quot;link_internal_unresolved&quot; href=&quot;/edit/%C3%BCbel&quot;&gt;&#252;bel&lt;/a&gt; &lt;a class=&quot;link_internal_unresolved&quot; href=&quot;/edit/Das%20%C3%A4%2C%20%C3%B6%2C%20%C3%BC%2C%20%C3%9F%2C%20%C3%84.%20%C3%96%20und%20%C3%9C&quot;&gt;Das &#228;, &#246;, &#252;, &#223;, &#196;. &#214; und &#220;&lt;/a&gt; &lt;a class=&quot;link_internal_unresolved&quot; href=&quot;/edit/%C3%84%C3%96%C3%9C&quot;&gt; &#228;&#246;&#252; &lt;/a&gt;&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+\ No newline at end of file
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000021.html">[fellowiki-svncheckins] r23 - in trunk/fellowiki/wiki: . tests	tests/tests/simple_markup
+</A></li>
+	<LI>Next message: <A HREF="000023.html">[fellowiki-svncheckins] r25 - in trunk/fellowiki/wiki: . tests	tests/tests/mixed_markup tests/tests/simple_markup
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#22">[ date ]</a>
+              <a href="thread.html#22">[ thread ]</a>
+              <a href="subject.html#22">[ subject ]</a>
+              <a href="author.html#22">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

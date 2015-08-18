@@ -1,0 +1,233 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r33 - pjm trunk
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-November/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r33%20-%20pjm%20trunk&In-Reply-To=%3C200611191858.kAJIwlNj023274%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000030.html">
+   <LINK REL="Next"  HREF="000032.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r33 - pjm trunk</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r33%20-%20pjm%20trunk&In-Reply-To=%3C200611191858.kAJIwlNj023274%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r33 - pjm trunk">fingerle at mail.berlios.de
+       </A><BR>
+    <I>Sun Nov 19 19:58:47 CET 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000030.html">[fellowiki-svncheckins] r32 - pjm trunk trunk/fellowiki	trunk/fellowiki/config trunk/fellowiki/controllers	trunk/fellowiki/controllers/wikiparser trunk/fellowiki/model	trunk/fellowiki/templates trunk/fellowiki/util	trunk/fellowiki/widgets
+</A></li>
+        <LI>Next message: <A HREF="000032.html">[fellowiki-svncheckins] r34 - trunk
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#31">[ date ]</a>
+              <a href="thread.html#31">[ thread ]</a>
+              <a href="subject.html#31">[ subject ]</a>
+              <a href="author.html#31">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-11-19 19:58:47 +0100 (Sun, 19 Nov 2006)
+New Revision: 33
+
+Added:
+   trunk/fellowiki.py
+Removed:
+   trunk/fellowiki-www.py
+Modified:
+   pjm/milestones.txt
+   trunk/setup.py
+Log:
+moved fellowiki-www.py to fellowiki.py and minor changes
+
+
+Modified: pjm/milestones.txt
+===================================================================
+--- pjm/milestones.txt	2006-11-19 17:57:44 UTC (rev 32)
++++ pjm/milestones.txt	2006-11-19 18:58:47 UTC (rev 33)
+@@ -1,3 +1,5 @@
++This file is heavily out of date.
++
+ achieved:
+ =========
+ 
+
+Deleted: trunk/fellowiki-www.py
+===================================================================
+--- trunk/fellowiki-www.py	2006-11-19 17:57:44 UTC (rev 32)
++++ trunk/fellowiki-www.py	2006-11-19 18:58:47 UTC (rev 33)
+@@ -1,125 +0,0 @@
+-#!/usr/bin/python2.4
+-# Copyright (c) 2006 Jan Niklas Fingerle
+-#
+-# This source code file is based on a TurboGears &quot;quickstarted&quot; project.
+-# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
+-# and contributors.
+-# 
+-# Permission is hereby granted, free of charge, to any person obtaining a
+-# copy of this software and associated documentation files (the &quot;Software&quot;),
+-# to deal in the Software without restriction, including without limitation
+-# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+-# and/or sell copies of the Software, and to permit persons to whom the
+-# Software is furnished to do so, subject to the following conditions:
+-#
+-# The above copyright notice and this permission notice shall be included in
+-# all copies or substantial portions of the Software.
+-#
+-# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+-# DEALINGS IN THE SOFTWARE.
+-
+-import pkg_resources
+-pkg_resources.require(&quot;TurboGears&quot;)
+-
+-from optparse import OptionParser
+-from os.path import join, exists, dirname
+-
+-import cherrypy
+-import turbogears
+-from turbogears.database import session
+-from sqlalchemy.exceptions import SQLError
+-
+-from fellowiki.model import DBVersion, initialize
+-
+-def get_configuration():
+-    parser = OptionParser()
+-    parser.add_option(&quot;-c&quot;, &quot;--config&quot;, dest=&quot;config_file&quot;, type='string',
+-                  help=&quot;read configuration from FILE&quot;, metavar=&quot;FILE&quot;)
+-    parser.add_option(&quot;-u&quot;, &quot;--database &quot;, dest=&quot;db_uri&quot;, type='string',
+-                  help=&quot;data base URI&quot;, metavar=&quot;URI&quot;)
+-    parser.add_option(&quot;-b&quot;, &quot;--bind&quot;, dest=&quot;server_host&quot;, type='string',
+-                  help=&quot;bind server to HOST&quot;, metavar=&quot;HOST&quot;)
+-    parser.add_option(&quot;-p&quot;, &quot;--port&quot;, dest=&quot;server_port&quot;, type='int',
+-                  help=&quot;bind server to PORT&quot;, metavar=&quot;PORT&quot;)
+-    parser.add_option(&quot;--generate-tables&quot;, dest=&quot;generate_tables&quot;, 
+-                  action='store_true', default=False,
+-                  help=&quot;generate fellowiki data base tables&quot;)
+-    parser.add_option(&quot;--update-tables&quot;, dest=&quot;update_tables&quot;, 
+-                  action='store_true', default=False,
+-                  help=&quot;update fellowiki data base tables - not yet supported&quot;)
+-                  
+-    (options, args) = parser.parse_args()
+-    
+-    if len(args) &lt;&gt; 0:
+-        parser.error(&quot;positional parameters supplied, but not expected&quot;)
+-                      
+-    return options
+-
+-
+-def check_database(options):
+-    cherrypy.log('DB URI is %s' % cherrypy.config.get('sqlalchemy.dburi'), 'DB', 0)
+-    if cherrypy.config.get('sqlalchemy.dburi') in ['<A HREF="sqlite://">sqlite://</A>', '<A HREF="sqlite://:memory:">sqlite://:memory:</A>', 
+-                                         '<A HREF="sqlite:///">sqlite:///</A>', '<A HREF="sqlite:///:memory:">sqlite:///:memory:</A>']:
+-        # SQLite data bases require one DBApi per Thread. Cherrypy is 
+-        # multithreaded. Each thread will get its own *empty* memory DB, which
+-        # is not what we want, therefore...
+-        cherrypy.log(&quot;FelloWiki does not support SQLite memory data bases.&quot;, 'DB', 2)
+-        return False
+-    
+-    try: 
+-        versions = DBVersion.select()
+-        if options.generate_tables:
+-            cherrypy.log('generation of data base tables requested, but '+
+-                         'schema version table exists', 'DB', 1)
+-            return True
+-    except SQLError:
+-        if options.generate_tables:
+-            cherrypy.log('generating data base tables, as requested', 'DB', 0)
+-            initialize()
+-            session.flush()
+-            
+-        else:
+-            cherrypy.log(&quot;The FelloWiki data base tables seem not to be &quot; 
+-                         + &quot;installed. Please run FelloWiki with the flag &quot; 
+-                         + &quot;'--generate-tables' to create all needed tables.&quot;, 'DB', 2)
+-            return False
+-        
+-    return True
+-
+-def config_turbogears(options):
+-    if options.config_file is not None:
+-        turbogears.config.update_config(configfile=options.config_file, 
+-            modulename=&quot;fellowiki.config&quot;)
+-    elif exists(join(dirname(__file__), &quot;setup.py&quot;)):
+-        turbogears.config.update_config(configfile=join(dirname(__file__), &quot;dev.cfg&quot;),
+-            modulename=&quot;fellowiki.config&quot;)
+-    elif exists(&quot;/etc/fellowiki.cfg&quot;):
+-        turbogears.config.update_config(configfile=&quot;/etc/fellowiki.cfg&quot;,
+-            modulename=&quot;fellowiki.config&quot;)
+-
+-    new_conf = {}
+-    
+-    if options.server_host is not None:
+-        new_conf['server.socket_host'] = options.server_host
+-    if options.server_port is not None:
+-        new_conf['server.socket_port'] = options.server_port
+-    if options.db_uri is not None:   
+-        new_conf['sqlalchemy.dburi'] = options.db_uri
+-        
+-    turbogears.config.update({'global': new_conf})
+-
+-
+-def start_web_server():
+-    options = get_configuration()
+-    config_turbogears(options)
+-    if check_database(options):
+-        from fellowiki.controllers import FelloWikiRoot
+-        turbogears.start_server(FelloWikiRoot())
+-      
+-if __name__ == '__main__':
+-    start_web_server()
+
+Copied: trunk/fellowiki.py (from rev 32, trunk/fellowiki-www.py)
+
+Modified: trunk/setup.py
+===================================================================
+--- trunk/setup.py	2006-11-19 17:57:44 UTC (rev 32)
++++ trunk/setup.py	2006-11-19 18:58:47 UTC (rev 33)
+@@ -41,7 +41,6 @@
+     #url='<A HREF="http://www.fellowiki.org">http://www.fellowiki.org</A>',
+     #download_url='<A HREF="http://download.fellowiki.org">http://download.fellowiki.org</A>',
+     license='MIT-style',
+-    copyright = &quot;(c) 2006 Jan Niklas Fingerle&quot;,
+     
+     install_requires = [
+         &quot;TurboGears &gt;= 1.0b1&quot;,
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000030.html">[fellowiki-svncheckins] r32 - pjm trunk trunk/fellowiki	trunk/fellowiki/config trunk/fellowiki/controllers	trunk/fellowiki/controllers/wikiparser trunk/fellowiki/model	trunk/fellowiki/templates trunk/fellowiki/util	trunk/fellowiki/widgets
+</A></li>
+	<LI>Next message: <A HREF="000032.html">[fellowiki-svncheckins] r34 - trunk
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#31">[ date ]</a>
+              <a href="thread.html#31">[ thread ]</a>
+              <a href="subject.html#31">[ subject ]</a>
+              <a href="author.html#31">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

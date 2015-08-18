@@ -1,0 +1,375 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r8 - in trunk/fellowiki: tests/wiki/tests/simple_markup wiki
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-March/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r8%20-%20in%20trunk/fellowiki%3A%20tests/wiki/tests/simple_markup%20wiki&In-Reply-To=%3C200603192319.k2JNJAfk009408%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000005.html">
+   <LINK REL="Next"  HREF="000007.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r8 - in trunk/fellowiki: tests/wiki/tests/simple_markup wiki</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r8%20-%20in%20trunk/fellowiki%3A%20tests/wiki/tests/simple_markup%20wiki&In-Reply-To=%3C200603192319.k2JNJAfk009408%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r8 - in trunk/fellowiki: tests/wiki/tests/simple_markup wiki">fingerle at berlios.de
+       </A><BR>
+    <I>Mon Mar 20 00:19:10 CET 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000005.html">[fellowiki-svncheckins] r7 - pjm trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/wiki
+</A></li>
+        <LI>Next message: <A HREF="000007.html">[fellowiki-svncheckins] r9 - in trunk/fellowiki: tests/wiki/tests/simple_markup wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6">[ date ]</a>
+              <a href="thread.html#6">[ thread ]</a>
+              <a href="subject.html#6">[ subject ]</a>
+              <a href="author.html#6">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-03-20 00:19:08 +0100 (Mon, 20 Mar 2006)
+New Revision: 8
+
+Modified:
+   trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.complete.xml
+   trunk/fellowiki/wiki/parser.py
+Log:
+- some refactoring of the wiki parser
+- some changes for headline token
+
+
+Modified: trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.complete.xml
+===================================================================
+--- trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.complete.xml	2006-03-18 15:52:44 UTC (rev 7)
++++ trunk/fellowiki/tests/wiki/tests/simple_markup/pre_with_non_pre.complete.xml	2006-03-19 23:19:08 UTC (rev 8)
+@@ -1,4 +1,4 @@
+-&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;[@Preformatted text. &lt;/p&gt;&lt;pre&gt;Preformatted text. &lt;&amp;&gt;
++&lt;html xmlns=&quot;<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>&quot;&gt;&lt;head&gt;&lt;title /&gt;&lt;/head&gt;&lt;body&gt;&lt;div class=&quot;parsed-wiki-content&quot;&gt;&lt;p&gt;[@Preformatted text.&lt;/p&gt;&lt;pre&gt;Preformatted text. &lt;&amp;&gt;
+ [@Preformatted text.@]
+ 
+-\Preformatted text.&lt;/pre&gt;&lt;p&gt; Preformatted text.@]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
++\Preformatted text.&lt;/pre&gt;&lt;p&gt;Preformatted text.@]&lt;/p&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;
+
+Modified: trunk/fellowiki/wiki/parser.py
+===================================================================
+--- trunk/fellowiki/wiki/parser.py	2006-03-18 15:52:44 UTC (rev 7)
++++ trunk/fellowiki/wiki/parser.py	2006-03-19 23:19:08 UTC (rev 8)
+@@ -59,11 +59,10 @@
+         if decode_backslash:
+             self.text = remove_escaping_backslashes(self.text)
+             
+-    def render(self):
+-        # fixes rendering, called once!
++    def render(self, new_token):
+         xhtml = Element('div')
+         xhtml.text = self.token
+-        return xhtml
++        new_token.prepend_element_contents(xhtml)
+         
+     def match_is_open(self):
+         return False
+@@ -71,35 +70,34 @@
+     def close_matching(self, match):
+         return False
+     
+-    def fold_results(self, result, tokens):
++    def evaluate(self, result, tokens):
+         new_token = ResultToken()
+-        while len(result) &gt; 0 and (self.preference != None and 
+-                (result[-1].preference &gt; self.preference
+-                or self.preference &lt; 0
+-                or len(result) &gt; 1 and result[-1].preference == None
+-                    and (result[-2].preference == None or 
+-                          result[-2].preference &gt; self.preference)
+-                ) or self.preference == None and result[-1].preference == None):
++        
++        # fold result set where appropriate (e.g. higher priority) and
++        # close matching &quot;braces&quot;
++        while len(result) &gt; 0 \
++            and (self.preference is not None 
++                    and (result[-1].preference &gt; self.preference 
++                        or self.preference &lt; 0
++                        or len(result) &gt; 1 and result[-1].preference is None 
++                            and (result[-2].preference is None 
++                                or result[-2].preference &gt; self.preference)
++                        or self.match_is_open() 
++                            and (result[-1].preference is None 
++                                or result[-1].preference &gt;= self.preference)) 
++                or self.preference is None 
++                    and result[-1].preference is None):
+             res = result.pop()
+-            new_token.prepend_element_contents(res.render())
+-        return new_token
+-    
+-    def evaluate(self, result, tokens, new_token):
+-        while len(result) &gt; 0 and self.preference is not None and \
+-                (result[-1].preference &gt; self.preference
+-                or self.preference &lt; 0
+-                or self.match_is_open() and (result[-1].preference is None or
+-                result[-1].preference &gt;= self.preference)):
+-            res = result.pop()
+             if self.close_matching(res):
++                # matching braces generate a new token that will be evaluated
++                # as a new token
+                 tokens.insert(0, self.close(res, new_token))
+                 return
+-            # TODO: is
+             else:
+-                new_token.prepend_element_contents(res.render())
++                res.render(new_token)
+                 
+         result.append(new_token)
+-        if self.preference &gt;= 0 or self.preference is None:
++        if not isinstance(self, EndToken):
+             result.append(self)
+ 
+ class ResultToken(Token):
+@@ -108,8 +106,8 @@
+         self.preference = None
+         self.xhtml = Element('div')
+         
+-    def render(self):
+-        return self.xhtml
++    def render(self, new_token):
++        new_token.prepend_element_contents(self.xhtml)
+         
+     def prepend_element_contents(self, element): 
+         self.xhtml = add_element_contents(element, self.xhtml, 'div')
+@@ -119,36 +117,42 @@
+         attributes_from_dict(locals())
+         self.preference = -1
+         
+-    def render(self):
++    def render(self, new_token):
+         xhtml = Element('div')
+-        return xhtml
++        new_token.prepend_element_contents(xhtml)
+         
+     def match_is_open(self):
+         return True
+ 
+ class TextToken(Token):
+-    def render(self):
++    def render(self, new_token):
+         xhtml = Element('div')
+         xhtml.text = re.sub('[ \n\t]+', ' ', self.text)
+-        return xhtml
+-
+-class BetweenParagraphsToken(Token):
+-    def render(self):
++        new_token.prepend_element_contents(xhtml)
++        
++class LineBreakToken(Token):
++    def render(self, new_token):
++        
+         xhtml = Element('div')
+-        new_token = SubElement(xhtml, self.html_tag)
+-        new_token.text = self.text
+-        return xhtml
++        xhtml.text = ' '
++        new_token.prepend_element_contents(xhtml)
++    def evaluate(self, result, tokens):
++        if type(tokens[0]) == LineBreakToken:
++            next_token = tokens.pop(0)
++            tokens.insert(0, ParagraphToken(self.token + next_token.token))
++        else:
++            Token.evaluate(self, result, tokens)
+ 
+ class SingleToken(Token):
+-    def render(self):
++    def render(self, new_token):
+         xhtml = Element('div')
+         SubElement(xhtml, self.html_tag)
+-        return xhtml
++        new_token.prepend_element_contents(xhtml)
+         
+ class EncapsulateToken(Token):
+     open_wiki_markup = {}
+     open_html_markup = {}
+-    def evaluate(self, result, tokens, new_token):
++    def evaluate(self, result, tokens):
+         if self.type == '(':
+             self.is_nested_wiki = bool(self.open_wiki_markup.get(self.text, 
+                                                                  False))
+@@ -164,7 +168,7 @@
+ #                markers[self.input_marker+'~_'] = True
+         if self.type == ')':
+             self.second_content = None
+-        Token.evaluate(self, result, tokens, new_token)
++        Token.evaluate(self, result, tokens)
+         
+     def match_is_open(self):
+         if self.type == ')':
+@@ -225,7 +229,7 @@
+         EncapsulateToken.__init__(self, token, *args, **kwargs)
+         self.html_tag = self.special_markup[self.text][0]
+ 
+-    def render(self):
++    def render(self, new_token):
+         xhtml = Element('div')
+         if self.type == '*':
+             self.content.tag = self.special_markup[self.text][0]
+@@ -234,7 +238,7 @@
+         else:
+             self.gets_eaten()
+             xhtml.text = self.token
+-        return xhtml
++        new_token.prepend_element_contents(xhtml)
+         
+     def do_close(self, match, new_token, second_content):
+         assert(second_content is not None)
+@@ -243,7 +247,7 @@
+             
+ class SwitchMarkupToken(EncapsulateMarkupToken):
+     open_wiki_markup = {}
+-    def evaluate(self, result, tokens, new_token):
++    def evaluate(self, result, tokens):
+         if not hasattr(self, 'type'):
+             if (bool(self.open_wiki_markup.get(self.text, False)) or
+                  bool(self.open_html_markup.get(self.html_tag, False))):
+@@ -251,24 +255,21 @@
+             else:
+                 self.type = '('
+             
+-        EncapsulateMarkupToken.evaluate(self, result, tokens, new_token)
++        EncapsulateMarkupToken.evaluate(self, result, tokens)
+     def do_close(self,match, new_token, second_content): 
+         self.content = new_token.xhtml # TODO: this is only a DEBUG fix
+ 
+ class ParagraphToken(Token):
+     def __init__(self, token, *args, **kwargs):
+         Token.__init__(self, token, *args, **kwargs)
++        self.preference = 0
+         self.xhtml = Element('div')
+-
+-    def evaluate(self, result, tokens, new_token):
+-        Token.evaluate(self, result, tokens, new_token)
+         
+     def match_is_open(self):
+         return True
+     
+     def close_matching(self, match):
+-        return     isinstance(self, match.__class__) \
+-                 or isinstance(match, self.__class__)
++        return isinstance(match, ParagraphToken)
+             
+     def close(self, match, new_token):
+         if len(new_token.xhtml) != 0 or new_token.xhtml.text is not None \
+@@ -277,8 +278,17 @@
+            match.xhtml.append(new_token.xhtml)
+         return match
+         
+-    def render(self):
+-        return self.xhtml
++    def render(self, new_token):
++        new_token.prepend_element_contents(self.xhtml)
++        
++    def evaluate(self, result, tokens):
++        while type(tokens[0]) == LineBreakToken:
++            next_token = tokens.pop(0)
++            self.token += next_token.token
++        while len (result) &gt;0 and type(result[-1]) == LineBreakToken:
++            previous_result = result.pop()
++            self.token = next_token.token + self.token
++        Token.evaluate(self, result, tokens)
+             
+ 
+ class BetweenParagraphsToken(ParagraphToken):
+@@ -297,14 +307,14 @@
+                                   '^': ('valign', 'up'),
+                                   ',': ('valign', 'down')}
+ 
+-
+-class PrefixToken(Token): 
+-    pass
+-class HeadlineToken(PrefixToken): 
+-    pass
++class HeadlineToken(Token): 
++    def render(self, new_token):
++        new_token.xhtml.tag = 'h%i' % (len(self.token) - 1)
++        xhtml = Element('div')
++        xhtml.append(new_token.xhtml)
++        new_token.xhtml = xhtml
+     
+-    
+-class ListToken(PrefixToken): 
++class ListToken(Token): 
+     pass
+ class LinkToken(Token): 
+     pass
+@@ -336,11 +346,8 @@
+               # line break in output
+               (20, r'([ \n\t]*\n%%%%%*[ \n\t]*)+\n',
+                      token_factory(SingleToken, preference=10, html_tag='br')),
+-              # paragraph break
+-              (30, r'\n[ \n\t]*\n', token_factory(ParagraphToken,
+-                     preference = 0)),
+               # line break in input (non-printable)
+-              (40, r'\n', token_factory(TextToken, preference=20)),
++              (40, r'[ \t]*\n[ \t]*', token_factory(LineBreakToken, preference=20)),
+               # include link start
+               (10, r'\[\[\[', token_factory(EmbeddedLinkToken, type='(', 
+                      preference=20)),
+@@ -357,16 +364,16 @@
+               # special enclosing markup
+               (90, r'[/\*_=]', token_factory(SwitchMarkupToken, preference=40)),
+               (10, r'\[[/\*_=\'&quot;^,#~]', token_factory(EncapsulateMarkupToken, 
+-                    type='(', preference=20, cut_left=1)),
++                    type='(', preference=40, cut_left=1)),
+               (10, r'[/\*_=\'&quot;^,#~]\]', token_factory(EncapsulateMarkupToken, 
+-                    type=')', preference=20, cut_right=1)),
++                    type=')', preference=40, cut_right=1)),
+ 
+               # modifiers
+               (10, r'&lt;[:()^,]&gt;', token_factory(StructureModifyToken, 
+                     cut_left=1, cut_right=1)),
+               # headlines
+               (10, r'^={1,6}[ \t]', token_factory(HeadlineToken, 
+-                    preference=10)),
++                    preference=30)),
+               # lists
+               (10, r'\n[#*-]+[ \t]', token_factory(ListToken, preference=10)),
+               # tables
+@@ -406,7 +413,7 @@
+         
+         while len(tokens) &gt; 0:
+             token = tokens.pop(0)
+-            token.evaluate(result, tokens, token.fold_results(result, tokens))
++            token.evaluate(result, tokens)
+         
+         if len(tokens) != 0:
+             raise WikiParserError('WikiParser error in &quot;%s&quot;' % text)
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000005.html">[fellowiki-svncheckins] r7 - pjm trunk/fellowiki/tests/wiki/tests/simple_markup trunk/fellowiki/wiki
+</A></li>
+	<LI>Next message: <A HREF="000007.html">[fellowiki-svncheckins] r9 - in trunk/fellowiki: tests/wiki/tests/simple_markup wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#6">[ date ]</a>
+              <a href="thread.html#6">[ thread ]</a>
+              <a href="subject.html#6">[ subject ]</a>
+              <a href="author.html#6">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

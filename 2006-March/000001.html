@@ -1,0 +1,1689 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [fellowiki-svncheckins] r2 - / pjm trunk/fellowiki trunk/fellowiki/Wiki trunk/fellowiki/tests trunk/fellowiki/tests/Wiki trunk/fellowiki/third_party/w3c trunk/fellowiki/util
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/fellowiki-svncheckins/2006-March/index.html" >
+   <LINK REL="made" HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r2%20-%20/%20pjm%20trunk/fellowiki%20trunk/fellowiki/Wiki%20trunk/fellowiki/tests%20trunk/fellowiki/tests/Wiki%20trunk/fellowiki/third_party/w3c%20trunk/fellowiki/util&In-Reply-To=%3C200603051706.k25H6tSQ017028%40sheep.berlios.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="000000.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[fellowiki-svncheckins] r2 - / pjm trunk/fellowiki trunk/fellowiki/Wiki trunk/fellowiki/tests trunk/fellowiki/tests/Wiki trunk/fellowiki/third_party/w3c trunk/fellowiki/util</H1>
+    <B>fingerle at BerliOS</B> 
+    <A HREF="mailto:fellowiki-svncheckins%40lists.berlios.de?Subject=Re%3A%20%5Bfellowiki-svncheckins%5D%20r2%20-%20/%20pjm%20trunk/fellowiki%20trunk/fellowiki/Wiki%20trunk/fellowiki/tests%20trunk/fellowiki/tests/Wiki%20trunk/fellowiki/third_party/w3c%20trunk/fellowiki/util&In-Reply-To=%3C200603051706.k25H6tSQ017028%40sheep.berlios.de%3E"
+       TITLE="[fellowiki-svncheckins] r2 - / pjm trunk/fellowiki trunk/fellowiki/Wiki trunk/fellowiki/tests trunk/fellowiki/tests/Wiki trunk/fellowiki/third_party/w3c trunk/fellowiki/util">fingerle at berlios.de
+       </A><BR>
+    <I>Sun Mar  5 18:06:55 CET 2006</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="000000.html">[fellowiki-svncheckins] r3 - in trunk/fellowiki: . tests tests/wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1">[ date ]</a>
+              <a href="thread.html#1">[ thread ]</a>
+              <a href="subject.html#1">[ subject ]</a>
+              <a href="author.html#1">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Author: fingerle
+Date: 2006-03-05 18:06:53 +0100 (Sun, 05 Mar 2006)
+New Revision: 2
+
+Added:
+   pjm/
+   pjm/milestones.txt
+   pjm/planning/
+   pjm/tasks.txt
+   pjm/tools/
+   trunk/fellowiki/Wiki/parser.py
+   trunk/fellowiki/tests/pylintrc
+   trunk/fellowiki/third_party/w3c/LICENSE
+Removed:
+   trunk/fellowiki/Wiki/wikiparser.py
+   trunk/fellowiki/third_party/w3c/LICENCE
+Modified:
+   trunk/fellowiki/Wiki/__init__.py
+   trunk/fellowiki/__init__.py
+   trunk/fellowiki/tests/Wiki/__init__.py
+   trunk/fellowiki/tests/Wiki/ut_wikiparser.py
+   trunk/fellowiki/tests/__init__.py
+   trunk/fellowiki/util/__init__.py
+   trunk/fellowiki/util/assorted.py
+Log:
+- added pjm project management directory.
+- added default config for pylint
+- americanized &quot;LICENCE&quot; to &quot;LICNESE&quot; in w3c directory
+- fixed indentation from 3 to 4 blanks
+- fixed wiki unittest test runner
+- fixed __revision__ attribute in all modules
+- fixed module doc string in all modules
+- fixed violations of PEP 8 / pylint messages in wiki unittest test runner
+- fixed violations of PEP 8 / pylint messages in utils.assorted
+- moved Wiki.wikiparser to Wiki.parser, renamed Parser class to WikiParser
+- fixed a few pylint messages in Wiki.parser
+
+
+Added: pjm/milestones.txt
+===================================================================
+--- pjm/milestones.txt	2006-03-01 00:22:03 UTC (rev 1)
++++ pjm/milestones.txt	2006-03-05 17:06:53 UTC (rev 2)
+@@ -0,0 +1,18 @@
++achieved:
++=========
++
++
++planned:
++========
++
++0.0.1 working wiki parser
++0.1.0 working wiki 
++0.2.0 page templates are wiki pages
++0.3.0 user DB &amp; access restriction
++0.4.0 minimalistic ML based on user DB
++0.5.0 ML: bounce detection, ensured delivery
++0.6.0 automatic mails sent by user DB / wiki
++0.7.0 user DB admin through mail
++0.8.0 ML admin through mail
++0.9.0 optional text backend for ML (feature complete for 1.0.0)
++1.0.0 first stable version
+
+
+Property changes on: pjm/milestones.txt
+___________________________________________________________________
+Name: svn:executable
+   + *
+
+Added: pjm/tasks.txt
+===================================================================
+--- pjm/tasks.txt	2006-03-01 00:22:03 UTC (rev 1)
++++ pjm/tasks.txt	2006-03-05 17:06:53 UTC (rev 2)
+@@ -0,0 +1,3 @@
++*) simple web site
++*) some kind of issue tracker - but I don't like the BerliOS ones
++*) get svn mailing list working
+
+Modified: trunk/fellowiki/Wiki/__init__.py
+===================================================================
+--- trunk/fellowiki/Wiki/__init__.py	2006-03-01 00:22:03 UTC (rev 1)
++++ trunk/fellowiki/Wiki/__init__.py	2006-03-05 17:06:53 UTC (rev 2)
+@@ -17,3 +17,14 @@
+ # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ # DEALINGS IN THE SOFTWARE.
++
++&quot;&quot;&quot;fellowiki wiki package
++
++This wiki package doesn't do anything special, it's just there to contain
++the subpackages:
++
++    - assorted: should read &quot;unsorted&quot; ;-) TODO: Sort. Sort of. Ish. 
++    
++&quot;&quot;&quot;
++
++__revision__ = &quot;$Revision:$&quot;
+
+Copied: trunk/fellowiki/Wiki/parser.py (from rev 1, trunk/fellowiki/Wiki/wikiparser.py)
+===================================================================
+--- trunk/fellowiki/Wiki/wikiparser.py	2006-03-01 00:22:03 UTC (rev 1)
++++ trunk/fellowiki/Wiki/parser.py	2006-03-05 17:06:53 UTC (rev 2)
+@@ -0,0 +1,408 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the &quot;Software&quot;),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
++&quot;&quot;&quot;fellowiki wiki parser
++
++TODO: overview wiki parser
++    
++&quot;&quot;&quot;
++
++__revision__ = &quot;$Revision:$&quot;
++
++
++from elementtree.ElementTree import Element, SubElement
++
++from fellowiki.util.assorted import attributes_from_dict, \
++      remove_escaping_backslashes, add_element_contents
++      
++import sre, re
++
++
++class Token(object):
++    def __init__(self, scanner, token, cut_right = None, cut_left = None,
++                     decode_backslash = False, preference = None, **attr_dict):
++        attributes_from_dict(dict(locals().items()+attr_dict.items()))
++        try:
++            cut_right = -cut_right
++        except TypeError: 
++            pass
++        self.text = token[cut_left:cut_right]
++
++        if decode_backslash:
++            self.text = remove_escaping_backslashes(self.text)
++            
++    def render(self):
++        # fixes rendering, called once!
++        xhtml = Element('div')
++        xhtml.text = self.token
++        return xhtml
++        
++    def match_is_open(self):
++        return False
++    
++    def close_matching(self, match):
++        return False
++    
++    def fold_results(self, result, tokens):
++        new_token = ResultToken()
++        while len(result) &gt; 0 and (self.preference &lt;&gt; None and 
++                (result[-1].preference &gt; self.preference
++                or self.preference &lt; 0
++                or len(result) &gt; 1 and result[-1].preference == None
++                    and (result[-2].preference == None or 
++                          result[-2].preference &gt; self.preference)
++                ) or self.preference == None and result[-1].preference == None):
++            res = result.pop()
++            new_token.prepend_element_contents(res.render())
++        return new_token
++    
++    def evaluate(self, result, tokens, new_token):
++        while len(result) &gt; 0 and self.preference &lt;&gt; None and \
++                (result[-1].preference &gt; self.preference
++                or self.preference &lt; 0
++                or self.match_is_open() and (result[-1].preference == None or
++                result[-1].preference &gt;= self.preference)):
++            res = result.pop()
++            if self.close_matching(res):
++                tokens.insert(0,self.close(res, new_token))
++                return
++            else:
++                new_token.prepend_element_contents(res.render())
++                
++        result.append(new_token)
++        if self.preference &gt;= 0 or self.preference == None:
++            result.append(self)
++
++class ResultToken(Token):
++    def __init__(self):
++        attributes_from_dict(locals())
++        self.preference = None
++        self.xhtml = Element('div')
++        
++    def render(self):
++        return self.xhtml
++        
++    def prepend_element_contents(self, element): 
++        self.xhtml = add_element_contents(element, self.xhtml, 'div')
++
++class EndToken(Token):
++    def __init__(self):
++        attributes_from_dict(locals())
++        self.preference = -1
++        
++    def render(self):
++        xhtml = Element('div')
++        return xhtml
++        
++    def match_is_open(self):
++        return True
++
++class TextToken(Token):
++    def render(self):
++        xhtml = Element('div')
++        xhtml.text = re.sub('[ \n\t]+',' ',self.text)
++        return xhtml
++
++class EmbeddedTextToken(Token):
++    def render(self):
++        xhtml = Element('div')
++        new_token = SubElement(xhtml, self.html_tag)
++        new_token.text = self.text
++        return xhtml
++
++class SingleToken(Token):
++    def render(self):
++        xhtml = Element('div')
++        SubElement(xhtml, self.html_tag)
++        return xhtml
++        
++class EncapsulateToken(Token):
++    open_wiki_markup = {}
++    open_html_markup = {}
++    def evaluate(self, result, tokens, new_token):
++        if self.type == '(':
++            self.is_nested_wiki = bool(self.open_wiki_markup.get(self.text, 
++                                                                                  False))
++            self.is_nested_html = bool(self.open_html_markup.get(self.html_tag,
++                                                                            False))
++            self.open_wiki_markup[self.text] = \
++                                            self.open_wiki_markup.get(self.text, 0) + 1
++            self.open_html_markup[self.html_tag] = \
++                                      self.open_html_markup.get(self.html_tag, 0) + 1
++#          if self.type == '_' and self.open_wiki_markup.get(self.text, False):
++#              self.is_valid_middle_element = markers.get(self.input_marker+'~_',
++#                                                                        False)
++#                markers[self.input_marker+'~_'] = True
++        if self.type == ')':
++            self.second_content = None
++        super(EncapsulateToken, self).evaluate(result, tokens, 
++                                                                          new_token)
++        
++    def match_is_open(self):
++        if self.type == ')':
++            try: 
++                return bool(self.open_wiki_markup[self.text])
++            except KeyError:
++                return False
++        # was ist mit '_'?
++    
++    def close_matching(self, match):
++        if (self.type == ')' and self.__class__ == match.__class__
++            and self.text == match.text
++            and match.type == '(' and not match.is_nested_html):
++            return True
++        else:
++            try:
++                return (self.type == ')' and isinstance(self, match.__class__)
++                    and self.text == match.text
++                    and match.type == '_' and match.is_valid_middle_element)
++            except AttributeError:
++                return False
++            
++    def close(self, match, new_token):
++        if match.type == '(':
++            match.open_wiki_markup[match.text] = \
++                                         match.open_wiki_markup.get(match.text, 0) - 1
++            match.open_html_markup[match.html_tag] = \
++                                    match.open_html_markup.get(match.html_tag, 0) - 1
++            self.type = '*'
++            self.do_close(match, new_token, self.second_content)
++        #elif self.type == '_' and markers[self.input_marker]:
++        #    markers[match.input_marker+'~_'] = False
++        #    self.second_content = new_token
++        else:
++            raise &quot;CloseWhereNotAllowedException&quot; ### TODO
++        return self
++    
++    def gets_eaten(self):
++        if self.type == '(':
++            self.open_wiki_markup[self.text] = \
++                                         self.open_wiki_markup.get(self.text, 0) - 1
++            self.open_html_markup[self.html_tag] = \
++                                    self.open_html_markup.get(self.html_tag, 0) - 1
++
++class EncapsulateMarkupToken(EncapsulateToken):
++    special_markup = {'/': ('em', 'italic'),
++                            '*': ('b', 'bold'),
++                            '_': ('em', 'underline'),
++                            '=': ('tt', 'typewriter'),
++                            &quot;'&quot;: ('div', 'single_quotes'),
++                            '&quot;': ('div', 'double_quotes'),
++                            '^': ('div', 'superscript'),
++                            ',': ('div', 'subscript'),
++                            '#': ('div', 'large'),
++                            '~': ('div', 'small')}; # TODO: check for correct markup
++    
++    def __init__(self, scanner, token, *p, **k):
++        super(EncapsulateMarkupToken,self).__init__(scanner, 
++                                                                                 token, *p, **k)
++        self.html_tag = self.special_markup[self.text][0]
++
++    def render(self):
++        xhtml = Element('div')
++        if self.type == '*':
++            self.content.tag = self.special_markup[self.text][0]
++            xhtml[:] = [self.content]
++                
++        else:
++            self.gets_eaten()
++            xhtml.text = self.token
++        return xhtml
++        
++    def do_close(self, match, new_token, second_content):
++        if second_content &lt;&gt; None:
++            raise &quot;EncapsulateMarkupException&quot; ## TODO
++        
++        self.content = new_token.xhtml
++            
++class SwitchMarkupToken(EncapsulateMarkupToken):
++    open_wiki_markup = {}
++    def evaluate(self, result, tokens, new_token):
++        if not hasattr(self, 'type'):
++            if (bool(self.open_wiki_markup.get(self.text, False)) or
++                 bool(self.open_html_markup.get(self.html_tag, False))):
++                self.type = ')'
++            else:
++                self.type = '('
++            
++        super(SwitchMarkupToken, self).evaluate(result, tokens, 
++                                                                            new_token)
++
++class StructureToken(Token):
++    ## all Structure is equal and should be of preference 0
++    open_structure_list = []
++    def __init__(self, scanner, token, *p, **k):
++        super(StructureToken,self).__init__(scanner, token, *p, **k)
++        self.xhtml = Element('div')
++
++    def evaluate(self, result, tokens, new_token):
++        super(StructureToken, self).evaluate(result, tokens, 
++                                                                          new_token)
++        if not self.match_is_open:
++            self.open_structure_list.append(self.html_tag)
++        
++    def match_is_open(self):
++        try:
++            self.open_structure_list.index(self.html_tag)
++            return True
++        except ValueError:
++            return False
++    
++    def close_matching(self, match):
++        return     isinstance(self, match.__class__) \
++                 or isinstance(match, self.__class__)
++            
++    def close(self, match, new_token):
++        new_token.xhtml.tag = self.html_tag
++        match.xhtml.append(new_token.xhtml)
++        while len(self.open_structure_list) &gt; 0:
++          if self.open_structure_list.pop() == self.html_tag: break
++        return match
++        
++    def render(self):
++        return self.xhtml
++            
++
++
++class StructureModifyToken(Token): 
++#modifiziert letzte geoeffnete struktur, wird dann wegfallen lassen =&gt; keine
++# preference
++    structure_modifiers = {':': ('align',  'center'),
++                                  '(': ('align',  'left'),
++                                  ')': ('align',  'right'),
++                                  '^': ('valign', 'up'),
++                                  ',': ('valign', 'down')}
++
++
++class PrefixToken(Token): pass
++class HeadlineToken(PrefixToken): pass
++class ListToken(EncapsulateToken): pass
++
++class LinkToken(EncapsulateToken): pass
++class EmbeddedLinkToken(LinkToken): pass
++class MacroToken(LinkToken): pass
++    
++    
++class TableToken(EncapsulateToken): pass
++
++
++
++
++class WikiParser(object):
++    def token(Token, *args, **kw_args):
++        def new_token(scanner, token):
++            return Token(*((scanner, token)+args), **kw_args)
++        return new_token    
++
++
++    regexes = [### escaped text, no wiki tags:
++                  (10, r'\[%([^\\%\[]|\\.|%[^\\\]])*%\]', token(TextToken, 
++                         cut_left=2, 
++                         cut_right=2, decode_backslash = True)),
++                  ### escaped text, preformatted:
++                  (10, r'\[@([^\\@\[]|\\.|@[^\\\]])*@\]', token(EmbeddedTextToken,
++                         preference = 0, html_tag='pre',
++                         cut_left=2, cut_right=2, 
++                         decode_backslash = True)),
++                  ### escaped single character:
++                  (10, r'\\.', token(TextToken, cut_left=1)),
++                  ### line break in output
++                  (20, r'([ \n\t]*\n%%%%%*[ \n\t]*)+\n',
++                         token(SingleToken, preference=10, html_tag='br')),
++                  ### paragraph break
++                  (30, r'\n[ \n\t]*\n', token(StructureToken,
++                         preference = 0, html_tag='p')),
++                  ### line break in input (non-printable)
++                  (40, r'\n', token(TextToken, preference=20)),
++                  ### include link start
++                  (10, r'\[\[\[', token(EmbeddedLinkToken, type='(', 
++                         preference=20)),
++                  ### include link stop
++                  (10, r'\]\]\]', token(EmbeddedLinkToken, type=')', 
++                         preference=20)),
++                  ### link start
++                  (20, r'\[\[', token(LinkToken, type='(', preference=20)),
++                  ### link stop
++                  (20, r'\]\]', token(LinkToken, type=')', preference=20)),
++                  ### link rename
++                  (20, r'[ \t]&gt;&gt;[ \t]', token(LinkToken, type='_', 
++                         preference=20)),
++                  ### special enclosing markup
++                  (90, r'[/\*_=]', token(SwitchMarkupToken, preference=40)),
++                  (10, r'\[[/\*_=\'&quot;^,#~]', token(EncapsulateMarkupToken, type='(',
++                         preference=20, cut_left=1)),
++                  (10, r'[/\*_=\'&quot;^,#~]\]', token(EncapsulateMarkupToken, type=')',
++                         preference=20, cut_right=1)),
++
++                  ### modifiers
++                  (10, r'&lt;[:()^,]&gt;', token(StructureModifyToken, cut_left=1, 
++                         cut_right=1)),
++                  ### headlines
++                  (10, r'\n={1,6}[ \t]', token(HeadlineToken, preference=10)),
++                  ### lists
++                  (10, r'\n[#*-]+[ \t]', token(ListToken, preference=10)),
++                  ### tables
++                  (10, r'\n\|', token(TableToken, type='(', preference=0)),
++                  (10, r'\|(?=\n)', token(TableToken, type=')', preference=0)),
++                  (90, r'\|', token(TableToken, type='_', preference=0)),
++                  ### macros
++                  (10, r'\{\{', token(MacroToken, type='(', preference=20)),
++                  (10, r'\}\}', token(MacroToken, type=')', preference=20)),
++                  ### n-dash and m-dash
++                  (20, r'--', token(TextToken, new_text=u'\u2013')),
++                  (20, r'---', token(TextToken, new_text=u'\u2014')),
++                  ### horizontal rule
++                  (10, r'\n----(?=\n)', token(SingleToken, preference=0, 
++                         html_tag='hr')),
++                  ### what's left 
++                  (90, r'[ \t]', token(TextToken, preference=30)),
++                  (99, r'.', token(TextToken))
++                 ]
++
++    def __init__(self):
++        regexes = self.regexes[:]
++        regexes.sort()
++        regexes = [(b,c) for (a,b,c) in regexes]
++        self.scanner = sre.Scanner(regexes)
++
++    def parse(self, text):
++        tokens = self.scanner.scan(''.join(['\n\n',text,'\n\n']))
++        
++        if tokens[1] &lt;&gt; '':
++            raise 'ParserException' ## TODO: Exception
++        
++        tokens=tokens[0]
++        tokens.append(EndToken())
++        result = []
++        
++        while len(tokens) &gt; 0:
++            token = tokens.pop(0)
++            token.evaluate(result, tokens, token.fold_results(result,tokens))
++        
++        if len(tokens) &lt;&gt; 0:
++            raise 'ParserException' ## TODO: Exception
++        if len(result) &lt;&gt; 1:
++            raise 'ParserException' ## TODO: Exception
++            
++        xhtml_tree = result[0].xhtml
++        
++        xhtml_tree.set('class','parsed-wiki-content')
++        
++        return xhtml_tree
+
+Deleted: trunk/fellowiki/Wiki/wikiparser.py
+===================================================================
+--- trunk/fellowiki/Wiki/wikiparser.py	2006-03-01 00:22:03 UTC (rev 1)
++++ trunk/fellowiki/Wiki/wikiparser.py	2006-03-05 17:06:53 UTC (rev 2)
+@@ -1,428 +0,0 @@
+-# Copyright (c) 2006 Jan Niklas Fingerle
+-# 
+-# Permission is hereby granted, free of charge, to any person obtaining a
+-# copy of this software and associated documentation files (the &quot;Software&quot;),
+-# to deal in the Software without restriction, including without limitation
+-# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+-# and/or sell copies of the Software, and to permit persons to whom the
+-# Software is furnished to do so, subject to the following conditions:
+-#
+-# The above copyright notice and this permission notice shall be included in
+-# all copies or substantial portions of the Software.
+-#
+-# THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+-# DEALINGS IN THE SOFTWARE.
+-
+-from elementtree.ElementTree import Element, SubElement, tostring
+-
+-from fellowiki.util.assorted import attributesFromDict, \
+-     remove_escaping_backslashes, save_add, add_element_contents
+-     
+-import sys, sre, re
+-
+-
+-class Token(object):
+-   def __init__(self, scanner, token, cut_right = None, cut_left = None,
+-                decode_backslash = False, preference = None, **attr_dict):
+-      attributesFromDict(dict(locals().items()+attr_dict.items()))
+-      try:
+-         cut_right = -cut_right
+-      except TypeError: 
+-         pass
+-      self.text = token[cut_left:cut_right]
+-
+-      if decode_backslash:
+-         self.text = remove_escaping_backslashes(self.text)
+-         
+-   def render(self):
+-      # fixes rendering, called once!
+-      xhtml = Element('div')
+-      xhtml.text = self.token
+-      return xhtml
+-      
+-   def match_is_open(self):
+-      return False
+-   
+-   def close_matching(self, match):
+-      return False
+-   
+-   def fold_results(self, result, tokens):
+-      new_token = ResultToken()
+-      while len(result) &gt; 0 and (self.preference &lt;&gt; None and 
+-            (result[-1].preference &gt; self.preference
+-            or self.preference &lt; 0
+-            or len(result) &gt; 1 and result[-1].preference == None
+-               and (result[-2].preference == None or 
+-                    result[-2].preference &gt; self.preference)
+-            ) or self.preference == None and result[-1].preference == None):
+-         res = result.pop()
+-         new_token.prepend_element_contents(res.render())
+-      return new_token
+-   
+-   def evaluate(self, result, tokens, new_token):
+-      while len(result) &gt; 0 and self.preference &lt;&gt; None and \
+-            (result[-1].preference &gt; self.preference
+-            or self.preference &lt; 0
+-            or self.match_is_open() and (result[-1].preference == None or
+-            result[-1].preference &gt;= self.preference)):
+-         res = result.pop()
+-         if self.close_matching(res):
+-            tokens.insert(0,self.close(res, new_token))
+-            return
+-         else:
+-            new_token.prepend_element_contents(res.render())
+-            
+-      result.append(new_token)
+-      if self.preference &gt;= 0 or self.preference == None:
+-         result.append(self)
+-
+-class ResultToken(Token):
+-   def __init__(self):
+-      attributesFromDict(locals())
+-      self.preference = None
+-      self.xhtml = Element('div')
+-      
+-   def render(self):
+-      return self.xhtml
+-      
+-   def prepend_element_contents(self, element): 
+-      self.xhtml = add_element_contents(element, self.xhtml, 'div')
+-
+-class EndToken(Token):
+-   def __init__(self):
+-      attributesFromDict(locals())
+-      self.preference = -1
+-      
+-   def render(self):
+-      xhtml = Element('div')
+-      return xhtml
+-      
+-   def match_is_open(self):
+-      return True
+-
+-class TextToken(Token):
+-   def render(self):
+-      xhtml = Element('div')
+-      xhtml.text = re.sub('[ \n\t]+',' ',self.text)
+-      return xhtml
+-
+-class EmbeddedTextToken(Token):
+-   def render(self):
+-      xhtml = Element('div')
+-      new_token = SubElement(xhtml, self.html_tag)
+-      new_token.text = self.text
+-      return xhtml
+-
+-class SingleToken(Token):
+-   def render(self):
+-      xhtml = Element('div')
+-      SubElement(xhtml, self.html_tag)
+-      return xhtml
+-      
+-class EncapsulateToken(Token):
+-   open_wiki_markup = {}
+-   open_html_markup = {}
+-   def evaluate(self, result, tokens, new_token):
+-      if self.type == '(':
+-         self.is_nested_wiki = bool(self.open_wiki_markup.get(self.text, 
+-                                                              False))
+-         self.is_nested_html = bool(self.open_html_markup.get(self.html_tag,
+-                                                         False))
+-         self.open_wiki_markup[self.text] = \
+-                                 self.open_wiki_markup.get(self.text, 0) + 1
+-         self.open_html_markup[self.html_tag] = \
+-                             self.open_html_markup.get(self.html_tag, 0) + 1
+-#        if self.type == '_' and self.open_wiki_markup.get(self.text, False):
+-#           self.is_valid_middle_element = markers.get(self.input_marker+'~_',
+-#                                                      False)
+-#            markers[self.input_marker+'~_'] = True
+-      if self.type == ')':
+-         self.second_content = None
+-      super(EncapsulateToken, self).evaluate(result, tokens, 
+-                                                        new_token)
+-      
+-   def match_is_open(self):
+-      if self.type == ')':
+-         try: 
+-            return bool(self.open_wiki_markup[self.text])
+-         except KeyError:
+-            return False
+-      # was ist mit '_'?
+-   
+-   def close_matching(self, match):
+-      if (self.type == ')' and self.__class__ == match.__class__
+-         and self.text == match.text
+-         and match.type == '(' and not match.is_nested_html):
+-         return True
+-      else:
+-         try:
+-            return (self.type == ')' and isinstance(self, match.__class__)
+-               and self.text == match.text
+-               and match.type == '_' and match.is_valid_middle_element)
+-         except AttributeError:
+-            return False
+-         
+-   def close(self, match, new_token):
+-      if match.type == '(':
+-         match.open_wiki_markup[match.text] = \
+-                               match.open_wiki_markup.get(match.text, 0) - 1
+-         match.open_html_markup[match.html_tag] = \
+-                           match.open_html_markup.get(match.html_tag, 0) - 1
+-         self.type = '*'
+-         self.do_close(match, new_token, self.second_content)
+-      #elif self.type == '_' and markers[self.input_marker]:
+-      #   markers[match.input_marker+'~_'] = False
+-      #   self.second_content = new_token
+-      else:
+-         raise &quot;CloseWhereNotAllowedException&quot; ### TODO
+-      return self
+-   
+-   def gets_eaten(self):
+-      if self.type == '(':
+-         self.open_wiki_markup[self.text] = \
+-                               self.open_wiki_markup.get(self.text, 0) - 1
+-         self.open_html_markup[self.html_tag] = \
+-                           self.open_html_markup.get(self.html_tag, 0) - 1
+-
+-class EncapsulateMarkupToken(EncapsulateToken):
+-   special_markup = {'/': ('em', 'italic'),
+-                     '*': ('b', 'bold'),
+-                     '_': ('em', 'underline'),
+-                     '=': ('tt', 'typewriter'),
+-                     &quot;'&quot;: ('div', 'single_quotes'),
+-                     '&quot;': ('div', 'double_quotes'),
+-                     '^': ('div', 'superscript'),
+-                     ',': ('div', 'subscript'),
+-                     '#': ('div', 'large'),
+-                     '~': ('div', 'small')}; # TODO: check for correct markup
+-   
+-   def __init__(self, scanner, token, *p, **k):
+-      super(EncapsulateMarkupToken,self).__init__(scanner, 
+-                                                             token, *p, **k)
+-      self.html_tag = self.special_markup[self.text][0]
+-
+-   def render(self):
+-      xhtml = Element('div')
+-      if self.type == '*':
+-         self.content.tag = self.special_markup[self.text][0]
+-         xhtml[:] = [self.content]
+-            
+-      else:
+-         self.gets_eaten()
+-         xhtml.text = self.token
+-      return xhtml
+-      
+-   def do_close(self, match, new_token, second_content):
+-      if second_content &lt;&gt; None:
+-         raise &quot;EncapsulateMarkupException&quot; ## TODO
+-      
+-      self.content = new_token.xhtml
+-         
+-class SwitchMarkupToken(EncapsulateMarkupToken):
+-   open_wiki_markup = {}
+-   def evaluate(self, result, tokens, new_token):
+-      if not hasattr(self, 'type'):
+-         if (bool(self.open_wiki_markup.get(self.text, False)) or
+-             bool(self.open_html_markup.get(self.html_tag, False))):
+-            self.type = ')'
+-         else:
+-            self.type = '('
+-         
+-      super(SwitchMarkupToken, self).evaluate(result, tokens, 
+-                                                         new_token)
+-
+-class StructureToken(Token):
+-   ## all Structure is equal and should be of preference 0
+-   open_structure_list = []
+-   def __init__(self, scanner, token, *p, **k):
+-      super(StructureToken,self).__init__(scanner, token, *p, **k)
+-      self.xhtml = Element('div')
+-
+-   def evaluate(self, result, tokens, new_token):
+-      super(StructureToken, self).evaluate(result, tokens, 
+-                                                        new_token)
+-      if not self.match_is_open:
+-         self.open_structure_list.append(self.html_tag)
+-      
+-   def match_is_open(self):
+-      try:
+-         self.open_structure_list.index(self.html_tag)
+-         return True
+-      except ValueError:
+-         return False
+-   
+-   def close_matching(self, match):
+-      return    isinstance(self, match.__class__) \
+-             or isinstance(match, self.__class__)
+-         
+-   def close(self, match, new_token):
+-      new_token.xhtml.tag = self.html_tag
+-      match.xhtml.append(new_token.xhtml)
+-      while len(self.open_structure_list) &gt; 0:
+-        if self.open_structure_list.pop() == self.html_tag: break
+-      return match
+-      
+-   def render(self):
+-      return self.xhtml
+-         
+-
+-
+-class StructureModifyToken(Token): 
+-#modifiziert letzte geoeffnete struktur, wird dann wegfallen lassen =&gt; keine
+-# preference
+-   structure_modifiers = {':': ('align',  'center'),
+-                          '(': ('align',  'left'),
+-                          ')': ('align',  'right'),
+-                          '^': ('valign', 'up'),
+-                          ',': ('valign', 'down')}
+-
+-
+-class PrefixToken(Token): pass
+-class HeadlineToken(PrefixToken): pass
+-class ListToken(EncapsulateToken): pass
+-
+-class LinkToken(EncapsulateToken): pass
+-class EmbeddedLinkToken(LinkToken): pass
+-class MacroToken(LinkToken): pass
+-   
+-   
+-class TableToken(EncapsulateToken): pass
+-
+-
+-
+-
+-class Parser(object):
+-   def token(Token, *args, **kw_args):
+-      def new_token(scanner, token):
+-         return Token(*((scanner, token)+args), **kw_args)
+-      return new_token   
+-
+-
+-   regexes = [### escaped text, no wiki tags:
+-              (10, r'\[%([^\\%\[]|\\.|%[^\\\]])*%\]', token(TextToken, 
+-                   cut_left=2, 
+-                   cut_right=2, decode_backslash = True)),
+-              ### escaped text, preformatted:
+-              (10, r'\[@([^\\@\[]|\\.|@[^\\\]])*@\]', token(EmbeddedTextToken,
+-                   preference = 0, html_tag='pre',
+-                   cut_left=2, cut_right=2, 
+-                   decode_backslash = True)),
+-              ### escaped single character:
+-              (10, r'\\.', token(TextToken, cut_left=1)),
+-              ### line break in output
+-              (20, r'([ \n\t]*\n%%%%%*[ \n\t]*)+\n',
+-                   token(SingleToken, preference=10, html_tag='br')),
+-              ### paragraph break
+-              (30, r'\n[ \n\t]*\n', token(StructureToken,
+-                   preference = 0, html_tag='p')),
+-              ### line break in input (non-printable)
+-              (40, r'\n', token(TextToken, preference=20)),
+-              ### include link start
+-              (10, r'\[\[\[', token(EmbeddedLinkToken, type='(', 
+-                   preference=20)),
+-              ### include link stop
+-              (10, r'\]\]\]', token(EmbeddedLinkToken, type=')', 
+-                   preference=20)),
+-              ### link start
+-              (20, r'\[\[', token(LinkToken, type='(', preference=20)),
+-              ### link stop
+-              (20, r'\]\]', token(LinkToken, type=')', preference=20)),
+-              ### link rename
+-              (20, r'[ \t]&gt;&gt;[ \t]', token(LinkToken, type='_', 
+-                   preference=20)),
+-              ### special enclosing markup
+-              (90, r'[/\*_=]', token(SwitchMarkupToken, preference=40)),
+-              (10, r'\[[/\*_=\'&quot;^,#~]', token(EncapsulateMarkupToken, type='(',
+-                   preference=20, cut_left=1)),
+-              (10, r'[/\*_=\'&quot;^,#~]\]', token(EncapsulateMarkupToken, type=')',
+-                   preference=20, cut_right=1)),
+-
+-              ### modifiers
+-              (10, r'&lt;[:()^,]&gt;', token(StructureModifyToken, cut_left=1, 
+-                   cut_right=1)),
+-              ### headlines
+-              (10, r'\n={1,6}[ \t]', token(HeadlineToken, preference=10)),
+-              ### lists
+-              (10, r'\n[#*-]+[ \t]', token(ListToken, preference=10)),
+-              ### tables
+-              (10, r'\n\|', token(TableToken, type='(', preference=0)),
+-              (10, r'\|(?=\n)', token(TableToken, type=')', preference=0)),
+-              (90, r'\|', token(TableToken, type='_', preference=0)),
+-              ### macros
+-              (10, r'\{\{', token(MacroToken, type='(', preference=20)),
+-              (10, r'\}\}', token(MacroToken, type=')', preference=20)),
+-              ### n-dash and m-dash
+-              (20, r'--', token(TextToken, new_text=u'\u2013')),
+-              (20, r'---', token(TextToken, new_text=u'\u2014')),
+-              ### horizontal rule
+-              (10, r'\n----(?=\n)', token(SingleToken, preference=0, 
+-                   html_tag='hr')),
+-              ### what's left 
+-              (90, r'[ \t]', token(TextToken, preference=30)),
+-              (99, r'.', token(TextToken))
+-             ]
+-
+-   def __init__(self):
+-      regexes = self.regexes[:]
+-      regexes.sort()
+-      regexes = [(b,c) for (a,b,c) in regexes]
+-      self.scanner = sre.Scanner(regexes)
+-
+-   def parse(self, text):
+-      tokens = self.scanner.scan(''.join(['\n\n',text,'\n\n']))
+-      
+-      if tokens[1] &lt;&gt; '':
+-         raise 'ParserException' ## TODO: Exception
+-      
+-      tokens=tokens[0]
+-      tokens.append(EndToken())
+-      result = []
+-      
+-      while len(tokens) &gt; 0:
+-         token = tokens.pop(0)
+-         token.evaluate(result, tokens, token.fold_results(result,tokens))
+-      
+-      if len(tokens) &lt;&gt; 0:
+-         raise 'ParserException' ## TODO: Exception
+-      if len(result) &lt;&gt; 1:
+-         raise 'ParserException' ## TODO: Exception
+-         
+-      xhtml_tree = result[0].xhtml
+-      
+-      xhtml_tree.set('class','parsed-wiki-content')
+-      
+-      return xhtml_tree
+-
+-if __name__ == '__main__':
+-      print tostring(Parser().parse(u&quot;&quot;&quot;**[*hallo*]*[*[=[/[/[*[/h/]/]*]*]
+-      
+-*hallo*
+-
+-*/hallo/*
+-
+-*[*hallo*]*
+-
+-[**hallo**]
+-
+-%%%%%
+-hallo
+-
+-[@Dies ist so formatiert,
+-wie es angezeigt werden soll.
+-
+-Wirklich@]
+-
+-[=hallo=]
+-
+-%%%%%
+-hallo
+-%%%%%
+-[%test\\\\test\%]%][%nochntest%][@pretest@]hallo
+-&quot;&quot;&quot;))
+-
+-
+
+Modified: trunk/fellowiki/__init__.py
+===================================================================
+--- trunk/fellowiki/__init__.py	2006-03-01 00:22:03 UTC (rev 1)
++++ trunk/fellowiki/__init__.py	2006-03-05 17:06:53 UTC (rev 2)
+@@ -17,3 +17,16 @@
+ # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ # DEALINGS IN THE SOFTWARE.
++
++&quot;&quot;&quot;fellowiki main package
++
++This main package doesn't do anything special, it's just there to contain
++the subpackages:
++
++    - wiki:  the wiki engine
++    - util:  utility functions used in the other sub-packages except &quot;tests&quot;
++    - tests: tests (mainly unit tests) for the fellowiki package
++    
++&quot;&quot;&quot;
++
++__revision__ = &quot;$Revision:$&quot;
+
+Modified: trunk/fellowiki/tests/Wiki/__init__.py
+===================================================================
+--- trunk/fellowiki/tests/Wiki/__init__.py	2006-03-01 00:22:03 UTC (rev 1)
++++ trunk/fellowiki/tests/Wiki/__init__.py	2006-03-05 17:06:53 UTC (rev 2)
+@@ -17,3 +17,16 @@
+ # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ # DEALINGS IN THE SOFTWARE.
++
++&quot;&quot;&quot;fellowiki wiki test package
++
++This wiki test package doesn't do anything special, it's just there to contain
++the subpackages:
++
++    - ut_wikiparser: unit tests for the wiki parser
++    
++&quot;&quot;&quot;
++
++__revision__ = &quot;$Revision:$&quot;
++
++# TODO: move Wiki package to wiki
+
+Modified: trunk/fellowiki/tests/Wiki/ut_wikiparser.py
+===================================================================
+--- trunk/fellowiki/tests/Wiki/ut_wikiparser.py	2006-03-01 00:22:03 UTC (rev 1)
++++ trunk/fellowiki/tests/Wiki/ut_wikiparser.py	2006-03-05 17:06:53 UTC (rev 2)
+@@ -1,3 +1,6 @@
++# pylint: disable-msg=W0702,W0706
++# W0702, W0706: allow exception handling scheme in new_test_func
++
+ # Copyright (c) 2006 Jan Niklas Fingerle
+ # 
+ # Permission is hereby granted, free of charge, to any person obtaining a
+@@ -18,20 +21,20 @@
+ # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ # DEALINGS IN THE SOFTWARE.
+ 
++# XHTML validating inspired by Cookbook, recipe 12.8 TODO: elaborate
+ 
+-
+-
+-# XHTML validating inspired by Cookbook, recipe 12.8
+-
+ &quot;&quot;&quot;unit tests for the classmates wiki parser
+ 
+ The unit test suite  for the classmates wiki parser is made available through 
+-the &quot;testSuite&quot; variable.
+-   
+-The function &quot;make_wiki_test_suite&quot; may be used to implement unit test for 
++the &quot;suite()&quot; function.
++    
++The function &quot;make_wiki_test_suite()&quot; may be used to implement unit test for 
+ extensions to the classmates wiki parser.
++
+ &quot;&quot;&quot;
+ 
++__revision__ = &quot;$Revision:$&quot;
++
+ import unittest
+ import codecs
+ import sys
+@@ -41,146 +44,195 @@
+ from elementtree.ElementTree import tostring, fromstring, Element, SubElement
+ from xml.parsers.xmlproc import xmlval, utils, xmldtd
+ 
+-from fellowiki.Wiki.wikiparser import Parser
++from fellowiki.Wiki.parser import WikiParser
+ 
+ # Pre-load the xhtml DTD once, since reloading for each xmlproc
+ # would be a major performance hit.
+-_xhtml_dtd = xmldtd.load_dtd(join(dirname(abspath(__file__)),'..','..',
+-                                 'third_party','w3c','xhtml1-strict.dtd'))
+-   
+-def _assert_etrees(a, b):
+-   self.assertEqual(a.tag, b.tag, 'Tag comparison failed')
+-   self.assertEqual(a.text, b.text, 'Text comparison failed')
+-   self.assertEqual(a.tail, b.tail, 'Tail comparison failed')
+-   self.assertEqual(a.attrib, b.attrib, 'Attrib comparison failed')
+-   
+-   a_children = a.getchildren()
+-   b_children = b.getchildren()
+-   
+-   self.assertEqual(len(a_children), len(b_children), 
+-                    'len(children) comparison failed')
+-      
+-   for (a_child, b_child) in zip(a_children, b_children):
+-      _assert_etrees(a_child, b_child)
+-   
+-      
+-      
++_xhtml_dtd = xmldtd.load_dtd(join(dirname(abspath(__file__)), '..', '..',
++                                  'third_party', 'w3c', 'xhtml1-strict.dtd'))
++    
+ def _make_new_test_func(fname, tc_extension):
+-   &quot;&quot;&quot;generates a new test function to be used in our unit tests
+-   
+-   The generated function parses the file &lt;fname&gt;.wiki and compares the
+-   result to the content of &lt;fname&gt;.&lt;tc_extension&gt;.xml. 
+-   
+-   If the unit test fails or leads to an error, an attempt is made, to write 
+-   &lt;fname&gt;.&lt;tc_extension&gt;.generated.xml. If this write attempt fails, it does 
+-   so silently. 
+-   In any case the original fail or error (that occured before the writing
+-   attempt) will be raised to the caller (i.e. 
+-   the unit test &quot;test runner&quot;).
+-   
+-   &quot;fname&quot; should be given with its full path.
+-   &quot;&quot;&quot;
+-   
+-   def new_test_func(self):
+-      try:
+-         wiki_file = codecs.open('%s.wiki' % fname,'r','utf8')
+-         wiki_text = wiki_file.read()
+-         wiki_file.close()
+-         
+-         xhtml_tree_wiki = self.parser.parse(wiki_text)
+-         
+-         xhtml_tree_wiki_ext = Element('html', 
+-                                       xmlns='<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>')
+-         head = SubElement(xhtml_tree_wiki_ext,'head')
+-         SubElement(head,'title')
+-         body = SubElement(xhtml_tree_wiki_ext,'body')
+-         body.append(xhtml_tree_wiki)
+-         
+-         xhtml_text_wiki_ext = tostring(xhtml_tree_wiki_ext)
+-         
+-         xhtml_tree_wiki_ext_cononical = fromstring(xhtml_text_wiki_ext)
+-         
+-         try:
+-            xhtml_fn = '%s.%s.xml' % (fname, tc_extension)
+-            xhtml_file = codecs.open(xhtml_fn,'r','utf8')
+-            xhtml_text = xhtml_file.read()
+-            xhtml_file.close()
+-         except IOError:
+-            self.fail('Missing expected XHTML, could not open &quot;%s&quot;' % xhtml_fn)
+-         
+-         self.xhtml_validator.parse_resource(xhtml_fn) ## XHTML must be valid
+-         
+-         xhtml_tree = fromstring(xhtml_text)
+-         
+-         _assert_etrees(xhtml_tree, xhtml_tree_wiki_ext_cononical)
+-      
+-      except:
+-         # I want to re-raise *this* exception with full traceback, even if I 
+-         # get another one inbetween:
+-         (ex_type, ex_val, ex_tb) = sys.exc_info()
+-         try:
+-            gen_file = codecs.open('%s.%s.generated.xml' % 
+-                         (args['fname'], args['tc_extension']), 'w+','utf8')
+-            gen_file.write(args['xhtml_text_wiki_ext'])
+-            gen_file.close
+-         except:
+-            pass # it's only debug output after all
+-         raise ex_type, ex_val, ex_tb 
++    &quot;&quot;&quot;generate a new test function to be used in our unit tests
++    
++    parameters: fname:        fully qualified filename, but without file 
++                              extension, to generate the test case from
++                tc_extension: extension name of the test case, refer to 
++                              new_test_func for exact desciption
++    returns: test function for the new test case. The test funcion takes
++             one argument, self, and is to be used as a method of WikiTestCase.
++    throws: nothing to be expected
+ 
+-   return new_test_func
+-   
++    The returned test function is always &quot;the same&quot;, with the one exception
++    that it uses different &quot;fname&quot; and &quot;tc_extension&quot; values (i.e. it's a
++    closure).
++
++    &quot;&quot;&quot;
++
++    def new_test_func(self):
++        &quot;&quot;&quot;test translation of one wiki markup string
++        
++        parameters: self: instance of WikiTestCase
++        returns: nothing
++        throws: whatever exceptions occur during parsing of the wiki text
++                and exceptions used by the unittest framework to signal 
++                test failure
++        bound to (closure): &quot;fname&quot; and &quot;tc_extension&quot; from the surrounding 
++                            scope
++        
++        The function parses the file &lt;fname&gt;.wiki and compares the result to 
++        the content of &lt;fname&gt;.&lt;tc_extension&gt;.xml. 
++        
++        If the unit test fails or leads to an error, an attempt is made, to 
++        write &lt;fname&gt;.&lt;tc_extension&gt;.generated.xml. If this write attempt 
++        fails, it does so silently. 
++        In any case the original fail or error (that occured before the 
++        writing attempt) will be raised to the caller (i.e. the unit test 
++        &quot;test runner&quot;).
++        
++        &quot;&quot;&quot;
++        
++        try:
++            # parse wiki text to XML tree
++            wiki_file = codecs.open('%s.wiki' % fname, 'r', 'utf8')
++            wiki_text = wiki_file.read()
++            wiki_file.close()
++            xhtml_tree_wiki = self.parser.parse(wiki_text)
++            
++            # 'extend' tree to a complete XML tree
++            xhtml_tree_wiki_ext = Element('html', 
++                                          xmlns='<A HREF="http://www.w3.org/1999/xhtml">http://www.w3.org/1999/xhtml</A>')
++            head = SubElement(xhtml_tree_wiki_ext,'head')
++            SubElement(head,'title')
++            body = SubElement(xhtml_tree_wiki_ext,'body')
++            body.append(xhtml_tree_wiki)
++            
++            # do one 'round trip' to get a canonical form
++            xhtml_text_wiki_ext = tostring(xhtml_tree_wiki_ext)
++            xhtml_tree_wiki_ext_cononical = fromstring(xhtml_text_wiki_ext)
++            
++            # read expected XML tree from file
++            try:
++                xhtml_fn = '%s.%s.xml' % (fname, tc_extension)
++                xhtml_file = codecs.open(xhtml_fn, 'r', 'utf8')
++                xhtml_text = xhtml_file.read()
++                xhtml_file.close()
++            except IOError:
++                self.fail('Could not open XML file &quot;%s&quot;' % xhtml_fn)
++            xhtml_tree = fromstring(xhtml_text)
++            
++            # and now for the tests
++            self._assert_etrees(xhtml_tree, xhtml_tree_wiki_ext_cononical)
++            self.xhtml_validator.parse_resource(xhtml_fn) # validate as XHTML
++            
++        except:
++            # I want to re-raise *this* exception with full traceback, even if I
++            # get another one inbetween
++            (ex_type, ex_val, ex_tb) = sys.exc_info()
++            try:
++                gen_file = codecs.open('%s.%s.generated.xml' % 
++                             (fname, tc_extension), 'w+','utf8')
++                gen_file.write(xhtml_text_wiki_ext)
++                gen_file.close
++            except:
++                pass # it's only debug output after all
++            raise ex_type, ex_val, ex_tb 
++    return new_test_func
++    
+ def make_wiki_test_suite(tc_extension, 
+                          tc_name = None, tc_path = 
+                          join(dirname(abspath(__file__)),'tests'), **kwargs):
+-   &quot;&quot;&quot;Generates a new wiki test suite for unit testing. 
+-   &quot;&quot;&quot;
+-   if tc_name == None:
+-      tc_name = tc_extension      
+-   
+-   sub_test_suites = []
+-   class new_class(unittest.TestCase): pass
+-      
+-   new_class.__name__ = 'WikiTestCase_%s' % tc_name
+-      
+-   def new_setUp(self): 
+-      self.parser = Parser(**kwargs)
+-      # unfortunately I need a new validator each time around (Bug in xmlval:
+-      # part of the old file remains in the buffer)
+-      self.xhtml_validator = xmlval.XMLValidator()
+-      self.xhtml_validator.set_error_handler(utils.ErrorRaiser(self.xhtml_validator))
+-      self.xhtml_validator.val.dtd = self.xhtml_validator.dtd = self.xhtml_validator.ent = _xhtml_dtd
++    &quot;&quot;&quot;generate a new wiki test suite for unit testing
++    
++    parameters: tc_extension: extension for XML file names (&quot;&lt;fname&gt;.wiki&quot; will
++                              be compared to &lt;fname&gt;.&lt;tc_extension&gt;.xml)
++                tc_name:      suffix for the test case classes name (will be
++                              &quot;WikiTestCase_&lt;tc_name&gt;&quot;). If None (default), 
++                              tc_extension will be used.
++                tc_path:      directory, where to look for *.wiki and *.xml 
++                              files. Defaults to subdirectory &quot;tests&quot; of the 
++                              directory where this file is located.
++                **kwargs:     Any additional keyword arguments are passed to 
++                              the wiki parser's __init__() method.
++    returns: an instance of unittest.TestSuite
++    throws: nothing to be expected
++     
++    Test cases and test suites are generated &quot;the normal way&quot; from classes. 
++    Therefore the test case classes must be generated dynamically. In the end
++    the internal structure of the test suites is more like normal test cases
++    than if we had built the suites ourselves.
++       
++    &quot;&quot;&quot;
++    
++    if tc_name == None:
++        tc_name = tc_extension        
++    
++    class WikiTestCase(unittest.TestCase):
++        &quot;&quot;&quot;test case for the wiki parser&quot;&quot;&quot;
++        
++        def _assert_etrees(self, etree_1, etree_2):
++            &quot;&quot;&quot;assert that two ElementTrees are equal
++            
++            parameters: self:    instance of subclass of unittest.TestCase
++                        etree_1, 
++                        etree2:  two ElementTrees
++            
++            &quot;&quot;&quot;
++            
++            self.assertEqual(etree_1.tag, etree_2.tag)
++            self.assertEqual(etree_1.text, etree_2.text)
++            self.assertEqual(etree_1.tail, etree_2.tail)
++            self.assertEqual(etree_1.attrib, etree_2.attrib)
++            
++            children_1 = etree_1.getchildren()
++            children_2 = etree_2.getchildren()
++            
++            self.assertEqual(len(children_1), len(children_2))
++            for (child_1, child_2) in zip(children_1, children_2):
++                self._assert_etrees(child_1, child_2)
++                
++        def setUp(self): 
++            &quot;&quot;&quot;set up wiki parser and xhtml validator&quot;&quot;&quot;
++            self.parser = WikiParser(**kwargs)
++            # unfortunately I need a new validator each time around (Bug in 
++            # xmlval: part of the old file remains in the buffer)
++            self.xhtml_validator = xmlval.XMLValidator()
++            self.xhtml_validator.set_error_handler(utils.ErrorRaiser(
++                                                          self.xhtml_validator))
++            self.xhtml_validator.val.dtd = self.xhtml_validator.dtd = \
++                                           self.xhtml_validator.ent = _xhtml_dtd
++        
++    WikiTestCase.__name__ = 'WikiTestCase_%s' % tc_name
++    
++    # find test files and subdirectories
++    fnames = listdir(tc_path)
++    fnames = [file_ for file_ in fnames if file_[0:1] != '.'] # no hidden files
++    fnames = [join(tc_path, file_) for file_ in fnames] 
++    files = [splitext(file_)[0] for file_ in fnames 
++                                               if splitext(file_)[1] == '.wiki']
++    dirs = [file_ for file_ in fnames if isdir(file_)]
++    
++    # for every *.wiki file generate a test method
++    for file_ in files:
++        new_test_func = _make_new_test_func(file_, tc_extension)
++        new_test_func.__doc__ = &quot;wiki parser: %s - %s&quot; % \
++                                                      (tc_name, basename(file_))
++        new_test_func.__name__ = tf_name = &quot;test_%s&quot; % basename(file_)
++        setattr(WikiTestCase, tf_name, new_test_func)
++    
++    # generate test suite and add sub-test-suites
++    suite_ = unittest.makeSuite(WikiTestCase)
++    for dir_ in dirs:
++        suite_.addTest(make_wiki_test_suite(tc_extension, 
++                                           tc_name = '%s_%s' %
++                                                      (tc_name, basename(dir_)),
++                                           tc_path = dir_, 
++                                           **kwargs))
++    
++    return suite_
++    
++def suite():
++    &quot;&quot;&quot;return default unit test suite for this module&quot;&quot;&quot;
++    return make_wiki_test_suite('complete')
+ 
+-   new_setUp.__name__ = 'setUp'
+-   new_class.setUp = new_setUp
+-   
+-   fnames = listdir(tc_path)
+-   fnames = [f for f in fnames if f[0:1] &lt;&gt; '.']
+-   fnames = [join(tc_path,f) for f in fnames]
+-   
+-   files = [splitext(f)[0] for f in fnames if splitext(f)[1] == '.wiki']
+-   dirs = [f for f in fnames if isdir(f)]
+-   
+-   for f in files:
+-      new_test_func = _make_new_test_func(f, tc_extension)
+-      
+-      tf_name = &quot;test_%s&quot; % basename(f)
+-      new_test_func.__name__ = tf_name
+-      
+-      setattr(new_class, tf_name, new_test_func)
+-   
+-   testSuite = unittest.makeSuite(new_class)
+-   
+-   for d in dirs:
+-      print d
+-      testSuite.addTest(make_wiki_test_suite(tc_extension, 
+-                                             tc_name = '%s_%s' %(tc_name, 
+-                                                                 basename(d)), 
+-                                             tc_path = d, 
+-                                             **kwargs))
+-   
+-   return testSuite
+-   
+-testSuite = make_wiki_test_suite('complete')
+-
+ if __name__ == '__main__':
+-   unittest.TextTestRunner(verbosity=2).run(testSuite)
++    unittest.TextTestRunner(verbosity=2).run(suite())
+
+Modified: trunk/fellowiki/tests/__init__.py
+===================================================================
+--- trunk/fellowiki/tests/__init__.py	2006-03-01 00:22:03 UTC (rev 1)
++++ trunk/fellowiki/tests/__init__.py	2006-03-05 17:06:53 UTC (rev 2)
+@@ -17,3 +17,14 @@
+ # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ # DEALINGS IN THE SOFTWARE.
++
++&quot;&quot;&quot;fellowiki test package
++
++This test package doesn't do anything special, it's just there to contain
++the subpackages:
++
++    - wiki:  tests for the wiki engine
++    
++&quot;&quot;&quot;
++
++__revision__ = &quot;$Revision:$&quot;
+
+Added: trunk/fellowiki/tests/pylintrc
+===================================================================
+--- trunk/fellowiki/tests/pylintrc	2006-03-01 00:22:03 UTC (rev 1)
++++ trunk/fellowiki/tests/pylintrc	2006-03-05 17:06:53 UTC (rev 2)
+@@ -0,0 +1,41 @@
++[REPORTS]
++# Include message's id in output
++include-ids=yes
++
++disable-msg=I0011, W0142
++
++[VARIABLES]
++# List of variable names used for dummy variables (i.e. not used).
++dummy-variables=dummy, _
++
++[BASIC]
++# Required attributes for module, separated by a comma
++required-attributes=__revision__
++
++# Regular expression which should only match functions or classes name which do
++# not require a docstring
++no-docstring-rgx=
++
++# List of builtins function names that should not be used, separated by a comma
++bad-functions=apply
++# apply is deprecated
++
++
++# Regular expression which should only match correct method names
++method-rgx=[a-z_][a-z0-9_]*$|setUp|tearDown
++
++
++[DESIGN]
++enable-design=no
++
++[IMPORTS]
++# Deprecated modules which should not be used, separated by a comma
++deprecated-modules=regsub,TERMIOS,Bastion,rexec
++
++[FORMAT]
++max-line-length=79
++
++indent-string='    '
++
++[MISCELLANEOUS]
++notes=FIXME,XXX,TODO,###,!!!
+
+Deleted: trunk/fellowiki/third_party/w3c/LICENCE
+===================================================================
+--- trunk/fellowiki/third_party/w3c/LICENCE	2006-03-01 00:22:03 UTC (rev 1)
++++ trunk/fellowiki/third_party/w3c/LICENCE	2006-03-05 17:06:53 UTC (rev 2)
+@@ -1,47 +0,0 @@
+-W3C(R) SOFTWARE NOTICE AND LICENSE 
+-
+-Copyright (c) 1994-2002 World Wide Web Consortium, (Massachusetts Institute of 
+-Technology, Institut National de Recherche en Informatique et en Automatique, 
+-Keio University). All Rights Reserved. <A HREF="http://www.w3.org/Consortium/Legal/">http://www.w3.org/Consortium/Legal/</A> 
+-
+-This W3C work (including software, documents, or other related items) is being 
+-provided by the copyright holders under the following license. By obtaining, 
+-using and/or copying this work, you (the licensee) agree that you have read, 
+-understood, and will comply with the following terms and conditions: 
+-
+-Permission to use, copy, modify, and distribute this software and its 
+-documentation, with or without modification, for any purpose and without fee 
+-or royalty is hereby granted, provided that you include the following on ALL 
+-copies of the software and documentation or portions thereof, including 
+-modifications, that you make: 
+-
+-The full text of this NOTICE in a location viewable to users of the 
+-redistributed or derivative work. 
+-
+-Any pre-existing intellectual property disclaimers, notices, or terms and 
+-conditions. If none exist, a short notice of the following form (hypertext is 
+-preferred, text is permitted) should be used within the body of any 
+-redistributed or derivative code: &quot;Copyright &#169; [$date-of-software] World Wide 
+-Web Consortium, (Massachusetts Institute of Technology, Institut National de 
+-Recherche en Informatique et en Automatique, Keio University). All Rights 
+-Reserved. <A HREF="http://www.w3.org/Consortium/Legal/">http://www.w3.org/Consortium/Legal/</A>&quot; 
+-
+-Notice of any changes or modifications to the W3C files, including the date 
+-changes were made. (We recommend you provide URIs to the location from which 
+-the code is derived.) 
+-
+-THIS SOFTWARE AND DOCUMENTATION IS PROVIDED &quot;AS IS,&quot; AND COPYRIGHT HOLDERS 
+-MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT L
+-IMITED TO, WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR 
+-PURPOSE OR THAT THE USE OF THE SOFTWARE OR DOCUMENTATION WILL NOT INFRINGE 
+-ANY THIRD PARTY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS. 
+-
+-COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL OR 
+-CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE SOFTWARE OR DOCUMENTATION. 
+-
+-The name and trademarks of copyright holders may NOT be used in advertising 
+-or publicity pertaining to the software without specific, written prior 
+-permission. 
+-
+-Title to copyright in this software and any associated documentation will at 
+-all times remain with copyright holders. 
+
+Copied: trunk/fellowiki/third_party/w3c/LICENSE (from rev 1, trunk/fellowiki/third_party/w3c/LICENCE)
+
+Modified: trunk/fellowiki/util/__init__.py
+===================================================================
+--- trunk/fellowiki/util/__init__.py	2006-03-01 00:22:03 UTC (rev 1)
++++ trunk/fellowiki/util/__init__.py	2006-03-05 17:06:53 UTC (rev 2)
+@@ -17,3 +17,14 @@
+ # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ # DEALINGS IN THE SOFTWARE.
++
++&quot;&quot;&quot;fellowiki utility package
++
++This utility package doesn't do anything special, it's just there to contain
++the subpackages:
++
++    - assorted: should read &quot;unsorted&quot; ;-) TODO: Sort. Sort of. Ish. 
++    
++&quot;&quot;&quot;
++
++__revision__ = &quot;$Revision:$&quot;
+
+Modified: trunk/fellowiki/util/assorted.py
+===================================================================
+--- trunk/fellowiki/util/assorted.py	2006-03-01 00:22:03 UTC (rev 1)
++++ trunk/fellowiki/util/assorted.py	2006-03-05 17:06:53 UTC (rev 2)
+@@ -18,40 +18,93 @@
+ # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ # DEALINGS IN THE SOFTWARE.
+ 
+-import re,copy
+-from elementtree.ElementTree import Element, tostring
++&quot;&quot;&quot;fellowiki assorted utilities
+ 
+-def attributesFromDict(d):
+-   &quot;&quot;&quot;Initialize class instance from __init__ arguments
++TODO: overview
+ 
+-      Taken from Python Cookbook, 2nd edition, recipe 6.18
+-   &quot;&quot;&quot;
++assorted should read &quot;unsorted&quot; ;-) TODO: Sort. Sort of. Ish. 
++    
++&quot;&quot;&quot;
+ 
+-   self = d.pop('self')
+-   for n, v in d.iteritems():
+-      setattr(self, n, v)
++__revision__ = &quot;$Revision:$&quot;
+ 
++import re
++import copy
+ 
+-def remove_escaping_backslashes(str):
+-   pattern = re.compile(r'\\(.)')
+-   return pattern.sub(r'\1',str)
+-   
+-def save_add(a,b):
+-   if b == None:
+-      return a
+-   elif a == None:
+-      return b
+-   else:
+-      return a+b
++# TODO: howto support CElementTree (portably!, utf8-support?)
+ 
+-def add_element_contents(a, b, ret_type): 
+-   ret = Element(ret_type)
+-   if len(a) == 0:
+-      ret.text = save_add(a.text,b.text)
+-      ret[:] = b[:]
+-   else:
+-      last_sub = copy.copy(a[len(a)-1])
+-      last_sub.tail = save_add(last_sub.tail, b.text)
+-      ret.text = a.text
+-      ret[:] = a[:-1] + [last_sub] + b[:]
+-   return ret
++from elementtree.ElementTree import Element
++
++def attributes_from_dict(dict_):
++    &quot;&quot;&quot;initialize class instance from __init__ arguments
++
++        Taken from Python Cookbook, 2nd edition, recipe 6.18 
++        TODO: elaborate, license
++        
++    &quot;&quot;&quot;
++
++    self_ = dict_.pop('self')
++    for name, value in dict_.iteritems():
++        setattr(self_, name, value)
++
++
++def remove_escaping_backslashes(string):
++    &quot;&quot;&quot;translate string with escaping backslashes to un-escaped version
++    
++    parameters: string: escaped string, may be unicode as well
++    returns: unescaped version of the string
++    
++    This function looks for any occurence of &quot;\.&quot; where &quot;.&quot; can be any
++    single character and replaces it by the character &quot;.&quot; itself.
++    
++    &quot;&quot;&quot;
++    
++    pattern = re.compile(r'\\(.)') # TODO: don't recompile everytime around
++    return pattern.sub(r'\1', string)
++    
++def save_add(val_1, val_2):
++    &quot;&quot;&quot;add to values, None being a neutral element to the addition
++    
++    parameters: val_1,
++                val_2: two values to be added
++    returns: val_1 + val_2 iff both aren't None, else the one, that isn't
++             None, or None if both are None
++    throws: whatever may be thrown by adding val_1 and val_2 if both aren't
++            None
++    
++    &quot;&quot;&quot;
++    if val_2 is None:
++        return val_1
++    elif val_1 is None:
++        return val_2
++    else:
++        return val_1 + val_2
++
++def add_element_contents(etree_1, etree_2, ret_type):
++    &quot;&quot;&quot;adds the content of to elementtree elements
++    
++    parameters: etree_1,
++                etree_2:  two elementtree.ElementTree.Element instances
++                ret_type: elementtype of the Element instance to be returned
++    returns: new Element instance of type ret_type with the contents of 
++             etree_1 and etree_2 concatenated. If any of the etree_n has a 
++             .tail (i.e. text following the end tag), it (the tail) will be 
++             ignored.
++
++    &quot;&quot;&quot;
++    
++    # The tricky thing is, that the last text (non-element) content of etree_1
++    # resides in the &quot;.tail&quot; of the last contained element if there is one. 
++    # Otherwise, the &quot;.text&quot; is the only content, therefore it is the last
++    # text content.
++    
++    ret = Element(ret_type)
++    if len(etree_1) == 0:
++        ret.text = save_add(etree_1.text, etree_2.text)
++        ret[:] = etree_2[:]
++    else:
++        last_sub = copy.copy(etree_1[len(etree_1)-1])
++        last_sub.tail = save_add(last_sub.tail, etree_2.text)
++        ret.text = etree_1.text
++        ret[:] = etree_1[:-1] + [last_sub] + etree_2[:]
++    return ret
+
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="000000.html">[fellowiki-svncheckins] r3 - in trunk/fellowiki: . tests tests/wiki
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1">[ date ]</a>
+              <a href="thread.html#1">[ thread ]</a>
+              <a href="subject.html#1">[ subject ]</a>
+              <a href="author.html#1">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/fellowiki-svncheckins">More information about the fellowiki-svncheckins
+mailing list</a><br>
+</body></html>

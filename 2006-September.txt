@@ -1,0 +1,2582 @@
+From fingerle at mail.berlios.de  Sun Sep 10 16:07:23 2006
+From: fingerle at mail.berlios.de (fingerle at BerliOS)
+Date: Sun, 10 Sep 2006 16:07:23 +0200
+Subject: [fellowiki-svncheckins] r28 - in trunk/fellowiki: .
+	wiki/tests/tests/mixed_markup wiki/tests/tests/simple_markup
+Message-ID: <200609101407.k8AE7Nwk028453@sheep.berlios.de>
+
+Author: fingerle
+Date: 2006-09-10 16:07:21 +0200 (Sun, 10 Sep 2006)
+New Revision: 28
+
+Modified:
+   trunk/fellowiki/__init__.py
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/lists_combined.extension_lists.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/pre_with_non_pre.extension_escaped_text.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style.xml
+   trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/bold_block.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/some_special_markup_with_blanks.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_block.extension_text_style_simple.xml
+   trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_block.extension_text_style_simple.xml
+Log:
+- wiki parser: - finished modified paragraphs
+               - finished modified tables
+               - changed handling of whitespace in some places
+               - started some refactoring
+               - put all non-essential markup into extensions
+               - added tests for extensions, 25 still failing
+               
+- wiki parser is now *essentially* feature complete, i.e. the wiki syntax
+  is completed, but the following is still missing:
+    - some more refactoring
+    - docstrings, pylintifying
+    - performance tuning, possibly using pyrex and some C-Extensions;
+      this isn't the biggest priority...
+
+
+Modified: trunk/fellowiki/__init__.py
+===================================================================
+--- trunk/fellowiki/__init__.py	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/__init__.py	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1,30 +0,0 @@
+-# Copyright (c) 2006 Jan Niklas Fingerle
+-# 
+-# Permission is hereby granted, free of charge, to any person obtaining a
+-# copy of this software and associated documentation files (the "Software"),
+-# to deal in the Software without restriction, including without limitation
+-# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+-# and/or sell copies of the Software, and to permit persons to whom the
+-# Software is furnished to do so, subject to the following conditions:
+-#
+-# The above copyright notice and this permission notice shall be included in
+-# all copies or substantial portions of the Software.
+-#
+-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+-# DEALINGS IN THE SOFTWARE.
+-
+-"""fellowiki main package
+-
+-This main package doesn't do anything special, it's just there to contain
+-the subpackages:
+-
+-    - wiki:  the wiki engine
+-    - util:  utility functions used in the other sub-packages except "tests"
+-    - tests: tests (mainly unit tests) for the fellowiki package
+-    
+-"""
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-bold[*bold*bold*]non-bold*non-bold</p><p>non-bold[*bold*bold*]non-bold*bold*non-bold</p><p>non-bold*non-bold[*bold*bold*]non-bold</p><p>non-bold*bold*non-bold[*bold*bold*]non-bold</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-bold<b class="bold">bold*bold</b>non-bold*non-bold</p><p>non-bold<b class="bold">bold*bold</b>non-bold*bold*non-bold</p><p>non-bold*non-bold<b class="bold">bold*bold</b>non-bold</p><p>non-bold*bold*non-bold<b class="bold">bold*bold</b>non-bold</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_concurrent.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-bold[*bold*bold*]non-bold*non-bold</p><p>non-bold[*bold*bold*]non-bold*bold*non-bold</p><p>non-bold*non-bold[*bold*bold*]non-bold</p><p>non-bold*bold*non-bold[*bold*bold*]non-bold</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-bold[<b class="bold">bold</b>bold<b class="bold">]non-bold</b>non-bold</p><p>non-bold[<b class="bold">bold</b>bold<b class="bold">]non-bold</b>bold*non-bold</p><p>non-bold<b class="bold">non-bold[</b>bold<b class="bold">bold</b>]non-bold</p><p>non-bold<b class="bold">bold</b>non-bold[<b class="bold">bold</b>bold*]non-bold</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-bold[*bold*bold*bold*]non-bold</p><p>non-bold*non-bold[*bold*]non-bold*non-bold</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-bold<b class="bold">bold*bold*bold</b>non-bold</p><p>non-bold*non-bold<b class="bold">bold</b>non-bold*non-bold</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/bold_embedded.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-bold[*bold*bold*bold*]non-bold</p><p>non-bold*non-bold[*bold*]non-bold*non-bold</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-bold[<b class="bold">bold</b>bold<b class="bold">bold</b>]non-bold</p><p>non-bold<b class="bold">non-bold[</b>bold<b class="bold">]non-bold</b>non-bold</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-italic[/italic/italic/]non-italic/non-italic</p><p>non-italic[/italic/italic/]non-italic/italic/non-italic</p><p>non-italic/non-italic[/italic/italic/]non-italic</p><p>non-italic/italic/non-italic[/italic/italic/]non-italic</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-italic<em class="italic">italic/italic</em>non-italic/non-italic</p><p>non-italic<em class="italic">italic/italic</em>non-italic/italic/non-italic</p><p>non-italic/non-italic<em class="italic">italic/italic</em>non-italic</p><p>non-italic/italic/non-italic<em class="italic">italic/italic</em>non-italic</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_concurrent.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-italic[/italic/italic/]non-italic/non-italic</p><p>non-italic[/italic/italic/]non-italic/italic/non-italic</p><p>non-italic/non-italic[/italic/italic/]non-italic</p><p>non-italic/italic/non-italic[/italic/italic/]non-italic</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-italic[<em class="italic">italic</em>italic<em class="italic">]non-italic</em>non-italic</p><p>non-italic[<em class="italic">italic</em>italic<em class="italic">]non-italic</em>italic/non-italic</p><p>non-italic<em class="italic">non-italic[</em>italic<em class="italic">italic</em>]non-italic</p><p>non-italic<em class="italic">italic</em>non-italic[<em class="italic">italic</em>italic/]non-italic</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-italic[/italic/italic/italic/]non-italic</p><p>non-italic/non-italic[/italic/]non-italic/non-italic</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-italic<em class="italic">italic/italic/italic</em>non-italic</p><p>non-italic/non-italic<em class="italic">italic</em>non-italic/non-italic</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/italic_embedded.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-italic[/italic/italic/italic/]non-italic</p><p>non-italic/non-italic[/italic/]non-italic/non-italic</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-italic[<em class="italic">italic</em>italic<em class="italic">italic</em>]non-italic</p><p>non-italic<em class="italic">non-italic[</em>italic<em class="italic">]non-italic</em>non-italic</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/lists_combined.extension_lists.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/lists_combined.extension_lists.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/lists_combined.extension_lists.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p># item 1 #* item 1.* #* item 1.* #*- item 1.*.- #*- item 1.*.- #*- item 1.*.- # item 2 #- item 2.- #-* item 2.-.* #-* item 2.-.* #-* item 2.-.* #- item 2.- #- item 2.- # item 3</p><p>* item * *# item *.1 *# item *.2 *#- item *.2.- *#- item *.2.- *#- item *.2.- * item * *# item *.1 *# item *.2 *- item *.- *- item *.- *-# item *.-.1 *-# item *.-.2 *-# item *.-.3 *- item *.- *-# item *.-.1</p><p>- item - -# item -.1 -# item -.2 -#* item -.2.* -#* item -.2.* -#* item -.2.* - item - -# item -.1 -# item -.2 -* item -.* -* item -.* -*# item -.*.1 -*# item -.*.2 -*# item -.*.3 -* item -.* -*# item -.*.1 - item -</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><ol class="ordered"><li>item 1<ul class="bullet"><li>item 1.*</li><li>item 1.*<ul class="dash"><li>item 1.*.-</li><li>item 1.*.-</li><li>item 1.*.-</li></ul></li></ul></li><li>item 2<ul class="dash"><li>item 2.-<ul class="bullet"><li>item 2.-.*</li><li>item 2.-.*</li><li>item 2.-.*</li></ul></li><li>item 2.-</li><li>item 2.-</li></ul></li><li>item 3</li></ol><ul class="bullet"><li>item *<ol class="ordered"><li>item *.1</li><li>item *.2<ul class="dash"><li>item *.2.-</li><li>item *.2.-</li><li>item *.2.-</li></ul></li></ol></li><li>item *<ol class="ordered"><li>item *.1</li><li>item *.2</li></ol><ul class="dash"><li>item *.-</li><li>item *.-<ol class="ordered"><li>item *.-.1</li><li>item *.-.2</li><li>item *.-.3</li></ol></li><li>item *.-<ol class="ordered"><li>item *.-.1</li></ol></li></ul></li></ul><ul class="dash"><li>item -<ol class="ordered"><li>item -.1</li><li>item !
+ -.2<ul class="bullet"><li>item -.2.*</li><li>item -.2.*</li><li>item -.2.*</li></ul></li></ol></li><li>item -<ol class="ordered"><li>item -.1</li><li>item -.2</li></ol><ul class="bullet"><li>item -.*</li><li>item -.*<ol class="ordered"><li>item -.*.1</li><li>item -.*.2</li><li>item -.*.3</li></ol></li><li>item -.*<ol class="ordered"><li>item -.*.1</li></ol></li></ul></li><li>item -</li></ul></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/pre_with_non_pre.extension_escaped_text.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/pre_with_non_pre.extension_escaped_text.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/pre_with_non_pre.extension_escaped_text.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1,5 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>[@preformatted text. [@preformatted text. &lt;&amp;&gt; \[@preformatted text.\@]</p><p>\\\preformatted text.@] non-preformatted text.@]</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><pre>preformatted text.
++[@preformatted text. &lt;&amp;&gt;
++[@preformatted text.@]
++
++\preformatted text.</pre><p>non-preformatted text.@]</p></div></body></html>
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-typewriter[=typewriter=typewriter=]non-typewriter=non-typewriter</p><p>non-typewriter[=typewriter=typewriter=]non-typewriter=typewriter=non-typewriter</p><p>non-typewriter=non-typewriter[=typewriter=typewriter=]non-typewriter</p><p>non-typewriter=typewriter=non-typewriter[=typewriter=typewriter=]non-typewriter</p></div></body></html>
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-typewriter<tt class="typewriter">typewriter=typewriter</tt>non-typewriter=non-typewriter</p><p>non-typewriter<tt class="typewriter">typewriter=typewriter</tt>non-typewriter=typewriter=non-typewriter</p><p>non-typewriter=non-typewriter<tt class="typewriter">typewriter=typewriter</tt>non-typewriter</p><p>non-typewriter=typewriter=non-typewriter<tt class="typewriter">typewriter=typewriter</tt>non-typewriter</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_concurrent.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-typewriter[=typewriter=typewriter=]non-typewriter=non-typewriter</p><p>non-typewriter[=typewriter=typewriter=]non-typewriter=typewriter=non-typewriter</p><p>non-typewriter=non-typewriter[=typewriter=typewriter=]non-typewriter</p><p>non-typewriter=typewriter=non-typewriter[=typewriter=typewriter=]non-typewriter</p></div></body></html>
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-typewriter[<tt class="typewriter">typewriter</tt>typewriter<tt class="typewriter">]non-typewriter</tt>non-typewriter</p><p>non-typewriter[<tt class="typewriter">typewriter</tt>typewriter<tt class="typewriter">]non-typewriter</tt>typewriter=non-typewriter</p><p>non-typewriter<tt class="typewriter">non-typewriter[</tt>typewriter<tt class="typewriter">typewriter</tt>]non-typewriter</p><p>non-typewriter<tt class="typewriter">typewriter</tt>non-typewriter[<tt class="typewriter">typewriter</tt>typewriter=]non-typewriter</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-typewriter[=typewriter=typewriter=typewriter=]non-typewriter</p><p>non-typewriter=non-typewriter[=typewriter=]non-typewriter=non-typewriter</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-typewriter<tt class="typewriter">typewriter=typewriter=typewriter</tt>non-typewriter</p><p>non-typewriter=non-typewriter<tt class="typewriter">typewriter</tt>non-typewriter=non-typewriter</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/typewriter_embedded.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-typewriter[=typewriter=typewriter=typewriter=]non-typewriter</p><p>non-typewriter=non-typewriter[=typewriter=]non-typewriter=non-typewriter</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-typewriter[<tt class="typewriter">typewriter</tt>typewriter<tt class="typewriter">typewriter</tt>]non-typewriter</p><p>non-typewriter<tt class="typewriter">non-typewriter[</tt>typewriter<tt class="typewriter">]non-typewriter</tt>non-typewriter</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-underlined[_underlined_underlined_]non-underlined_non-underlined</p><p>non-underlined[_underlined_underlined_]non-underlined_underlined_non-underlined</p><p>non-underlined_non-underlined[_underlined_underlined_]non-underlined</p><p>non-underlined_underlined_non-underlined[_underlined_underlined_]non-underlined</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-underlined<span class="underlined">underlined_underlined</span>non-underlined_non-underlined</p><p>non-underlined<span class="underlined">underlined_underlined</span>non-underlined_underlined_non-underlined</p><p>non-underlined_non-underlined<span class="underlined">underlined_underlined</span>non-underlined</p><p>non-underlined_underlined_non-underlined<span class="underlined">underlined_underlined</span>non-underlined</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_concurrent.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-underlined[_underlined_underlined_]non-underlined_non-underlined</p><p>non-underlined[_underlined_underlined_]non-underlined_underlined_non-underlined</p><p>non-underlined_non-underlined[_underlined_underlined_]non-underlined</p><p>non-underlined_underlined_non-underlined[_underlined_underlined_]non-underlined</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-underlined[<span class="underlined">underlined</span>underlined<span class="underlined">]non-underlined</span>non-underlined</p><p>non-underlined[<span class="underlined">underlined</span>underlined<span class="underlined">]non-underlined</span>underlined_non-underlined</p><p>non-underlined<span class="underlined">non-underlined[</span>underlined<span class="underlined">underlined</span>]non-underlined</p><p>non-underlined<span class="underlined">underlined</span>non-underlined[<span class="underlined">underlined</span>underlined_]non-underlined</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-underlined[_underlined_underlined_underlined_]non-underlined</p><p>non-underlined_non-underlined[_underlined_]non-underlined_non-underlined</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-underlined<span class="underlined">underlined_underlined_underlined</span>non-underlined</p><p>non-underlined_non-underlined<span class="underlined">underlined</span>non-underlined_non-underlined</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/mixed_markup/underlined_embedded.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-underlined[_underlined_underlined_underlined_]non-underlined</p><p>non-underlined_non-underlined[_underlined_]non-underlined_non-underlined</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-underlined[<span class="underlined">underlined</span>underlined<span class="underlined">underlined</span>]non-underlined</p><p>non-underlined<span class="underlined">non-underlined[</span>underlined<span class="underlined">]non-underlined</span>non-underlined</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/bold_block.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/bold_block.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/bold_block.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-bold[*bold*]non-bold</p><p>non-bold[*bold bold*]non-bold</p><p>non-bold[*bold[*bold*]non-bold</p><p>non-bold[*bold*]non-bold*]non-bold</p><p>non-bold[*bold[*bold*]non-bold*]non-bold</p><p>empty: [**]</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-bold[<b class="bold">bold</b>]non-bold</p><p>non-bold[*bold bold*]non-bold</p><p>non-bold[<b class="bold">bold[</b>bold*]non-bold</p><p>non-bold[<b class="bold">bold</b>]non-bold*]non-bold</p><p>non-bold[<b class="bold">bold[</b>bold<b class="bold">]non-bold</b>]non-bold</p><p>empty: [**]</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/image_link_external_encoding.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>[[[ http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 ]]] [[[ http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 || &#223; ]]] [[[ http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 &gt;&gt; ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a ]]] [[[ http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 || &#223; &gt;&gt; ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228!
+ ;&#246;&#252;;type=a ]]] [[[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a ]]] [[[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a || &#223; ]]] [[[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a &gt;&gt; http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 ]]] [[[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a || &#223; &gt;&gt; http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 ]]]</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>[[[ http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;?&#223;&#196;&#214;&#220;<tt class="typewriter">123&amp;&#223;&#228;&#246;&#252;</tt>456 ]]] [[[ http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;?&#223;&#196;&#214;&#220;<tt class="typewriter">123&amp;&#223;&#228;&#246;&#252;</tt>456 || &#223; ]]] [[[ http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;?&#223;&#196;&#214;&#220;<tt class="typewriter">123&amp;&#223;&#228;&#246;&#252;</tt>456 &gt;&gt; ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;;type=a ]]] [[[ http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#23!
+ 4;</em>&#228;&#246;&#252;?&#223;&#196;&#214;&#220;<tt class="typewriter">123&amp;&#223;&#228;&#246;&#252;</tt>456 || &#223; &gt;&gt; ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;;type=a ]]] [[[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;;type=a ]]] [[[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;;type=a || &#223; ]]] [[[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;;type=a &gt;&gt; http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;?&#223;&#196;&#214;&#220;<tt class="typewriter">123&amp;&#223;&#228;&#246;&#252;</tt>456 ]]] [[[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#22!
+ 8;&#246;&#252;;type=a || &#223; &gt;&gt; http://&#228;&#246;&#!
+ 252;:&#2
+23;@www.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;?&#223;&#196;&#214;&#220;<tt class="typewriter">123&amp;&#223;&#228;&#246;&#252;</tt>456 ]]]</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_ftp.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>[[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a ]] [[ ftp://&#228;&#246;&#252;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a ]] [[ ftp://ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a ]] [[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252; ]] [[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/]] [[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid ]] [[ ftp://&#228;&#246;&#252;%EE%AB%ac%cB%De:&#223;%EE%AB%ac%cB%De at ftp.m&#252;ller.invalid ]] [[ ftp://ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252; ]] [[ ftp://ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;/%EE%AB%ac%cB%De ]] [[ ftp://ftp.m&#252;ller.invalid/]] [[ ftp://ftp.m&#252;ller.invalid ]] [[ ftp://ftp.m&#252;ller.invalid.%E!
+ E ]] [[ ftp.m&#252;ller.invalid ]] [[ &#228;&#246;&#252; &gt;&gt; ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;;type=a ]]</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>[[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;;type=a ]] [[ ftp://&#228;&#246;&#252;@ftp.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;;type=a ]] [[ ftp://ftp.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;;type=a ]] [[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252; ]] [[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid/]] [[ ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid ]] [[ ftp://&#228;&#246;&#252;%EE%AB%ac%cB%De:&#223;%EE%AB%ac%cB%De at ftp.m&#252;ller.invalid ]] [[ ftp://ftp.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252; ]] [[ ftp://ftp.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&!
+ #252;/%EE%AB%ac%cB%De ]] [[ ftp://ftp.m&#252;ller.invalid/]] [[ ftp://ftp.m&#252;ller.invalid ]] [[ ftp://ftp.m&#252;ller.invalid.%EE ]] [[ ftp.m&#252;ller.invalid ]] [[ &#228;&#246;&#252; &gt;&gt; ftp://&#228;&#246;&#252;:&#223;@ftp.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;;type=a ]]</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/link_external_encoding_http.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>[[ http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 ]] [[ hTtP://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 ]] [[ HtTp://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 ]] [[ http://&#228;&#246;&#252;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 ]] [[ http://www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;&amp;&#223;&#196;&#214;&#220;=123]] [[ http://www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252; ]] [[ http://www.m&#252;ller.invalid/~&#233;&#232;&!
+ #234;/&#228;&#246;&#252;/%EE%AB%ac%cB%De ]] [[ http://www.m&#252;ller.invalid ]] [[ http://www.m&#252;ller.invalid.%EE ]] [[ http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid ]] [[ http://&#228;&#246;&#252;%EE%AB%ac%cB%De:&#223;%EE%AB%ac%cB%De at www.m&#252;ller.invalid ]] [[ www.m&#252;ller.invalid ]] [[ &#228;&#246;&#252; &gt;&gt; http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid/~&#233;&#232;&#234;/&#228;&#246;&#252;?&#223;&#196;&#214;&#220;=123&amp;&#223;&#228;&#246;&#252;=456 ]]</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>[[ http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;?&#223;&#196;&#214;&#220;<tt class="typewriter">123&amp;&#223;&#228;&#246;&#252;</tt>456 ]] [[ hTtP://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;?&#223;&#196;&#214;&#220;<tt class="typewriter">123&amp;&#223;&#228;&#246;&#252;</tt>456 ]] [[ HtTp://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;?&#223;&#196;&#214;&#220;<tt class="typewriter">123&amp;&#223;&#228;&#246;&#252;</tt>456 ]] [[ http://&#228;&#246;&#252;@www.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;?&#223;&#196;&#214;&#220;<tt class="typewriter">123&amp;&#223;&#228;&#246;&#252;</tt>456 ]] [[ http://www.m&#252;ller.invalid<em cla!
+ ss="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;&amp;&#223;&#196;&#214;&#220;=123]] [[ http://www.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252; ]] [[ http://www.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;/%EE%AB%ac%cB%De ]] [[ http://www.m&#252;ller.invalid ]] [[ http://www.m&#252;ller.invalid.%EE ]] [[ http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid ]] [[ http://&#228;&#246;&#252;%EE%AB%ac%cB%De:&#223;%EE%AB%ac%cB%De at www.m&#252;ller.invalid ]] [[ www.m&#252;ller.invalid ]] [[ &#228;&#246;&#252; &gt;&gt; http://&#228;&#246;&#252;:&#223;@www.m&#252;ller.invalid<em class="italic">~&#233;&#232;&#234;</em>&#228;&#246;&#252;?&#223;&#196;&#214;&#220;<tt class="typewriter">123&amp;&#223;&#228;&#246;&#252;</tt>456 ]]</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/some_special_markup_with_blanks.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/some_special_markup_with_blanks.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/some_special_markup_with_blanks.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>/test / / test/ / test / <em class="italic">test</em> t<em class="italic">es</em>t</p><p>*test * * test* * test * <b class="bold">test</b> t<b class="bold">es</b>t</p><p>_test _ _ test_ _ test _ <span class="underlined">test</span> t<span class="underlined">es</span>t</p><p>=test = = test= = test = <tt class="typewriter">test</tt> t<tt class="typewriter">es</tt>t</p><p>test<em class="italic">test test</em>test <em class="italic">test</em> test <em class="italic">test</em> test</p><p>test<b class="bold">test test</b>test <b class="bold">test</b> test <b class="bold">test</b> test</p><p>test<span class="underlined">test test</span>test <span class="underlined">test</span> test <span class="underlined">test</span> test</p><p>test<tt class="typewriter">test test</tt>test <tt class="typewriter">test</tt> test <tt class="typewriter">test</tt> test</p><p>test<span class="sing!
+ le_quotes">test test</span>test <span class="single_quotes">test</span> test <span class="single_quotes">test</span> test</p><p>test<span class="double_quotes">test test</span>test <span class="double_quotes">test</span> test <span class="double_quotes">test</span> test</p><p>test<span class="superscript">test test</span>test <span class="superscript">test</span> test <span class="superscript">test</span> test</p><p>test<span class="subscript">test test</span>test <span class="subscript">test</span> test <span class="subscript">test</span> test</p><p>test<span class="large">test test</span>test <span class="large">test</span> test <span class="large">test</span> test</p><p>test<span class="small">test test</span>test <span class="small">test</span> test <span class="small">test</span> test</p></div></body></html>
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>/test / / test/ / test / <em class="italic">test</em> t<em class="italic">es</em>t</p><p>*test * * test* * test * <b class="bold">test</b> t<b class="bold">es</b>t</p><p>_test _ _ test_ _ test _ <span class="underlined">test</span> t<span class="underlined">es</span>t</p><p>=test = = test= = test = <tt class="typewriter">test</tt> t<tt class="typewriter">es</tt>t</p><p>test[/ test test /]test [<em class="italic">test</em>] test [/ test /] test</p><p>test[* test test *]test [<b class="bold">test</b>] test [* test *] test</p><p>test[_ test test _]test [<span class="underlined">test</span>] test [_ test _] test</p><p>test[= test test =]test [<tt class="typewriter">test</tt>] test [= test =] test</p><p>test[' test test ']test ['test'] test [' test '] test</p><p>test[" test test "]test ["test"] test [" test "] test</p><p>test[^ test test ^]test [^test^] test [^ test ^] test!
+ </p><p>test[, test test ,]test [,test,] test [, test ,] test</p><p>test[# test test #]test [#test#] test [# test #] test</p><p>test[~ test test ~]test [~test~] test [~ test ~] test</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_block.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_block.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/typewriter_block.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-typewriter[=typewriter=]non-typewriter</p><p>non-typewriter[=typewriter typewriter=]non-typewriter</p><p>non-typewriter[=typewriter[=typewriter=]non-typewriter</p><p>non-typewriter[=typewriter=]non-typewriter=]non-typewriter</p><p>non-typewriter[=typewriter[=typewriter=]non-typewriter=]non-typewriter</p><p>empty: [==]</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-typewriter[<tt class="typewriter">typewriter</tt>]non-typewriter</p><p>non-typewriter[=typewriter typewriter=]non-typewriter</p><p>non-typewriter[<tt class="typewriter">typewriter[</tt>typewriter=]non-typewriter</p><p>non-typewriter[<tt class="typewriter">typewriter</tt>]non-typewriter=]non-typewriter</p><p>non-typewriter[<tt class="typewriter">typewriter[</tt>typewriter<tt class="typewriter">]non-typewriter</tt>]non-typewriter</p><p>empty: [==]</p></div></body></html>
+\ No newline at end of file
+
+Modified: trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_block.extension_text_style_simple.xml
+===================================================================
+--- trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_block.extension_text_style_simple.xml	2006-08-25 18:16:49 UTC (rev 27)
++++ trunk/fellowiki/wiki/tests/tests/simple_markup/underlined_block.extension_text_style_simple.xml	2006-09-10 14:07:21 UTC (rev 28)
+@@ -1 +1 @@
+-<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-underlined[_underlined_]non-underlined</p><p>non-underlined[_underlined underlined_]non-underlined</p><p>non-underlined[_underlined[_underlined_]non-underlined</p><p>non-underlined[_underlined_]non-underlined_]non-underlined</p><p>non-underlined[_underlined[_underlined_]non-underlined_]non-underlined</p><p>empty: [__]</p></div></body></html>
+\ No newline at end of file
++<html xmlns="http://www.w3.org/1999/xhtml"><head><title /></head><body><div class="parsed-wiki-content"><p>non-underlined[<span class="underlined">underlined</span>]non-underlined</p><p>non-underlined[_underlined underlined_]non-underlined</p><p>non-underlined[<span class="underlined">underlined[</span>underlined_]non-underlined</p><p>non-underlined[<span class="underlined">underlined</span>]non-underlined_]non-underlined</p><p>non-underlined[<span class="underlined">underlined[</span>underlined<span class="underlined">]non-underlined</span>]non-underlined</p><p>empty: [__]</p></div></body></html>
+\ No newline at end of file
+
+
+
+From fingerle at mail.berlios.de  Sun Sep 10 16:40:17 2006
+From: fingerle at mail.berlios.de (fingerle at BerliOS)
+Date: Sun, 10 Sep 2006 16:40:17 +0200
+Subject: [fellowiki-svncheckins] r29 - in trunk: . fellowiki
+	fellowiki/config fellowiki/controllers
+	fellowiki/controllers/wikiparser fellowiki/model
+	fellowiki/static fellowiki/static/css fellowiki/static/images
+	fellowiki/templates fellowiki/tests
+Message-ID: <200609101440.k8AEeHLC032012@sheep.berlios.de>
+
+Author: fingerle
+Date: 2006-09-10 16:40:09 +0200 (Sun, 10 Sep 2006)
+New Revision: 29
+
+Added:
+   trunk/README.txt
+   trunk/dev.cfg
+   trunk/fellowiki/config/
+   trunk/fellowiki/config/__init__.py
+   trunk/fellowiki/config/app.cfg
+   trunk/fellowiki/config/log.cfg
+   trunk/fellowiki/controllers/
+   trunk/fellowiki/controllers/__init__.py
+   trunk/fellowiki/controllers/wikiparser/
+   trunk/fellowiki/controllers/wikiparser/tests/
+   trunk/fellowiki/json.py
+   trunk/fellowiki/model/
+   trunk/fellowiki/model/__init__.py
+   trunk/fellowiki/model/model_classes.py
+   trunk/fellowiki/model/schema.py
+   trunk/fellowiki/static/
+   trunk/fellowiki/static/css/
+   trunk/fellowiki/static/css/style.css
+   trunk/fellowiki/static/images/
+   trunk/fellowiki/static/images/favicon.ico
+   trunk/fellowiki/static/images/header_inner.png
+   trunk/fellowiki/static/images/info.png
+   trunk/fellowiki/static/images/ok.png
+   trunk/fellowiki/static/images/tg_under_the_hood.png
+   trunk/fellowiki/static/images/under_the_hood_blue.png
+   trunk/fellowiki/static/javascript/
+   trunk/fellowiki/templates/
+   trunk/fellowiki/templates/__init__.py
+   trunk/fellowiki/templates/default.kid
+   trunk/fellowiki/templates/login.kid
+   trunk/fellowiki/templates/master.kid
+   trunk/fellowiki/templates/welcome.kid
+   trunk/fellowiki/tests/test_controllers.py
+   trunk/fellowiki/tests/test_model.py
+   trunk/sample-prod.cfg
+   trunk/setup.py
+   trunk/start-fellowiki.py
+Removed:
+   trunk/fellowiki/controllers/wikiparser/tests/
+   trunk/fellowiki/wiki/
+Log:
+- Started TurboGearsifying FelloWiki (take 2)
+
+
+Added: trunk/README.txt
+===================================================================
+--- trunk/README.txt	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/README.txt	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,4 @@
++FelloWiki
++
++This is a TurboGears (http://www.turbogears.org) project. It can be
++started by running the start-fellowiki.py script.
+\ No newline at end of file
+
+Added: trunk/dev.cfg
+===================================================================
+--- trunk/dev.cfg	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/dev.cfg	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,61 @@
++[global]
++# This is where all of your settings go for your development environment
++# Settings that are the same for both development and production
++# (such as template engine, encodings, etc.) all go in 
++# fellowiki/config/app.cfg
++
++# DATABASE
++
++# driver://username:password at host:port/database
++
++# pick the form for your database
++# sqlalchemy.dburi="postgres://username at hostname/databasename"
++# sqlalchemy.dburi="mysql://username:password at hostname:port/databasename"
++# sqlalchemy.dburi="sqlite://%(current_dir_uri)s/devdata.sqlite"
++
++# If you have sqlite, here's a simple default to get you started
++# in development
++sqlalchemy.dburi="sqlite:///devdata.sqlite"
++
++# set to 1 to make SQLAlchemy echo SQL commands on the console
++sqlalchemy.echo = 0
++
++# SERVER
++
++# Some server parameters that you may want to tweak
++# server.socket_port=8080
++
++# Enable the debug output at the end on pages.
++# log_debug_info_filter.on = False
++
++server.environment="development"
++autoreload.package="fellowiki"
++
++# session_filter.on = True
++
++# Set to True if you'd like to abort execution if a controller gets an
++# unexpected parameter. False by default
++tg.strict_parameters = True
++
++# LOGGING
++# Logging configuration generally follows the style of the standard
++# Python logging module configuration. Note that when specifying
++# log format messages, you need to use *() for formatting variables.
++# Deployment independent log configuration is in fellowiki/config/log.cfg
++[logging]
++
++[[loggers]]
++[[[fellowiki]]]
++level='DEBUG'
++qualname='fellowiki'
++handlers=['debug_out']
++
++[[[allinfo]]]
++level='INFO'
++handlers=['debug_out']
++
++[[[access]]]
++level='INFO'
++qualname='turbogears.access'
++handlers=['access_out']
++propagate=0
+
+Added: trunk/fellowiki/config/__init__.py
+===================================================================
+
+Added: trunk/fellowiki/config/app.cfg
+===================================================================
+--- trunk/fellowiki/config/app.cfg	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/config/app.cfg	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,42 @@
++[global]
++# The settings in this file should not vary depending on the deployment
++# environment. dev.cfg and prod.cfg are the locations for
++# the different deployment settings. Settings in this file will
++# be overridden by settings in those other files.
++
++# The commented out values below are the defaults
++
++# VIEW
++
++# which view (template engine) to use if one is not specified in the
++# template name
++# tg.defaultview = "kid"
++
++# The following kid settings determine the settings used by the kid serializer.
++
++# One of (html|xml|json)
++# kid.outputformat="html"
++
++# kid.encoding="utf-8"
++
++# The sitetemplate is used for overall styling of a site that
++# includes multiple TurboGears applications
++# tg.sitetemplate="<packagename.templates.templatename>"
++
++# Allow every exposed function to be called as json,
++# tg.allow_json = False
++
++# List of Widgets to include on every page.
++# for exemple ['turbogears.mochikit']
++# tg.include_widgets = []
++
++# Set to True if the scheduler should be started
++# tg.scheduler = False
++
++[/static]
++static_filter.on = True
++static_filter.dir = "%(top_level_dir)s/static"
++
++[/favicon.ico]
++static_filter.on = True
++static_filter.file = "%(top_level_dir)s/static/images/favicon.ico"
+
+Added: trunk/fellowiki/config/log.cfg
+===================================================================
+--- trunk/fellowiki/config/log.cfg	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/config/log.cfg	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,29 @@
++# LOGGING
++# Logging is often deployment specific, but some handlers and
++# formatters can be defined here.
++
++[logging]
++[[formatters]]
++[[[message_only]]]
++format='*(message)s'
++
++[[[full_content]]]
++format='*(asctime)s *(name)s *(levelname)s *(message)s'
++
++[[handlers]]
++[[[debug_out]]]
++class='StreamHandler'
++level='DEBUG'
++args='(sys.stdout,)'
++formatter='full_content'
++
++[[[access_out]]]
++class='StreamHandler'
++level='INFO'
++args='(sys.stdout,)'
++formatter='message_only'
++
++[[[error_out]]]
++class='StreamHandler'
++level='ERROR'
++args='(sys.stdout,)'
+
+Added: trunk/fellowiki/controllers/__init__.py
+===================================================================
+--- trunk/fellowiki/controllers/__init__.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/controllers/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,51 @@
++import logging
++
++import cherrypy
++
++import turbogears
++from turbogears import controllers, expose, validate, redirect
++from turbogears.database import session
++
++from fellowiki import json
++
++log = logging.getLogger("fellowiki.controllers")
++
++class Root(controllers.RootController):
++    @expose(template="fellowiki.templates.welcome")
++    def index(self):
++        import time
++        log.debug("Happy TurboGears Controller Responding For Duty")
++        return dict(now=time.ctime())
++
++##
++##import cherrypy
++##from view import expose
++##import sqlalchemy
++##
++##from fellowiki.database.schema import metadata
++##
++##from fellowiki.database.model import *
++##
++##class FelloWikiRoot:
++##    @expose()
++##    def index(self):
++##        
++##        versions = DBVersion.select()
++##        
++##        return dict(page_title = 'Welcome to FelloWiki!',
++##                    page_body = 'index body: ' )
++##    
++##class WikiInstance:
++##    @expose()
++##    def default(self, *args, **kwargs):
++##        return dict(page_title = 'Welcome to FelloWiki!',
++##                    page_body = 'wiki instance: '+unicode(args))
++##           
++##class DataBaseHelper:
++##    def __init__(self, error_string):
++##        self.error_string = error_string
++##        
++##    @expose()
++##    def default(self, *args, **kwargs):
++##        return dict(page_title = 'FelloWiki: data base not available',
++##                    page_body = self.error_string)
+
+Copied: trunk/fellowiki/controllers/wikiparser (from rev 27, trunk/fellowiki/wiki)
+
+Copied: trunk/fellowiki/controllers/wikiparser/tests (from rev 28, trunk/fellowiki/wiki/tests)
+
+Added: trunk/fellowiki/json.py
+===================================================================
+--- trunk/fellowiki/json.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/json.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,12 @@
++# This module provides helper functions for the JSON part of your
++# view, if you are providing a JSON-based API for your app.
++
++# Here's what most rules would look like:
++# @jsonify.when("isinstance(obj, YourClass)")
++# def jsonify_yourclass(obj):
++#     return [obj.val1, obj.val2]
++#
++# The goal is to break your objects down into simple values:
++# lists, dicts, numbers and strings
++
++from turbojson.jsonify import jsonify
+
+Added: trunk/fellowiki/model/__init__.py
+===================================================================
+--- trunk/fellowiki/model/__init__.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/model/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1 @@
++from model_classes import *
+
+Added: trunk/fellowiki/model/model_classes.py
+===================================================================
+--- trunk/fellowiki/model/model_classes.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/model/model_classes.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,84 @@
++from sqlalchemy import *
++from sqlalchemy.ext.assignmapper import assign_mapper
++from sqlalchemy.ext.sessioncontext import SessionContext
++
++import turbogears.database
++
++from schema import *
++
++__all__ = ['DBVersion', 'User', 'Login', 'Group', 'Task', 'RessourceType', 
++           'Ressource', 'LoginTask', 'WikiItemType', 'WikiItem']
++
++sc = turbogears.database.session.context
++
++## more cascades?
++
++class DBVersion(object):
++    def __init__(self, prj, db_version):
++        self.prj = prj
++        self.db_version = db_version
++    def __repr__(self):
++        return u"DBVersion(%s, %s)" %(repr(self.prj), repr(self.db_version))
++
++class User(object): pass
++
++class Login(object): pass
++
++class Group(object): pass
++
++class Task(object): pass
++
++class RessourceType(object): pass
++
++class Ressource(object): pass
++
++class LoginTask(object): pass
++    
++class WikiItemType(object): pass
++
++class WikiItem(object): pass
++    
++    
++assign_mapper(sc, DBVersion, db_version)
++assign_mapper(sc, RessourceType, ressource_types)
++assign_mapper(sc, WikiItemType, wiki_item_types)
++    
++assign_mapper(sc, User, users)
++
++assign_mapper(sc, Login, logins, 
++              properties = {'user': relation(User, backref=backref('login', uselist=False))})
++
++assign_mapper(sc, Group, groups,
++              properties = {'children': relation(Group, 
++                                primaryjoin=groups.c.id==groups.c.parent_id,
++                                cascade="all"),
++                            'users': relation(User, secondary=user_groups, backref='groups')}) 
++                                
++assign_mapper(sc, Task, tasks,
++              properties = {'sub_tasks': relation(Task,
++                                secondary=sub_tasks,
++                                primaryjoin=tasks.c.id==sub_tasks.c.super_task_id,
++                                secondaryjoin=sub_tasks.c.sub_task_id==tasks.c.id,
++                                backref='super_tasks')})
++
++assign_mapper(sc, Ressource, ressources,
++              properties = {'ressource_type' : relation(RessourceType)})
++                  
++assign_mapper(sc, LoginTask, login_tasks,
++              properties = {'login': relation(Login, primaryjoin=
++                                login_tasks.c.refers_to_login_id==Login.c.id),
++                            'task': relation(Task, primaryjoin=
++                                login_tasks.c.task_id==Task.c.id),
++                            'group': relation(Group, primaryjoin=
++                                login_tasks.c.group_id==Group.c.id),
++                            'user': relation(User, primaryjoin=
++                                login_tasks.c.user_id==User.c.id),
++                            'ressource': relation(Ressource, primaryjoin=
++                                login_tasks.c.ressource_id==Ressource.c.id)})
++    
++Login.mapper.add_property('tasks', relation(LoginTask, primaryjoin=logins.c.id==login_tasks.c.login_id, 
++                                            cascade="all, delete-orphan"))
++    
++assign_mapper(sc, WikiItem, wiki_items,
++              properties = {'ressource': relation(Ressource),
++                            'item_type': relation(WikiItemType)})
+
+Added: trunk/fellowiki/model/schema.py
+===================================================================
+--- trunk/fellowiki/model/schema.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/model/schema.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,98 @@
++from sqlalchemy import *
++
++import turbogears.database
++
++md = turbogears.database.metadata
++
++from datetime import datetime
++
++
++DEFAULT_STRING_LENGTH = 200
++DEFAULT_COMMENT_LENGTH = 2000
++
++
++__all__ = ['db_version', 'users', 'logins', 'groups', 'tasks', 'sub_tasks', 
++           'user_groups', 'ressource_types', 'ressources', 'login_tasks', 
++           'wiki_item_types', 'wiki_items']
++
++db_version = Table('fw_db_version', md,
++    Column('prj', Unicode(30), nullable = False, primary_key = True),
++    Column('db_version', Integer, nullable = False, primary_key = True),
++    Column('installation_date', DateTime, default = datetime.utcnow))
++
++users = Table('fw_users', md,
++    Column('id', Integer, Sequence('fw_user_seq'), primary_key = True, nullable = False),
++    Column('forename', Unicode(DEFAULT_STRING_LENGTH), nullable = False),
++    Column('name', Unicode(DEFAULT_STRING_LENGTH), nullable = False),
++    Column('name_at_birth', Unicode(DEFAULT_STRING_LENGTH)),
++    Column('comment', Unicode(DEFAULT_COMMENT_LENGTH)))
++
++logins = Table('fw_logins', md,
++    Column('id', Integer, Sequence('fw_logins_seq'), primary_key = True, nullable = False),
++    Column('login_name', Unicode(DEFAULT_STRING_LENGTH), nullable = False, unique=True),
++    Column('user_id', Integer, ForeignKey(users.c.id), nullable = True, unique = True),
++    Column('last_change', DateTime, default = datetime.utcnow, nullable = False),
++    Column('password_encoded', Unicode(DEFAULT_STRING_LENGTH), nullable=False),
++    Column('change_at_login', Boolean, nullable = False, default=False))
++    
++groups = Table('fw_groups', md,
++    Column('id', Integer, Sequence('fw_groups_seq'), primary_key = True, nullable = False),
++    Column('name', Unicode(DEFAULT_STRING_LENGTH), nullable = False, unique=True),
++    Column('parent_id', Integer, ForeignKey('fw_groups.id')),
++    Column('comment', Unicode(DEFAULT_COMMENT_LENGTH)))
++    
++# pre-load:    
++tasks = Table('fw_tasks', md,
++    Column('id', Integer, primary_key = True, nullable = False),
++    Column('name', Unicode(DEFAULT_STRING_LENGTH), nullable = False, unique=True),
++    Column('related_to_group', Boolean, nullable = False),
++    Column('related_to_login', Boolean, nullable = False),
++    Column('related_to_user', Boolean, nullable = False),
++    Column('related_to_ressource', Boolean, nullable = False),
++    Column('comment', Unicode(DEFAULT_COMMENT_LENGTH)))
++    
++sub_tasks = Table('fw_sub_tasks', md,
++    Column('super_task_id', Integer, ForeignKey(tasks.c.id), nullable = False),
++    Column('sub_task_id', Integer, ForeignKey(tasks.c.id), nullable = False))
++    
++user_groups = Table('fw_user_groups', md,
++    Column('user_id', Integer, ForeignKey(users.c.id), nullable = False),
++    Column('group_id', Integer, ForeignKey(groups.c.id), nullable = False))
++
++# pre-load
++ressource_types = Table('fw_ressource_types', md,
++    Column('id', Integer, primary_key = True, nullable = False),
++    Column('name', Unicode(DEFAULT_STRING_LENGTH), nullable = False, unique = True))
++
++ressources = Table('fw_ressources', md,
++    Column('id', Integer, Sequence('fw_ressource_seq'), primary_key = True, nullable = False),
++    Column('name', Unicode(DEFAULT_STRING_LENGTH), nullable = False, unique = True),
++    Column('type_id', Integer, ForeignKey(ressource_types.c.id),nullable = False))
++    
++login_tasks = Table('fw_login_tasks', md,
++    Column('id', Integer, Sequence('fw_login_tasks_seq'), primary_key = True, nullable = False),
++    Column('login_id', Integer, ForeignKey(logins.c.id), nullable = False),
++    Column('task_id', Integer, ForeignKey(tasks.c.id), nullable = False),
++    Column('group_id', Integer, ForeignKey(groups.c.id), nullable = True),
++    Column('refers_to_login_id', Integer, ForeignKey(logins.c.id), nullable = True),
++    Column('user_id', Integer, ForeignKey(users.c.id), nullable = True),
++    Column('ressource_id', Integer, ForeignKey(ressources.c.id), nullable = True))
++
++#pre-load
++wiki_item_types = Table('fw_wiki_item_types', md,
++    Column('id', Integer, Sequence('fw_wiki_item_type_seq'), primary_key = True, nullable = False),
++    Column('name', Unicode(DEFAULT_STRING_LENGTH), unique = True, nullable = False),
++    Column('mime_type', String(DEFAULT_STRING_LENGTH)),
++    Column('parsing_handler', String(DEFAULT_STRING_LENGTH)),
++    Column('binary', Boolean, nullable = False))
++
++wiki_items = Table('fw_res_items', md,
++    Column('name', Unicode(DEFAULT_STRING_LENGTH), primary_key = True, nullable = False),
++    Column('version', Integer, primary_key = True, nullable = False),
++    Column('ressource_id', Integer, ForeignKey(ressources.c.id)),
++    Column('type_id', Integer, ForeignKey(wiki_item_types.c.id)),
++    Column('created', DateTime, default = datetime.utcnow, nullable = False),
++    Column('deleted', DateTime),
++    Column('text_content', Unicode),
++    Column('binary_content', Unicode),
++    Column('parsing_cache', PickleType))
+
+Added: trunk/fellowiki/static/css/style.css
+===================================================================
+--- trunk/fellowiki/static/css/style.css	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/static/css/style.css	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,124 @@
++/*
++ * Quick mash-up of CSS for the TG quick start page.
++ */
++
++html, body, th, td {
++  color: black;
++  background-color: #ddd;
++  font: x-small "Lucida Grande", "Lucida Sans Unicode", geneva, verdana, sans-serif;
++  margin: 0;
++  padding: 0;
++}
++
++#header {
++  height: 80px;
++  width: 777px;
++  background: blue URL('../images/header_inner.png') no-repeat;
++  border-left: 1px solid #aaa;
++  border-right: 1px solid #aaa;
++  margin: 0 auto 0 auto;
++}
++
++a.link, a, a.active {
++  color: #369;
++}
++
++
++#main_content {
++  color: black;
++  font-size: 127%;
++  background-color: white;
++  width: 757px;
++  margin: 0 auto 0 auto;
++  border-left: 1px solid #aaa;
++  border-right: 1px solid #aaa;
++  padding: 10px;
++}
++
++#sidebar {
++  border: 1px solid #aaa;
++  background-color: #eee;
++  margin: 0.5em;
++  padding: 1em;
++  float: right;
++  width: 200px;
++  font-size: 88%;
++}
++
++#sidebar h2 {
++  margin-top: 0;
++}
++
++#sidebar ul {
++  margin-left: 1.5em;
++  padding-left: 0;
++}
++
++h1,h2,h3,h4,h5,h6,#getting_started_steps {
++  font-family: "Century Schoolbook L", Georgia, serif;
++  font-weight: bold;
++}
++
++h2 {
++  font-size:150%
++}
++
++#getting_started_steps a {
++  text-decoration:none;
++}
++
++#getting_started_steps a:hover {
++  text-decoration:underline;
++}
++
++#getting_started_steps li {
++  font-size:80%
++  margin-bottom: 0.5em;
++}
++
++#getting_started_steps h2 {
++  font-size:120%;
++}
++
++#getting_started_steps p {
++  font: 100% "Lucida Grande", "Lucida Sans Unicode", geneva, verdana, sans-serif;
++}
++
++#footer {
++  border: 1px solid #aaa;
++  border-top: 0px none;
++  color: #999;
++  background-color: white;
++  padding: 10px;
++  font-size: 80%;
++  text-align: center;
++  width: 757px;
++  margin: 0 auto 1em auto;
++}
++
++.code {
++  font-family: monospace;
++}
++
++span.code {
++  font-weight: bold;
++  background: #eee;
++}
++
++#status_block {
++	margin: 0 auto 0.5em auto;
++	padding: 15px 10px 15px 55px;
++  background: #cec URL('../images/ok.png') left center no-repeat;
++	border: 1px solid #9c9;
++  width: 450px;
++  font-size: 120%;
++  font-weight: bolder;
++}
++
++.notice {
++  margin: 0.5em auto 0.5em auto;
++  padding: 15px 10px 15px 55px;
++  width: 450px;
++  background: #eef URL('../images/info.png') left center no-repeat;
++  border: 1px solid #cce;
++}
+
+Added: trunk/fellowiki/static/images/favicon.ico
+===================================================================
+(Binary files differ)
+
+
+Property changes on: trunk/fellowiki/static/images/favicon.ico
+___________________________________________________________________
+Name: svn:mime-type
+   + application/octet-stream
+
+Added: trunk/fellowiki/static/images/header_inner.png
+===================================================================
+(Binary files differ)
+
+
+Property changes on: trunk/fellowiki/static/images/header_inner.png
+___________________________________________________________________
+Name: svn:mime-type
+   + application/octet-stream
+
+Added: trunk/fellowiki/static/images/info.png
+===================================================================
+(Binary files differ)
+
+
+Property changes on: trunk/fellowiki/static/images/info.png
+___________________________________________________________________
+Name: svn:mime-type
+   + application/octet-stream
+
+Added: trunk/fellowiki/static/images/ok.png
+===================================================================
+(Binary files differ)
+
+
+Property changes on: trunk/fellowiki/static/images/ok.png
+___________________________________________________________________
+Name: svn:mime-type
+   + application/octet-stream
+
+Added: trunk/fellowiki/static/images/tg_under_the_hood.png
+===================================================================
+(Binary files differ)
+
+
+Property changes on: trunk/fellowiki/static/images/tg_under_the_hood.png
+___________________________________________________________________
+Name: svn:mime-type
+   + application/octet-stream
+
+Added: trunk/fellowiki/static/images/under_the_hood_blue.png
+===================================================================
+(Binary files differ)
+
+
+Property changes on: trunk/fellowiki/static/images/under_the_hood_blue.png
+___________________________________________________________________
+Name: svn:mime-type
+   + application/octet-stream
+
+Added: trunk/fellowiki/templates/__init__.py
+===================================================================
+
+Added: trunk/fellowiki/templates/default.kid
+===================================================================
+--- trunk/fellowiki/templates/default.kid	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/templates/default.kid	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,8 @@
++<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
++<html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://purl.org/kid/ns#">
++<head>
++<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
++<title><div py:replace='page_title'>Page title.</div></title>
++</head>
++<body><div py:replace='page_body'>Page body.</div></body>
++</html>
+
+Added: trunk/fellowiki/templates/login.kid
+===================================================================
+--- trunk/fellowiki/templates/login.kid	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/templates/login.kid	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,113 @@
++<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
++    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
++<html xmlns="http://www.w3.org/1999/xhtml"
++    xmlns:py="http://purl.org/kid/ns#"
++    py:extends="'master.kid'">
++
++<head>
++    <meta content="text/html; charset=UTF-8"
++        http-equiv="content-type" py:replace="''"/>
++    <title>Login</title>
++    <style type="text/css">
++        #loginBox
++        {
++            width: 30%;
++            margin: auto;
++            margin-top: 10%;
++            padding-left: 10%;
++            padding-right: 10%;
++            padding-top: 5%;
++            padding-bottom: 5%;
++            font-family: verdana;
++            font-size: 10px;
++            background-color: #eee;
++            border: 2px solid #ccc;
++        }
++
++        #loginBox h1
++        {
++            font-size: 42px;
++            font-family: "Trebuchet MS";
++            margin: 0;
++            color: #ddd;
++        }
++
++        #loginBox p
++        {
++            position: relative;
++            top: -1.5em;
++            padding-left: 4em;
++            font-size: 12px;
++            margin: 0;
++            color: #666;
++        }
++
++        #loginBox table
++        {
++            table-layout: fixed;
++            border-spacing: 0;
++            width: 100%;
++        }
++
++        #loginBox td.label
++        {
++            width: 33%;
++            text-align: right;
++        }
++
++        #loginBox td.field
++        {
++            width: 66%;
++        }
++
++        #loginBox td.field input
++        {
++            width: 100%;
++        }
++
++        #loginBox td.buttons
++        {
++            text-align: right;
++        }
++
++    </style>
++</head>
++
++<body>
++    <div id="loginBox">
++        <h1>Login</h1>
++        <p>${message}</p>
++        <form action="${previous_url}" method="POST">
++            <table>
++                <tr>
++                    <td class="label">
++                        <label for="user_name">User Name:</label>
++                    </td>
++                    <td class="field">
++                        <input type="text" id="user_name" name="user_name"/>
++                    </td>
++                </tr>
++                <tr>
++                    <td class="label">
++                        <label for="password">Password:</label>
++                    </td>
++                    <td class="field">
++                        <input type="password" id="password" name="password"/>
++                    </td>
++                </tr>
++                <tr>
++                    <td colspan="2" class="buttons">
++                        <input type="submit" name="login" value="Login"/>
++                    </td>
++                </tr>
++            </table>
++
++            <input py:if="forward_url" type="hidden" name="forward_url"
++                value="${forward_url}"/>
++                
++            <input py:for="name,value in original_parameters.items()"
++                type="hidden" name="${name}" value="${value}"/>
++        </form>
++    </div>
++</body>
++</html>
+
+Added: trunk/fellowiki/templates/master.kid
+===================================================================
+--- trunk/fellowiki/templates/master.kid	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/templates/master.kid	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,46 @@
++<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
++<?python import sitetemplate ?>
++<html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://purl.org/kid/ns#" py:extends="sitetemplate">
++
++<head py:match="item.tag=='{http://www.w3.org/1999/xhtml}head'" py:attrs="item.items()">
++    <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
++    <title py:replace="''">Your title goes here</title>
++    <meta py:replace="item[:]"/>
++    <style type="text/css">
++        #pageLogin
++        {
++            font-size: 10px;
++            font-family: verdana;
++            text-align: right;
++        }
++    </style>
++    <style type="text/css" media="screen">
++ at import "/static/css/style.css";
++</style>
++</head>
++
++<body py:match="item.tag=='{http://www.w3.org/1999/xhtml}body'" py:attrs="item.items()">
++    <div py:if="tg.config('identity.on',False) and not 'logging_in' in locals()"
++        id="pageLogin">
++        <span py:if="tg.identity.anonymous">
++            <a href="/login">Login</a>
++        </span>
++        <span py:if="not tg.identity.anonymous">
++            Welcome ${tg.identity.user.display_name}.
++            <a href="/logout">Logout</a>
++        </span>
++    </div>
++
++    <div py:if="tg_flash" class="flash" py:content="tg_flash"></div>
++
++    <div py:replace="[item.text]+item[:]"/>
++
++	<!-- End of main_content -->
++<div id="footer"> <img src="/static/images/under_the_hood_blue.png" />
++  <p>TurboGears is a open source front-to-back web development
++    framework written in Python</p>
++  <p>Copyright &copy; 2006 Kevin Dangoor</p>
++</div>
++</body>
++
++</html>
+
+Added: trunk/fellowiki/templates/welcome.kid
+===================================================================
+--- trunk/fellowiki/templates/welcome.kid	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/templates/welcome.kid	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,50 @@
++<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
++<html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://purl.org/kid/ns#"
++    py:extends="'master.kid'">
++<head>
++<meta content="text/html; charset=utf-8" http-equiv="Content-Type" py:replace="''"/>
++<title>Welcome to TurboGears</title>
++</head>
++<body>
++<div id="header">&nbsp;</div>
++<div id="main_content">
++  <div id="status_block">Your TurboGears application is now running.</div>
++  <!--h1>Take steps to dive right in:</h1-->
++  <div id="sidebar">
++    <h2>Learn more</h2>
++    Learn more about TurboGears and take part in its
++    development
++    <ul class="links">
++      <li><a href="http://www.turbogears.org">Official website</a></li>
++      <li><a href="http://docs.turbogears.org">Documentation</a></li>
++      <li><a href="http://trac.turbogears.org/turbogears/">Trac
++        (bugs/suggestions)</a></li>
++      <li><a href="http://groups.google.com/group/turbogears"> Mailing list</a> </li>
++    </ul>
++  </div>
++  <div id="getting_started">
++    <ol id="getting_started_steps">
++      <li class="getting_started">
++        <h3>Model</h3>
++        <p> <a href="http://docs.turbogears.org/1.0/GettingStarted/DefineDatabase">Design models</a> in the <span class="code">model.py</span>.<br/>
++          Edit <span class="code">dev.cfg</span> to <a href="http://docs.turbogears.org/1.0/GettingStarted/UseDatabase">use a different backend</a>, or start with a pre-configured SQLite database. <br/>
++          Use script <span class="code">tg-admin sql create</span> to create the database tables.</p>
++      </li>
++      <li class="getting_started">
++        <h3>View</h3>
++        <p> Edit <a href="http://docs.turbogears.org/1.0/GettingStarted/Kid">html-like templates</a> in the <span class="code">/templates</span> folder;<br/>
++        Put all <a href="http://docs.turbogears.org/1.0/StaticFiles">static contents</a> in the <span class="code">/static</span> folder. </p>
++      </li>
++      <li class="getting_started">
++        <h3>Controller</h3>
++        <p> Edit <span class="code"> controllers.py</span> and <a href="http://docs.turbogears.org/1.0/GettingStarted/CherryPy">build your
++          website structure</a> with the simplicity of Python objects. <br/>
++          TurboGears will automatically reload itself when you modify your project. </p>
++      </li>
++    </ol>
++    <div class="notice"> If you create something cool, please <a href="http://groups.google.com/group/turbogears">let people know</a>, and consider contributing something back to the <a href="http://groups.google.com/group/turbogears">community</a>.</div>
++  </div>
++  <!-- End of getting_started -->
++</div>
++</body>
++</html>
+
+Added: trunk/fellowiki/tests/test_controllers.py
+===================================================================
+--- trunk/fellowiki/tests/test_controllers.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/tests/test_controllers.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,16 @@
++from turbogears import testutil
++from fellowiki.controllers import Root
++import cherrypy
++
++cherrypy.root = Root()
++
++def test_method():
++    "the index method should return a string called now"
++    import types
++    result = testutil.call(cherrypy.root.index)
++    assert type(result["now"]) == types.StringType
++
++def test_indextitle():
++    "The mainpage should have the right title"
++    testutil.createRequest("/")
++    assert "<TITLE>Welcome to TurboGears</TITLE>" in cherrypy.response.body[0]
+
+Added: trunk/fellowiki/tests/test_model.py
+===================================================================
+--- trunk/fellowiki/tests/test_model.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/fellowiki/tests/test_model.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,23 @@
++# If your project uses a database, you can set up database tests
++# similar to what you see below. Be sure to set the db_uri to
++# an appropriate uri for your testing database. sqlite is a good
++# choice for testing, because you can use an in-memory database
++# which is very fast.
++
++from turbogears import testutil, database
++# from fellowiki.model import YourDataClass, User
++
++# database.set_db_uri("sqlite:///:memory:")
++
++# class TestUser(testutil.DBTest):
++#     def get_model(self):
++#         return User
++#
++#     def test_creation(self):
++#         "Object creation should set the name"
++#         obj = User(user_name = "creosote",
++#                       email_address = "spam at python.not",
++#                       display_name = "Mr Creosote",
++#                       password = "Wafer-thin Mint")
++#         assert obj.display_name == "Mr Creosote"
++
+
+Added: trunk/sample-prod.cfg
+===================================================================
+--- trunk/sample-prod.cfg	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/sample-prod.cfg	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,63 @@
++[global]
++# This is where all of your settings go for your production environment.
++# You'll copy this file over to your production server and provide it
++# as a command-line option to your start script.
++# Settings that are the same for both development and production
++# (such as template engine, encodings, etc.) all go in 
++# fellowiki/config/app.cfg
++
++# driver://username:password at host:port/database
++# pick the form for your database
++# sqlalchemy.dburi="postgres://username at hostname/databasename"
++# sqlalchemy.dburi="mysql://username:password at hostname:port/databasename"
++# sqlalchemy.dburi="sqlite:///file_name_and_path"
++
++# If you have sqlite, here's a simple default to get you started
++# in development
++sqlalchemy.dburi="sqlite:///%(current_dir_uri)s/devdata.sqlite"
++
++
++# SERVER
++
++server.environment="production"
++
++# Sets the number of threads the server uses
++# server.thread_pool = 1
++
++# if this is part of a larger site, you can set the path
++# to the TurboGears instance here
++# server.webpath=""
++
++# session_filter.on = True
++
++# Set to True if you'd like to abort execution if a controller gets an
++# unexpected parameter. False by default
++# tg.strict_parameters = False
++
++# LOGGING
++# Logging configuration generally follows the style of the standard
++# Python logging module configuration. Note that when specifying
++# log format messages, you need to use *() for formatting variables.
++# Deployment independent log configuration is in fellowiki/config/log.cfg
++[logging]
++
++[[handlers]]
++
++[[[access_out]]]
++# set the filename as the first argument below
++args="('server.log',)"
++class='FileHandler'
++level='INFO'
++formatter='message_only'
++
++[[loggers]]
++[[[fellowiki]]]
++level='ERROR'
++qualname='fellowiki'
++handlers=['error_out']
++
++[[[access]]]
++level='INFO'
++qualname='turbogears.access'
++handlers=['access_out']
++propagate=0
+
+Added: trunk/setup.py
+===================================================================
+--- trunk/setup.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/setup.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,46 @@
++from setuptools import setup, find_packages
++from turbogears.finddata import find_package_data
++
++import os
++
++# Release information about FelloWiki
++
++setup(
++    name="FelloWiki",
++    version="pre0.01",
++    
++    description='Yet another wiki engine',
++    long_description='Yet another wiki engine - still heavily in alpha',
++    author="Jan Niklas Fingerle",
++    #author_email='xxx at yyy.invalid',
++    #url='http://www.fellowiki.org',
++    #download_url='http://download.fellowiki.org',
++    license='MIT-style',
++    copyright = "(c) 2006 Jan Niklas Fingerle",
++    
++    install_requires = [
++        "TurboGears >= 1.0b1",
++    ],
++    scripts = ["start-fellowiki.py"],
++    zip_safe=False,
++    packages=find_packages(),
++    package_data = find_package_data(where='fellowiki',
++                                     package='fellowiki'),
++    keywords = ['turbogears.app'],
++    classifiers = [
++        'Development Status :: 3 - Alpha',
++        'Operating System :: OS Independent',
++        'Programming Language :: Python',
++        'Topic :: Software Development :: Libraries :: Python Modules',
++        'Framework :: TurboGears',
++        # if this is an application that you'll distribute through
++        # the Cheeseshop, uncomment the next line
++        'Framework :: TurboGears :: Applications',
++        
++        # if this is a package that includes widgets that you'll distribute
++        # through the Cheeseshop, uncomment the next line
++        # 'Framework :: TurboGears :: Widgets',
++    ],
++    test_suite = 'nose.collector',
++    )
++    
+
+Added: trunk/start-fellowiki.py
+===================================================================
+--- trunk/start-fellowiki.py	2006-09-10 14:07:21 UTC (rev 28)
++++ trunk/start-fellowiki.py	2006-09-10 14:40:09 UTC (rev 29)
+@@ -0,0 +1,162 @@
++#!/usr/bin/python2.4
++import pkg_resources
++pkg_resources.require("TurboGears")
++
++import turbogears
++import cherrypy
++cherrypy.lowercase_api = True
++
++from os.path import *
++import sys
++
++# first look on the command line for a desired config file,
++# if it's not on the command line, then
++# look for setup.py in this directory. If it's not there, this script is
++# probably installed
++if len(sys.argv) > 1:
++    turbogears.update_config(configfile=sys.argv[1], 
++        modulename="fellowiki.config")
++elif exists(join(dirname(__file__), "setup.py")):
++    turbogears.update_config(configfile="dev.cfg",
++        modulename="fellowiki.config")
++else:
++    turbogears.update_config(configfile="prod.cfg",
++        modulename="fellowiki.config")
++
++from fellowiki.controllers import Root
++
++turbogears.start_server(Root())
++
++
++##from optparse import OptionParser
++##from fellowiki.util.assorted import attributes_from_dict
++##
++##from fellowiki.database.model import DBVersion
++##from fellowiki.database.schema import metadata
++##
++##import cherrypy
++##
++##import sqlalchemy
++##from sqlalchemy.exceptions import SQLError
++##
++##from controllers import FelloWikiRoot, WikiInstance, DataBaseHelper
++##      
++##def get_configuration():
++##    parser = OptionParser()
++##    parser.add_option("-c", "--config", dest="config_file", type='string',
++##                  help="read configuration from FILE", metavar="FILE")
++##    parser.add_option("-d", "--development", action='store_true', dest="development_mode",
++##                  help="run in development/debug mode")
++##    parser.add_option("-u", "--database ", dest="db_uri", type='string',
++##                  help="data base URI", metavar="URI")
++##    parser.add_option("-l", "--log", dest="log_file", type='string',
++##                  help="write logs to FILE", metavar="FILE")
++##    parser.add_option("-s", "--silent", action='store_true', dest="silent",
++##                  help="don't write logs to the screen")
++##    parser.add_option("-b", "--bind", dest="server_host", type='string',
++##                  help="bind server to HOST", metavar="HOST")
++##    parser.add_option("-p", "--port", dest="server_port", type='int',
++##                  help="bind server to PORT", metavar="PORT")
++##    parser.add_option("--generate-tables", dest="generate_tables", 
++##                  action='store_true', default=False,
++##                  help="generate fellowiki data base tables")
++##    parser.add_option("--update-tables", dest="update_tables", 
++##                  action='store_true', default=False,
++##                  help="update fellowiki data base tables")
++##                  
++##    (options, args) = parser.parse_args()
++##    
++##    if len(args) <> 0:
++##        parser.error("positional parameters supplied, but not expected")
++##                      
++##    return options
++##
++##def config_cherrypy(options):
++##    cherrypy.config.environments = \
++##            {'development': {'server.log_file_not_found': True, 
++##                             'server.show_tracebacks': True, 
++##                             'server.log_request_headers': True, 
++##                             'autoreload.on': True, 
++##                             'log_debug_info_filter.on': False}, 
++##             'production':  {'server.log_file_not_found': False, 
++##                             'server.show_tracebacks': False,
++##                             'server.log_request_headers': False, 
++##                             'autoreload.on': False, 
++##                             'log_debug_info_filter.on': False}}
++##                             
++##    cherrypy.config.update({'global': {'server.environment': 'production'}})
++##        
++##    if options.config_file is not None:
++##        cherrypy.config.update(file=options.config_file)
++##    
++##    new_conf = {}
++##    
++##    if options.development_mode is True:
++##        new_conf['server.environment'] = 'development'
++##    if options.log_file is not None:
++##        new_conf['server.log_file'] = options.log_file
++##    if options.server_host is not None:
++##        new_conf['server.socket_host'] = options.server_host
++##    if options.server_port is not None:
++##        new_conf['server.socket_port'] = options.server_port
++##    if options.silent is True:
++##        new_conf['server.log_to_screen'] = False
++##    if options.db_uri is not None:   
++##        new_conf['db.uri'] = options.db_uri
++##        
++##    cherrypy.config.update({'global': new_conf})
++##
++##def start_web_server():
++##    options = get_configuration()
++##    
++##    config_cherrypy(options)
++##    
++##    if cherrypy.config.get('db.uri') in ['sqlite://', 'sqlite://:memory:', 
++##                                         'sqlite:///', 'sqlite:///:memory:']:
++##        # SQLite data bases require one DBApi per Thread. Cherrypy is 
++##        # multithreaded. Each thread will get its own *empty* memory DB, which
++##        # is not what we want, therefore...
++##        cherrypy.log("FelloWiki does not support SQLite memory data bases.", 'DB', 2)
++##        return
++##    
++##    cherrypy.log("creating database engine for URI '%s'" % cherrypy.config.get('db.uri'), 'DB')
++##    engine = sqlalchemy.create_engine(cherrypy.config.get('db.uri'), encoding='utf-8')
++##    
++##    metadata.dispose()
++##    metadata.connect(engine)
++##    
++##    error_string = None
++##    
++##    try: 
++##        versions = DBVersion.select()
++##        if options.generate_tables:
++##            cherrypy.log('generation of data base tables requested, but '+
++##                         'schema version table exists', 'DB', 1)
++##    except SQLError:
++##        if options.generate_tables:
++##            cherrypy.log('generating data base tables, as requested', 'DB', 0)
++##            metadata.create_all(engine=engine)
++##            DBVersion('FelloWiki - Base', 1)
++##            sqlalchemy.objectstore.session.flush()
++##            
++##        else:
++##            error_string = "The FelloWiki data base tables seem not to be " \
++##                         + "installed. Please run FelloWiki with the flag " \
++##                         + "'--generate-tables' to create all needed tables."
++##            cherrypy.root = DataBaseHelper(error_string)
++##            cherrypy.log(error_string, 'DB', 2)
++##            cherrypy.server.start()
++##            return
++##    
++##    
++##    
++##    wiki_root = cherrypy.root = FelloWikiRoot()
++##    wiki_root.wiki = WikiInstance()
++##        
++##        
++##    cherrypy.server.start()
++##
++##    
++##      
++##if __name__ == '__main__':
++##    start_web_server()
+
+
+Property changes on: trunk/start-fellowiki.py
+___________________________________________________________________
+Name: svn:executable
+   + *
+
+
+
+From fingerle at mail.berlios.de  Mon Sep 11 01:38:27 2006
+From: fingerle at mail.berlios.de (fingerle at BerliOS)
+Date: Mon, 11 Sep 2006 01:38:27 +0200
+Subject: [fellowiki-svncheckins] r30 - in trunk: . fellowiki
+	fellowiki/config fellowiki/controllers
+	fellowiki/controllers/wikiparser/tests fellowiki/model
+	fellowiki/templates fellowiki/tests
+Message-ID: <200609102338.k8ANcRJG013309@sheep.berlios.de>
+
+Author: fingerle
+Date: 2006-09-11 01:38:25 +0200 (Mon, 11 Sep 2006)
+New Revision: 30
+
+Modified:
+   trunk/fellowiki/__init__.py
+   trunk/fellowiki/config/__init__.py
+   trunk/fellowiki/config/app.cfg
+   trunk/fellowiki/config/log.cfg
+   trunk/fellowiki/controllers/__init__.py
+   trunk/fellowiki/controllers/wikiparser/tests/test_parser.py
+   trunk/fellowiki/json.py
+   trunk/fellowiki/model/__init__.py
+   trunk/fellowiki/model/model_classes.py
+   trunk/fellowiki/model/schema.py
+   trunk/fellowiki/templates/__init__.py
+   trunk/fellowiki/tests/__init__.py
+   trunk/fellowiki/tests/test_controllers.py
+   trunk/fellowiki/tests/test_model.py
+   trunk/setup.py
+   trunk/start-fellowiki.py
+Log:
+- some more TurboGearsifying
+
+
+Modified: trunk/fellowiki/__init__.py
+===================================================================
+--- trunk/fellowiki/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/__init__.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -0,0 +1,19 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the "Software"),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
+
+Modified: trunk/fellowiki/config/__init__.py
+===================================================================
+--- trunk/fellowiki/config/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/config/__init__.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -0,0 +1,19 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the "Software"),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
+
+Modified: trunk/fellowiki/config/app.cfg
+===================================================================
+--- trunk/fellowiki/config/app.cfg	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/config/app.cfg	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,27 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++#
++# This source code file is based on a TurboGears "quickstarted" project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the "Software"),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ [global]
+ # The settings in this file should not vary depending on the deployment
+ # environment. dev.cfg and prod.cfg are the locations for
+
+Modified: trunk/fellowiki/config/log.cfg
+===================================================================
+--- trunk/fellowiki/config/log.cfg	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/config/log.cfg	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,27 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++#
++# This source code file is based on a TurboGears "quickstarted" project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the "Software"),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ # LOGGING
+ # Logging is often deployment specific, but some handlers and
+ # formatters can be defined here.
+
+Modified: trunk/fellowiki/controllers/__init__.py
+===================================================================
+--- trunk/fellowiki/controllers/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/controllers/__init__.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,23 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the "Software"),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ import logging
+ 
+ import cherrypy
+@@ -5,14 +25,19 @@
+ import turbogears
+ from turbogears import controllers, expose, validate, redirect
+ from turbogears.database import session
++from fellowiki.model import *
+ 
+ from fellowiki import json
+ 
+ log = logging.getLogger("fellowiki.controllers")
+ 
+-class Root(controllers.RootController):
++class FelloWikiRoot(controllers.RootController):
+     @expose(template="fellowiki.templates.welcome")
+     def index(self):
++        cherrypy.log('Versions:', 'DEBUG', 0)
++        versions = DBVersion.select()
++        for item in versions:
++            cherrypy.log(unicode(item), 'DEBUG', 0)
+         import time
+         log.debug("Happy TurboGears Controller Responding For Duty")
+         return dict(now=time.ctime())
+
+Modified: trunk/fellowiki/controllers/wikiparser/tests/test_parser.py
+===================================================================
+--- trunk/fellowiki/controllers/wikiparser/tests/test_parser.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/controllers/wikiparser/tests/test_parser.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -38,12 +38,12 @@
+ from elementtree.ElementTree import tostring, fromstring, Element, SubElement
+ from xml.parsers.xmlproc import xmlval, utils, xmldtd
+ 
+-from fellowiki.wiki.parser import WikiParser, PROC
+-from fellowiki.wiki.links import LINK, IMAGE_LINK
+-from fellowiki.wiki.macros import SPLIT, ESCAPE, MACRO, \
++from fellowiki.controllers.wikiparser.parser import WikiParser, PROC
++from fellowiki.controllers.wikiparser.links import LINK, IMAGE_LINK
++from fellowiki.controllers.wikiparser.macros import SPLIT, ESCAPE, MACRO, \
+                                   DEFERRED, BLOCK_LEVEL
+ 
+-from fellowiki.wiki import macros, tables, lists, headlines, special_characters, \
++from fellowiki.controllers.wikiparser import macros, tables, lists, headlines, special_characters, \
+             escaped_text, links, special_markup, text_style, \
+             text_style_simple, structure_modifiers
+ 
+@@ -53,7 +53,7 @@
+ 
+ # Pre-load the xhtml DTD once, since reloading for each xmlproc
+ # would be a major performance hit.
+-_xhtml_dtd = xmldtd.load_dtd(join(dirname(abspath(__file__)), '..', '..',
++_xhtml_dtd = xmldtd.load_dtd(join(dirname(abspath(__file__)), '..', '..', '..',
+                                   'third_party', 'w3c', 'xhtml1-strict.dtd'))
+ 
+ def _assert_etrees(etree_1, etree_2):
+
+Modified: trunk/fellowiki/json.py
+===================================================================
+--- trunk/fellowiki/json.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/json.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,28 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++#
++# This source code file is based on a TurboGears "quickstarted" project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the "Software"),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
++
+ # This module provides helper functions for the JSON part of your
+ # view, if you are providing a JSON-based API for your app.
+ 
+
+Modified: trunk/fellowiki/model/__init__.py
+===================================================================
+--- trunk/fellowiki/model/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/model/__init__.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1 +1,21 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the "Software"),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ from model_classes import *
+
+Modified: trunk/fellowiki/model/model_classes.py
+===================================================================
+--- trunk/fellowiki/model/model_classes.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/model/model_classes.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,23 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the "Software"),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ from sqlalchemy import *
+ from sqlalchemy.ext.assignmapper import assign_mapper
+ from sqlalchemy.ext.sessioncontext import SessionContext
+
+Modified: trunk/fellowiki/model/schema.py
+===================================================================
+--- trunk/fellowiki/model/schema.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/model/schema.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,23 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the "Software"),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ from sqlalchemy import *
+ 
+ import turbogears.database
+
+Modified: trunk/fellowiki/templates/__init__.py
+===================================================================
+--- trunk/fellowiki/templates/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/templates/__init__.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -0,0 +1,19 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the "Software"),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
+
+Modified: trunk/fellowiki/tests/__init__.py
+===================================================================
+--- trunk/fellowiki/tests/__init__.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/tests/__init__.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -17,12 +17,3 @@
+ # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ # DEALINGS IN THE SOFTWARE.
+-
+-"""fellowiki test package
+-
+-This test package doesn't do anything special, it's just there to contain
+-the subpackages:
+-
+-    - wiki:  tests for the wiki engine
+-    
+-"""
+
+Modified: trunk/fellowiki/tests/test_controllers.py
+===================================================================
+--- trunk/fellowiki/tests/test_controllers.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/tests/test_controllers.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,28 @@
++#!/usr/bin/python2.4
++# Copyright (c) 2006 Jan Niklas Fingerle
++#
++# This source code file is based on a TurboGears "quickstarted" project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the "Software"),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ from turbogears import testutil
+ from fellowiki.controllers import Root
+ import cherrypy
+
+Modified: trunk/fellowiki/tests/test_model.py
+===================================================================
+--- trunk/fellowiki/tests/test_model.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/fellowiki/tests/test_model.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,29 @@
++#!/usr/bin/python2.4
++# Copyright (c) 2006 Jan Niklas Fingerle
++#
++# This source code file is based on a TurboGears "quickstarted" project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the "Software"),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
++
+ # If your project uses a database, you can set up database tests
+ # similar to what you see below. Be sure to set the db_uri to
+ # an appropriate uri for your testing database. sqlite is a good
+
+Modified: trunk/setup.py
+===================================================================
+--- trunk/setup.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/setup.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,3 +1,28 @@
++# Copyright (c) 2006 Jan Niklas Fingerle
++#
++# This source code file is based on a TurboGears "quickstarted" project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the "Software"),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
++
+ from setuptools import setup, find_packages
+ from turbogears.finddata import find_package_data
+ 
+
+Modified: trunk/start-fellowiki.py
+===================================================================
+--- trunk/start-fellowiki.py	2006-09-10 14:40:09 UTC (rev 29)
++++ trunk/start-fellowiki.py	2006-09-10 23:38:25 UTC (rev 30)
+@@ -1,162 +1,130 @@
+ #!/usr/bin/python2.4
++# Copyright (c) 2006 Jan Niklas Fingerle
++#
++# This source code file is based on a TurboGears "quickstarted" project.
++# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
++# and contributors.
++# 
++# Permission is hereby granted, free of charge, to any person obtaining a
++# copy of this software and associated documentation files (the "Software"),
++# to deal in the Software without restriction, including without limitation
++# the rights to use, copy, modify, merge, publish, distribute, sublicense,
++# and/or sell copies of the Software, and to permit persons to whom the
++# Software is furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
++# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++# DEALINGS IN THE SOFTWARE.
++
+ import pkg_resources
+ pkg_resources.require("TurboGears")
+ 
+-import turbogears
++from optparse import OptionParser
++from os.path import join, exists, dirname
++
+ import cherrypy
+-cherrypy.lowercase_api = True
++import turbogears
++from sqlalchemy.exceptions import SQLError
+ 
+-from os.path import *
+-import sys
++from fellowiki.model import DBVersion
+ 
+-# first look on the command line for a desired config file,
+-# if it's not on the command line, then
+-# look for setup.py in this directory. If it's not there, this script is
+-# probably installed
+-if len(sys.argv) > 1:
+-    turbogears.update_config(configfile=sys.argv[1], 
+-        modulename="fellowiki.config")
+-elif exists(join(dirname(__file__), "setup.py")):
+-    turbogears.update_config(configfile="dev.cfg",
+-        modulename="fellowiki.config")
+-else:
+-    turbogears.update_config(configfile="prod.cfg",
+-        modulename="fellowiki.config")
++def get_configuration():
++    parser = OptionParser()
++    parser.add_option("-c", "--config", dest="config_file", type='string',
++                  help="read configuration from FILE", metavar="FILE")
++    parser.add_option("-u", "--database ", dest="db_uri", type='string',
++                  help="data base URI", metavar="URI")
++    parser.add_option("-b", "--bind", dest="server_host", type='string',
++                  help="bind server to HOST", metavar="HOST")
++    parser.add_option("-p", "--port", dest="server_port", type='int',
++                  help="bind server to PORT", metavar="PORT")
++    parser.add_option("--generate-tables", dest="generate_tables", 
++                  action='store_true', default=False,
++                  help="generate fellowiki data base tables")
++    parser.add_option("--update-tables", dest="update_tables", 
++                  action='store_true', default=False,
++                  help="update fellowiki data base tables - not yet supported")
++                  
++    (options, args) = parser.parse_args()
++    
++    if len(args) <> 0:
++        parser.error("positional parameters supplied, but not expected")
++                      
++    return options
+ 
+-from fellowiki.controllers import Root
+ 
+-turbogears.start_server(Root())
++def check_database(options):
++    cherrypy.log('DB URI is %s' % cherrypy.config.get('sqlalchemy.dburi'), 'DB', 0)
++    if cherrypy.config.get('sqlalchemy.dburi') in ['sqlite://', 'sqlite://:memory:', 
++                                         'sqlite:///', 'sqlite:///:memory:']:
++        # SQLite data bases require one DBApi per Thread. Cherrypy is 
++        # multithreaded. Each thread will get its own *empty* memory DB, which
++        # is not what we want, therefore...
++        cherrypy.log("FelloWiki does not support SQLite memory data bases.", 'DB', 2)
++        return False
++    
++    try: 
++        versions = DBVersion.select()
++        if options.generate_tables:
++            cherrypy.log('generation of data base tables requested, but '+
++                         'schema version table exists', 'DB', 1)
++            return True
++    except SQLError:
++        if options.generate_tables:
++            cherrypy.log('generating data base tables, as requested', 'DB', 0)
++            
++            from turbogears.database import metadata, get_engine, session
++            
++            engine = get_engine()
++            
++            metadata.create_all(engine=engine)
++            DBVersion('FelloWiki - Base', 1)
++            session.flush()
++            
++        else:
++            cherrypy.log("The FelloWiki data base tables seem not to be " 
++                         + "installed. Please run FelloWiki with the flag " 
++                         + "'--generate-tables' to create all needed tables.", 'DB', 2)
++            return False
++        
++    return True
+ 
++def config_turbogears(options):
++    if options.config_file is not None:
++        turbogears.config.update_config(configfile=options.config_file, 
++            modulename="fellowiki.config")
++    elif exists(join(dirname(__file__), "setup.py")):
++        turbogears.config.update_config(configfile=join(dirname(__file__), "dev.cfg"),
++            modulename="fellowiki.config")
++    elif exists("/etc/fellowiki.cfg"):
++        turbogears.config.update_config(configfile="/etc/fellowiki.cfg",
++            modulename="fellowiki.config")
+ 
+-##from optparse import OptionParser
+-##from fellowiki.util.assorted import attributes_from_dict
+-##
+-##from fellowiki.database.model import DBVersion
+-##from fellowiki.database.schema import metadata
+-##
+-##import cherrypy
+-##
+-##import sqlalchemy
+-##from sqlalchemy.exceptions import SQLError
+-##
+-##from controllers import FelloWikiRoot, WikiInstance, DataBaseHelper
+-##      
+-##def get_configuration():
+-##    parser = OptionParser()
+-##    parser.add_option("-c", "--config", dest="config_file", type='string',
+-##                  help="read configuration from FILE", metavar="FILE")
+-##    parser.add_option("-d", "--development", action='store_true', dest="development_mode",
+-##                  help="run in development/debug mode")
+-##    parser.add_option("-u", "--database ", dest="db_uri", type='string',
+-##                  help="data base URI", metavar="URI")
+-##    parser.add_option("-l", "--log", dest="log_file", type='string',
+-##                  help="write logs to FILE", metavar="FILE")
+-##    parser.add_option("-s", "--silent", action='store_true', dest="silent",
+-##                  help="don't write logs to the screen")
+-##    parser.add_option("-b", "--bind", dest="server_host", type='string',
+-##                  help="bind server to HOST", metavar="HOST")
+-##    parser.add_option("-p", "--port", dest="server_port", type='int',
+-##                  help="bind server to PORT", metavar="PORT")
+-##    parser.add_option("--generate-tables", dest="generate_tables", 
+-##                  action='store_true', default=False,
+-##                  help="generate fellowiki data base tables")
+-##    parser.add_option("--update-tables", dest="update_tables", 
+-##                  action='store_true', default=False,
+-##                  help="update fellowiki data base tables")
+-##                  
+-##    (options, args) = parser.parse_args()
+-##    
+-##    if len(args) <> 0:
+-##        parser.error("positional parameters supplied, but not expected")
+-##                      
+-##    return options
+-##
+-##def config_cherrypy(options):
+-##    cherrypy.config.environments = \
+-##            {'development': {'server.log_file_not_found': True, 
+-##                             'server.show_tracebacks': True, 
+-##                             'server.log_request_headers': True, 
+-##                             'autoreload.on': True, 
+-##                             'log_debug_info_filter.on': False}, 
+-##             'production':  {'server.log_file_not_found': False, 
+-##                             'server.show_tracebacks': False,
+-##                             'server.log_request_headers': False, 
+-##                             'autoreload.on': False, 
+-##                             'log_debug_info_filter.on': False}}
+-##                             
+-##    cherrypy.config.update({'global': {'server.environment': 'production'}})
+-##        
+-##    if options.config_file is not None:
+-##        cherrypy.config.update(file=options.config_file)
+-##    
+-##    new_conf = {}
+-##    
+-##    if options.development_mode is True:
+-##        new_conf['server.environment'] = 'development'
+-##    if options.log_file is not None:
+-##        new_conf['server.log_file'] = options.log_file
+-##    if options.server_host is not None:
+-##        new_conf['server.socket_host'] = options.server_host
+-##    if options.server_port is not None:
+-##        new_conf['server.socket_port'] = options.server_port
+-##    if options.silent is True:
+-##        new_conf['server.log_to_screen'] = False
+-##    if options.db_uri is not None:   
+-##        new_conf['db.uri'] = options.db_uri
+-##        
+-##    cherrypy.config.update({'global': new_conf})
+-##
+-##def start_web_server():
+-##    options = get_configuration()
+-##    
+-##    config_cherrypy(options)
+-##    
+-##    if cherrypy.config.get('db.uri') in ['sqlite://', 'sqlite://:memory:', 
+-##                                         'sqlite:///', 'sqlite:///:memory:']:
+-##        # SQLite data bases require one DBApi per Thread. Cherrypy is 
+-##        # multithreaded. Each thread will get its own *empty* memory DB, which
+-##        # is not what we want, therefore...
+-##        cherrypy.log("FelloWiki does not support SQLite memory data bases.", 'DB', 2)
+-##        return
+-##    
+-##    cherrypy.log("creating database engine for URI '%s'" % cherrypy.config.get('db.uri'), 'DB')
+-##    engine = sqlalchemy.create_engine(cherrypy.config.get('db.uri'), encoding='utf-8')
+-##    
+-##    metadata.dispose()
+-##    metadata.connect(engine)
+-##    
+-##    error_string = None
+-##    
+-##    try: 
+-##        versions = DBVersion.select()
+-##        if options.generate_tables:
+-##            cherrypy.log('generation of data base tables requested, but '+
+-##                         'schema version table exists', 'DB', 1)
+-##    except SQLError:
+-##        if options.generate_tables:
+-##            cherrypy.log('generating data base tables, as requested', 'DB', 0)
+-##            metadata.create_all(engine=engine)
+-##            DBVersion('FelloWiki - Base', 1)
+-##            sqlalchemy.objectstore.session.flush()
+-##            
+-##        else:
+-##            error_string = "The FelloWiki data base tables seem not to be " \
+-##                         + "installed. Please run FelloWiki with the flag " \
+-##                         + "'--generate-tables' to create all needed tables."
+-##            cherrypy.root = DataBaseHelper(error_string)
+-##            cherrypy.log(error_string, 'DB', 2)
+-##            cherrypy.server.start()
+-##            return
+-##    
+-##    
+-##    
+-##    wiki_root = cherrypy.root = FelloWikiRoot()
+-##    wiki_root.wiki = WikiInstance()
+-##        
+-##        
+-##    cherrypy.server.start()
+-##
+-##    
+-##      
+-##if __name__ == '__main__':
+-##    start_web_server()
++    new_conf = {}
++    
++    if options.server_host is not None:
++        new_conf['server.socket_host'] = options.server_host
++    if options.server_port is not None:
++        new_conf['server.socket_port'] = options.server_port
++    if options.db_uri is not None:   
++        new_conf['sqlalchemy.dburi'] = options.db_uri
++        
++    turbogears.config.update({'global': new_conf})
++
++
++def start_web_server():
++    options = get_configuration()
++    config_turbogears(options)
++    if check_database(options):
++        from fellowiki.controllers import FelloWikiRoot
++        turbogears.start_server(FelloWikiRoot())
++      
++if __name__ == '__main__':
++    start_web_server()
+
+
+
+From fingerle at mail.berlios.de  Mon Sep 11 01:39:54 2006
+From: fingerle at mail.berlios.de (fingerle at BerliOS)
+Date: Mon, 11 Sep 2006 01:39:54 +0200
+Subject: [fellowiki-svncheckins] r31 - trunk
+Message-ID: <200609102339.k8ANds21014162@sheep.berlios.de>
+
+Author: fingerle
+Date: 2006-09-11 01:39:54 +0200 (Mon, 11 Sep 2006)
+New Revision: 31
+
+Added:
+   trunk/fellowiki.py
+Removed:
+   trunk/start-fellowiki.py
+Log:
+- moved start-fellowiki.py to fellowiki.py
+
+
+Copied: trunk/fellowiki.py (from rev 30, trunk/start-fellowiki.py)
+
+Deleted: trunk/start-fellowiki.py
+===================================================================
+--- trunk/start-fellowiki.py	2006-09-10 23:38:25 UTC (rev 30)
++++ trunk/start-fellowiki.py	2006-09-10 23:39:54 UTC (rev 31)
+@@ -1,130 +0,0 @@
+-#!/usr/bin/python2.4
+-# Copyright (c) 2006 Jan Niklas Fingerle
+-#
+-# This source code file is based on a TurboGears "quickstarted" project.
+-# The TurboGears framework is copyrighted (c) 2005, 2006 by Kevin Dangoor 
+-# and contributors.
+-# 
+-# Permission is hereby granted, free of charge, to any person obtaining a
+-# copy of this software and associated documentation files (the "Software"),
+-# to deal in the Software without restriction, including without limitation
+-# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+-# and/or sell copies of the Software, and to permit persons to whom the
+-# Software is furnished to do so, subject to the following conditions:
+-#
+-# The above copyright notice and this permission notice shall be included in
+-# all copies or substantial portions of the Software.
+-#
+-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+-# DEALINGS IN THE SOFTWARE.
+-
+-import pkg_resources
+-pkg_resources.require("TurboGears")
+-
+-from optparse import OptionParser
+-from os.path import join, exists, dirname
+-
+-import cherrypy
+-import turbogears
+-from sqlalchemy.exceptions import SQLError
+-
+-from fellowiki.model import DBVersion
+-
+-def get_configuration():
+-    parser = OptionParser()
+-    parser.add_option("-c", "--config", dest="config_file", type='string',
+-                  help="read configuration from FILE", metavar="FILE")
+-    parser.add_option("-u", "--database ", dest="db_uri", type='string',
+-                  help="data base URI", metavar="URI")
+-    parser.add_option("-b", "--bind", dest="server_host", type='string',
+-                  help="bind server to HOST", metavar="HOST")
+-    parser.add_option("-p", "--port", dest="server_port", type='int',
+-                  help="bind server to PORT", metavar="PORT")
+-    parser.add_option("--generate-tables", dest="generate_tables", 
+-                  action='store_true', default=False,
+-                  help="generate fellowiki data base tables")
+-    parser.add_option("--update-tables", dest="update_tables", 
+-                  action='store_true', default=False,
+-                  help="update fellowiki data base tables - not yet supported")
+-                  
+-    (options, args) = parser.parse_args()
+-    
+-    if len(args) <> 0:
+-        parser.error("positional parameters supplied, but not expected")
+-                      
+-    return options
+-
+-
+-def check_database(options):
+-    cherrypy.log('DB URI is %s' % cherrypy.config.get('sqlalchemy.dburi'), 'DB', 0)
+-    if cherrypy.config.get('sqlalchemy.dburi') in ['sqlite://', 'sqlite://:memory:', 
+-                                         'sqlite:///', 'sqlite:///:memory:']:
+-        # SQLite data bases require one DBApi per Thread. Cherrypy is 
+-        # multithreaded. Each thread will get its own *empty* memory DB, which
+-        # is not what we want, therefore...
+-        cherrypy.log("FelloWiki does not support SQLite memory data bases.", 'DB', 2)
+-        return False
+-    
+-    try: 
+-        versions = DBVersion.select()
+-        if options.generate_tables:
+-            cherrypy.log('generation of data base tables requested, but '+
+-                         'schema version table exists', 'DB', 1)
+-            return True
+-    except SQLError:
+-        if options.generate_tables:
+-            cherrypy.log('generating data base tables, as requested', 'DB', 0)
+-            
+-            from turbogears.database import metadata, get_engine, session
+-            
+-            engine = get_engine()
+-            
+-            metadata.create_all(engine=engine)
+-            DBVersion('FelloWiki - Base', 1)
+-            session.flush()
+-            
+-        else:
+-            cherrypy.log("The FelloWiki data base tables seem not to be " 
+-                         + "installed. Please run FelloWiki with the flag " 
+-                         + "'--generate-tables' to create all needed tables.", 'DB', 2)
+-            return False
+-        
+-    return True
+-
+-def config_turbogears(options):
+-    if options.config_file is not None:
+-        turbogears.config.update_config(configfile=options.config_file, 
+-            modulename="fellowiki.config")
+-    elif exists(join(dirname(__file__), "setup.py")):
+-        turbogears.config.update_config(configfile=join(dirname(__file__), "dev.cfg"),
+-            modulename="fellowiki.config")
+-    elif exists("/etc/fellowiki.cfg"):
+-        turbogears.config.update_config(configfile="/etc/fellowiki.cfg",
+-            modulename="fellowiki.config")
+-
+-    new_conf = {}
+-    
+-    if options.server_host is not None:
+-        new_conf['server.socket_host'] = options.server_host
+-    if options.server_port is not None:
+-        new_conf['server.socket_port'] = options.server_port
+-    if options.db_uri is not None:   
+-        new_conf['sqlalchemy.dburi'] = options.db_uri
+-        
+-    turbogears.config.update({'global': new_conf})
+-
+-
+-def start_web_server():
+-    options = get_configuration()
+-    config_turbogears(options)
+-    if check_database(options):
+-        from fellowiki.controllers import FelloWikiRoot
+-        turbogears.start_server(FelloWikiRoot())
+-      
+-if __name__ == '__main__':
+-    start_web_server()
+
+
+
